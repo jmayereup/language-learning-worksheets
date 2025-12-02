@@ -103,7 +103,11 @@ const App: React.FC = () => {
       <nav className="bg-white border-b border-gray-200 sticky top-0 z-50 print:hidden">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleViewChange('home')}>
-                <img src="https://blog.teacherjake.com/apps/assets/tj-logo.png" alt="Logo" className="h-10 w-auto" />
+                {/* <img src="https://blog.teacherjake.com/apps/assets/tj-logo.png" alt="Logo" className="h-10 w-auto" /> */}
+                   <a href="https://blog.teacherjake.com" className="hover:opacity-80 transition-opacity">
+                <img src="https://blog.teacherjake.com/apps/assets/tj-logo.png" alt="Teacher Jake Logo"
+                    className="h-10 w-auto "></img>
+            </a>
                 <span className="hidden md:block font-bold text-gray-700">Worksheets</span>
             </div>
             {view === 'lesson' && (
