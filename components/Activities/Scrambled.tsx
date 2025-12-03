@@ -45,6 +45,19 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
     }
   }, [currentIndex, currentItem, isBeginner]);
 
+  // Sync formed sentence to parent state
+  useEffect(() => {
+    if (isBeginner) {
+      const currentSentence = formedSentence.map(w => w.text).join(' ');
+      const savedSentence = savedAnswers[currentIndex] || '';
+      
+      // Only update if different to avoid loops
+      if (currentSentence !== savedSentence) {
+        onChange({ ...savedAnswers, [currentIndex]: currentSentence });
+      }
+    }
+  }, [formedSentence, currentIndex, isBeginner, savedAnswers, onChange]);
+
   const moveWordToSentence = (wordId: number) => {
     if (isChecked) return;
     const word = wordBank.find(w => w.id === wordId);
@@ -52,10 +65,6 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
       setWordBank(prev => prev.filter(w => w.id !== wordId));
       setFormedSentence(prev => [...prev, word]);
       speakText(word.text, language);
-      
-      // Update parent state
-      const newSentence = [...formedSentence, word].map(w => w.text).join(' ');
-      onChange({...savedAnswers, [currentIndex]: newSentence});
     }
   };
 
@@ -65,9 +74,6 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
     if (word) {
       setFormedSentence(prev => prev.filter(w => w.id !== wordId));
       setWordBank(prev => [...prev, word]);
-      
-      const newSentence = formedSentence.filter(w => w.id !== wordId).map(w => w.text).join(' ');
-      onChange({...savedAnswers, [currentIndex]: newSentence});
     }
   };
 
@@ -77,8 +83,13 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
 
   const checkAnswer = () => {
     setIsChecked(true);
-    const userAnswer = savedAnswers[currentIndex] || '';
-    const isCorrect = normalizeString(userAnswer) === normalizeString(currentItem.answer);
+    
+    // Use local state for validation to ensure what user sees is what is checked
+    const currentAnswer = isBeginner 
+        ? formedSentence.map(w => w.text).join(' ')
+        : (savedAnswers[currentIndex] || '');
+        
+    const isCorrect = normalizeString(currentAnswer) === normalizeString(currentItem.answer);
 
     if (isCorrect) {
       setTimeout(() => {
@@ -211,7 +222,7 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
         <Button 
           variant={isChecked && !isCorrect ? "secondary" : "primary"}
           onClick={isChecked ? nextQuestion : checkAnswer}
-          disabled={!userAnswer && !isChecked}
+          disabled={(!userAnswer && !isBeginner && !isChecked) || (isBeginner && formedSentence.length === 0 && !isChecked)}
           className="min-w-[120px]"
         >
           {isChecked ? (currentIndex === data.length - 1 ? 'Finish' : 'Next') : 'Check'}

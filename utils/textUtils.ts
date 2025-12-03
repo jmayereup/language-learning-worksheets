@@ -1,6 +1,7 @@
 export const normalizeString = (str: string): string => {
   if (!str) return '';
-  return str.trim().toLowerCase().replace(/[.!,?]/g, '');
+  // Remove all punctuation and normalize whitespace (mobile browsers can add extra spaces)
+  return str.trim().toLowerCase().replace(/[.!,?;:"'()\[\]{}]/g, '').replace(/\s+/g, ' ').trim();
 };
 
 export const shuffleArray = <T,>(array: T[]): T[] => {
