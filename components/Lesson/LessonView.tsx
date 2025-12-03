@@ -107,8 +107,8 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
     window.print();
   };
 
-  const handleTranslate = () => {
-    const text = encodeURIComponent(lesson.content.readingText);
+  const handleTranslate = async () => {
+    const text = lesson.content.readingText;
     const langMap: Record<string, string> = {
       "English": "en",
       "French": "fr",
@@ -116,7 +116,34 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
       "German": "de"
     };
     const sourceLang = langMap[lesson.language] || 'auto';
-    window.open(`https://translate.google.com/?sl=${sourceLang}&text=${text}&op=translate`, '_blank');
+    
+    // Copy to clipboard as backup for mobile browsers
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (err) {
+      console.warn('Failed to copy to clipboard:', err);
+    }
+    
+    // Check if Android and try intent first
+    const isAndroid = /android/i.test(navigator.userAgent);
+    
+    if (isAndroid) {
+      // Try Android intent for Google Translate app
+      const intentUrl = `intent://translate.google.com/?sl=${sourceLang}&text=${encodeURIComponent(text)}&op=translate#Intent;scheme=https;package=com.google.android.apps.translate;end`;
+      
+      // Try to open intent, fall back to web if it fails
+      const intentWindow = window.open(intentUrl, '_blank');
+      
+      // Fallback to web version after a short delay if intent fails
+      setTimeout(() => {
+        if (!intentWindow || intentWindow.closed) {
+          window.open(`https://translate.google.com/?sl=${sourceLang}&text=${encodeURIComponent(text)}&op=translate`, '_blank');
+        }
+      }, 1000);
+    } else {
+      // Non-Android: just open web version
+      window.open(`https://translate.google.com/?sl=${sourceLang}&text=${encodeURIComponent(text)}&op=translate`, '_blank');
+    }
   };
 
   const calculateBreakdown = () => {
