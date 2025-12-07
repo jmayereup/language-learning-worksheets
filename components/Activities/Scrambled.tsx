@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ScrambledItem } from '../../types';
 import { normalizeString, speakText, shouldShowAudioControls } from '../../utils/textUtils';
 import { Button } from '../UI/Button';
-import { ChevronLeft, ChevronRight, Check, RefreshCw, Volume2, Turtle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Check, RefreshCw, Volume2, Turtle, SkipForward } from 'lucide-react';
 
 interface Props {
   data: ScrambledItem[];
@@ -17,6 +17,7 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
   const [wordBank, setWordBank] = useState<{id: number, text: string}[]>([]);
   const [formedSentence, setFormedSentence] = useState<{id: number, text: string}[]>([]);
   const [isChecked, setIsChecked] = useState(false);
+  const [isCorrectState, setIsCorrectState] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
   
   if (!data || data.length === 0) return null;
@@ -42,6 +43,10 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
       setWordBank(words);
       setFormedSentence([]);
       setIsChecked(false);
+      setIsCorrectState(false);
+    } else {
+      setIsChecked(false);
+      setIsCorrectState(false);
     }
   }, [currentIndex, currentItem, isBeginner]);
 
@@ -59,7 +64,8 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
   }, [formedSentence, currentIndex, isBeginner, savedAnswers, onChange]);
 
   const moveWordToSentence = (wordId: number) => {
-    if (isChecked) return;
+    if (isCorrectState) return;
+    setIsChecked(false);
     const word = wordBank.find(w => w.id === wordId);
     if (word) {
       setWordBank(prev => prev.filter(w => w.id !== wordId));
@@ -69,7 +75,8 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
   };
 
   const moveWordToBank = (wordId: number) => {
-    if (isChecked) return;
+    if (isCorrectState) return;
+    setIsChecked(false);
     const word = formedSentence.find(w => w.id === wordId);
     if (word) {
       setFormedSentence(prev => prev.filter(w => w.id !== wordId));
@@ -78,6 +85,7 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
   };
 
   const handleManualInput = (val: string) => {
+    setIsChecked(false);
     onChange({...savedAnswers, [currentIndex]: val});
   };
 
@@ -92,6 +100,7 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
     const isCorrect = normalizeString(currentAnswer) === normalizeString(currentItem.answer);
 
     if (isCorrect) {
+      setIsCorrectState(true);
       setTimeout(() => {
         if (currentIndex < data.length - 1) {
           setCurrentIndex(prev => prev + 1);
@@ -99,6 +108,14 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
           setIsCompleted(true);
         }
       }, 1500);
+    }
+  };
+
+  const handleSkip = () => {
+    if (currentIndex < data.length - 1) {
+      setCurrentIndex(prev => prev + 1);
+    } else {
+      setIsCompleted(true);
     }
   };
 
@@ -164,7 +181,7 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
                  <button 
                    key={word.id}
                    onClick={() => moveWordToBank(word.id)}
-                   disabled={isChecked}
+                   disabled={isCorrectState}
                    className="bg-white text-blue-800 px-3 py-2 rounded shadow-sm border border-blue-100 font-medium hover:bg-red-50 hover:text-red-600 transition-colors animate-pop-in text-lg"
                  >
                    {word.text}
@@ -178,16 +195,20 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
                placeholder="Type the sentence here..."
                value={userAnswer}
                onChange={(e) => handleManualInput(e.target.value)}
-               disabled={isChecked}
+               disabled={isCorrectState}
              />
            )}
         </div>
         
         {/* Result Message */}
-        {isChecked && !isCorrect && (
+        {isChecked && !isCorrectState && (
            <div className="mb-6 text-center animate-fade-in text-lg">
-             <p className="text-red-600 font-bold mb-1">Incorrect</p>
-             <p className="text-gray-600">Answer: {currentItem.answer}</p>
+             <p className="text-red-600 font-bold mb-1">Incorrect. Try again.</p>
+           </div>
+        )}
+        {isCorrectState && (
+           <div className="mb-6 text-center animate-fade-in text-lg">
+             <p className="text-green-600 font-bold mb-1">Correct!</p>
            </div>
         )}
 
@@ -210,7 +231,7 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
       <div className="flex items-center justify-between mt-6 pt-6 border-t border-gray-100">
         <Button 
           variant="secondary" 
-          onClick={() => { setCurrentIndex(prev => prev - 1); setIsChecked(false); }} 
+          onClick={() => { setCurrentIndex(prev => prev - 1); setIsChecked(false); setIsCorrectState(false); }} 
           disabled={currentIndex === 0}
           className="w-12 h-12 !p-0 rounded-full"
         >
@@ -221,14 +242,26 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
           {currentIndex + 1} / {data.length}
         </span>
 
-        <Button 
-          variant={isChecked && !isCorrect ? "secondary" : "primary"}
-          onClick={isChecked ? nextQuestion : checkAnswer}
-          disabled={(!userAnswer && !isBeginner && !isChecked) || (isBeginner && formedSentence.length === 0 && !isChecked)}
-          className="min-w-[120px]"
-        >
-          {isChecked ? (currentIndex === data.length - 1 ? 'Finish' : 'Next') : 'Check'}
-        </Button>
+        <div className="flex gap-2">
+            {!isCorrectState && (
+                <Button 
+                  variant="secondary"
+                  onClick={handleSkip}
+                  className="min-w-[80px]"
+                >
+                  {SkipForward ? <SkipForward className="w-4 h-4 mr-2" /> : null} Skip
+                </Button>
+            )}
+            
+            <Button 
+              variant={isChecked && !isCorrectState ? "secondary" : "primary"}
+              onClick={checkAnswer}
+              disabled={(!userAnswer && !isBeginner && !isCorrectState) || (isBeginner && formedSentence.length === 0 && !isCorrectState) || isCorrectState}
+              className="min-w-[120px]"
+            >
+              {isCorrectState ? 'Correct!' : (isChecked ? 'Try Again' : 'Check')}
+            </Button>
+        </div>
       </div>
     </section>
   );

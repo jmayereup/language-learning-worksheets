@@ -413,7 +413,6 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
          
          {showExamples && lesson.content.activities.writtenExpression.examples && (
              <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg animate-fade-in">
-                 <h3 className="font-semibold text-blue-900 mb-2">Examples:</h3>
                  <div 
                    className="prose prose-sm text-blue-800"
                    dangerouslySetInnerHTML={{__html: lesson.content.activities.writtenExpression.examples}} 
