@@ -347,8 +347,8 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
             ) : (
                <div className="flex items-center gap-2 bg-yellow-50 p-2 rounded border border-yellow-200">
                   <span className="text-xs text-yellow-800">⚠️ Audio unavailable.</span>
-                  {getAndroidIntentLink() ? (
-                      <a href={getAndroidIntentLink()} className="text-xs font-bold text-blue-600 underline">Open in Chrome</a>
+                  {getAndroidIntentLink(lesson.id) ? (
+                      <a href={getAndroidIntentLink(lesson.id)} className="text-xs font-bold text-blue-600 underline">Open in Chrome</a>
                   ) : (
                       <span className="text-xs text-gray-500">Please use Chrome or Safari.</span>
                   )}

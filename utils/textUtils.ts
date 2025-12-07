@@ -45,12 +45,17 @@ export const shouldShowAudioControls = (): boolean => {
   return true;
 };
 
-export const getAndroidIntentLink = (): string => {
+export const getAndroidIntentLink = (lessonId?: string): string => {
   const isAndroid = /android/i.test(navigator.userAgent);
   if (!isAndroid) return '';
 
-  const url = window.location.href;
-  const urlNoScheme = url.replace(/^https?:\/\//, '');
+  const url = new URL(window.location.href);
+  if (lessonId) {
+    url.searchParams.set('lesson', lessonId);
+  }
+
+  const urlString = url.toString();
+  const urlNoScheme = urlString.replace(/^https?:\/\//, '');
   const scheme = window.location.protocol.replace(':', '');
 
   return `intent://${urlNoScheme}#Intent;scheme=${scheme};package=com.android.chrome;end`;
