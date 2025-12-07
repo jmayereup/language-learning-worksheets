@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { ParsedLesson, UserAnswers } from '../../types';
-import { speakText, shuffleArray, getLangCode, shouldShowAudioControls, getAndroidIntentLink } from '../../utils/textUtils';
+import { speakText, shuffleArray, getLangCode, shouldShowAudioControls, getAndroidIntentLink, normalizeString } from '../../utils/textUtils';
 import { Button } from '../UI/Button';
 import { Vocabulary } from '../Activities/Vocabulary';
 import { FillInBlanks } from '../Activities/FillInBlanks';
@@ -107,8 +107,8 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
     window.print();
   };
 
-  const handleTranslate = () => {
-    const text = encodeURIComponent(lesson.content.readingText);
+  const handleTranslate = async () => {
+    const text = lesson.content.readingText;
     const langMap: Record<string, string> = {
       "English": "en",
       "French": "fr",
@@ -116,7 +116,34 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
       "German": "de"
     };
     const sourceLang = langMap[lesson.language] || 'auto';
-    window.open(`https://translate.google.com/?sl=${sourceLang}&text=${text}&op=translate`, '_blank');
+    
+    // Copy to clipboard as backup for mobile browsers
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (err) {
+      console.warn('Failed to copy to clipboard:', err);
+    }
+    
+    // Check if Android and try intent first
+    const isAndroid = /android/i.test(navigator.userAgent);
+    
+    if (isAndroid) {
+      // Try Android intent for Google Translate app
+      const intentUrl = `intent://translate.google.com/?sl=${sourceLang}&text=${encodeURIComponent(text)}&op=translate#Intent;scheme=https;package=com.google.android.apps.translate;end`;
+      
+      // Try to open intent, fall back to web if it fails
+      const intentWindow = window.open(intentUrl, '_blank');
+      
+      // Fallback to web version after a short delay if intent fails
+      setTimeout(() => {
+        if (!intentWindow || intentWindow.closed) {
+          window.open(`https://translate.google.com/?sl=${sourceLang}&text=${encodeURIComponent(text)}&op=translate`, '_blank');
+        }
+      }, 1000);
+    } else {
+      // Non-Android: just open web version
+      window.open(`https://translate.google.com/?sl=${sourceLang}&text=${encodeURIComponent(text)}&op=translate`, '_blank');
+    }
   };
 
   const calculateBreakdown = () => {
@@ -133,7 +160,7 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
     let fillScore = 0;
     const fillTotal = lesson.content.activities.fillInTheBlanks.length;
     lesson.content.activities.fillInTheBlanks.forEach((item, idx) => {
-        if ((answers.fillBlanks[idx] || '').trim().toLowerCase().replace(/[.!?]/g,'') === item.answer.trim().toLowerCase().replace(/[.!?]/g,'')) fillScore++;
+        if (normalizeString(answers.fillBlanks[idx] || '') === normalizeString(item.answer)) fillScore++;
     });
 
     // Comprehension
@@ -147,7 +174,7 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
     let scrambledScore = 0;
     const scrambledTotal = lesson.content.activities.scrambled.length;
     lesson.content.activities.scrambled.forEach((item, idx) => {
-        if ((answers.scrambled[idx] || '').trim().toLowerCase().replace(/[.!?]/g,'') === item.answer.trim().toLowerCase().replace(/[.!?]/g,'')) scrambledScore++;
+        if (normalizeString(answers.scrambled[idx] || '') === normalizeString(item.answer)) scrambledScore++;
     });
 
     return {
@@ -238,11 +265,10 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
 
         {/* Footer Message */}
         <div className="mt-3 text-center">
-            <p className="text-[10px] text-gray-400 italic">Take a screenshot to send to your teacher.</p>
+            <p className="text-[12px] text-gray-600 italic">Take a screenshot to send to your teacher.</p>
         </div>
 
         <div className="mt-4 flex justify-center gap-2 print:hidden">
-          <Button onClick={() => window.print()} variant="secondary" size="sm">Print</Button>
           {/* Back button now returns to the lesson for revisions instead of exiting */}
           <Button onClick={() => setShowResults(false)} size="sm">Back to Lesson</Button>
         </div>
@@ -412,18 +438,19 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
       </section>
 
       {/* Submission */}
-      <section className="bg-gradient-to-r from-blue-600 to-indigo-700 p-8 rounded-xl shadow-lg text-white text-center">
+      <section className="bg-indigo-700 p-8 rounded-xl shadow-lg text-white text-center">
          <h2 className="text-2xl font-bold mb-4">{isNameLocked ? 'Update Score' : 'Finished?'}</h2>
          <div className="max-w-md mx-auto mb-6">
-            <label className="block text-blue-100 mb-2 text-sm font-semibold uppercase tracking-wider">Nickname and Student Number</label>
+            <label className="block text-white mb-2 text-sm font-semibold uppercase tracking-wider">Nickname and Student Number</label>
             {isNameLocked ? (
-              <div className="w-full p-3 rounded-lg bg-white/10 border border-white/20 text-white font-bold text-xl backdrop-blur-sm">
+              <div className="w-full p-3 rounded-lg bg-white text-blue-900 font-bold text-xl shadow-sm">
                  {studentName}
               </div>
             ) : (
               <input 
                 type="text" 
-                className="w-full p-3 rounded-lg text-gray-800 focus:outline-none focus:ring-4 focus:ring-blue-400"
+                aria-label="Nickname and Student Number"
+                className="w-full p-3 rounded-lg bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-blue-400 text-lg font-semibold"
                 placeholder="Jake 01"
                 value={studentName}
                 onChange={(e) => setStudentName(e.target.value)}
@@ -433,7 +460,7 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
          <button 
            onClick={handleFinish}
            disabled={!studentName.trim()}
-           className="bg-white text-blue-700 font-bold py-3 px-8 rounded-full shadow-lg hover:bg-gray-100 transform hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+           className="bg-white text-blue-800 border border-blue-800 font-bold py-3 px-8 rounded-full shadow-lg hover:bg-gray-100 transform hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
          >
            {isNameLocked ? 'See Updated Report Card' : 'See My Score'}
          </button>
