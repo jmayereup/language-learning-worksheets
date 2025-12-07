@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ScrambledItem } from '../../types';
-import { normalizeString, speakText } from '../../utils/textUtils';
+import { normalizeString, speakText, shouldShowAudioControls } from '../../utils/textUtils';
 import { Button } from '../UI/Button';
 import { ChevronLeft, ChevronRight, Check, RefreshCw, Volume2, Turtle } from 'lucide-react';
 
@@ -124,14 +124,16 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
     <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-blue-800">Activity 4: Scrambled Sentences</h2>
-        <div className="flex gap-2">
-           <Button variant="secondary" size="sm" onClick={() => speakText(currentItem.answer, language, 0.6)} title="Slow Hint">
-             <Turtle className="w-4 h-4 mr-1" /> Hint
-           </Button>
-           <Button variant="secondary" size="sm" onClick={() => speakText(currentItem.answer, language, 1.0)} title="Normal Hint">
-             <Volume2 className="w-4 h-4 mr-1" /> Hint
-           </Button>
-        </div>
+        {shouldShowAudioControls() && (
+          <div className="flex gap-2">
+             <Button variant="secondary" size="sm" onClick={() => speakText(currentItem.answer, language, 0.6)} title="Slow Hint">
+               <Turtle className="w-4 h-4 mr-1" /> Hint
+             </Button>
+             <Button variant="secondary" size="sm" onClick={() => speakText(currentItem.answer, language, 1.0)} title="Normal Hint">
+               <Volume2 className="w-4 h-4 mr-1" /> Hint
+             </Button>
+          </div>
+        )}
       </div>
 
       <div className="min-h-[200px] py-4">
