@@ -103,7 +103,7 @@ export const Comprehension: React.FC<Props> = ({ data, readingText, onChange, sa
           <div className="order-2 lg:order-1">
             <h3 className="font-bold text-gray-500 uppercase mb-2">Reference Text</h3>
             <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 max-h-[300px] overflow-y-auto custom-scrollbar">
-                <p className="text-gray-700 leading-relaxed font-serif text-lg">
+                <p className="text-gray-700 leading-relaxed font-serif text-lg whitespace-pre-line">
                     {readingText}
                 </p>
             </div>

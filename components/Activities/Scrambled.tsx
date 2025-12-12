@@ -133,7 +133,7 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
     }, 0);
     return (
        <section className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 mb-8 text-center">
-         <h2 className="text-2xl font-bold text-blue-800 mb-4">Activity 4: Scrambled Sentences</h2>
+         <h2 className="text-2xl font-bold text-blue-800 mb-4">Activity 4: Sentences</h2>
          <div className={`text-3xl font-bold mb-4 ${totalCorrect === data.length ? 'text-green-600' : 'text-blue-600'}`}>
             Activity Completed!
          </div>
@@ -151,14 +151,14 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
   return (
     <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-blue-800">Activity 4: Scrambled Sentences</h2>
+        <h2 className="text-2xl font-bold text-blue-800">Activity 4: Sentences</h2>
         {shouldShowAudioControls() && (
           <div className="flex gap-2">
-             <Button variant="secondary" size="sm" onClick={() => speakText(currentItem.answer, language, 0.6)} title="Slow Hint">
-               <Turtle className="w-4 h-4 mr-1" /> Hint
+             <Button variant="secondary" size="sm" onClick={() => speakText(currentItem.answer, language, 0.6)} title="Slow">
+               <Turtle className="w-4 h-4 mr-1" /> Slow
              </Button>
-             <Button variant="secondary" size="sm" onClick={() => speakText(currentItem.answer, language, 1.0)} title="Normal Hint">
-               <Volume2 className="w-4 h-4 mr-1" /> Hint
+             <Button variant="secondary" size="sm" onClick={() => speakText(currentItem.answer, language, 1.0)} title="Normal">
+               <Volume2 className="w-4 h-4 mr-1" /> Normal
              </Button>
           </div>
         )}

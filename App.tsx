@@ -161,6 +161,7 @@ const App: React.FC = () => {
                         >
                             <option value="A1">A1 (Beginner)</option>
                             <option value="A2">A2 (Elementary)</option>
+                            <option value="B1">B1 (Intermediate)</option>
                         </select>
                     </div>
                     <div>

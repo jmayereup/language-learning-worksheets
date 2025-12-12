@@ -356,7 +356,7 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
             )}
         </div>
 
-        <div className="prose max-w-none font-serif text-lg md:text-xl leading-relaxed text-gray-800 bg-indigo-50/50 p-6 rounded-lg">
+        <div className="prose max-w-none font-serif text-lg md:text-xl leading-relaxed text-gray-800 bg-indigo-50/50 p-6 rounded-lg whitespace-pre-line">
             {lesson.content.readingText}
         </div>
       </section>
@@ -488,7 +488,7 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
                     alt="Lesson"
                  />
              )}
-             <div className="text-xs text-justify leading-snug columns-2 gap-6">
+             <div className="text-xs text-justify leading-snug columns-2 gap-6 whitespace-pre-line">
                 {lesson.content.readingText}
              </div>
         </div>
