@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { ParsedLesson, UserAnswers } from '../../types';
-import { speakText, shuffleArray, getLangCode, normalizeString } from '../../utils/textUtils';
+import { speakText, shuffleArray, getLangCode, shouldShowAudioControls, getAndroidIntentLink, normalizeString } from '../../utils/textUtils';
 import { Button } from '../UI/Button';
 import { Vocabulary } from '../Activities/Vocabulary';
 import { FillInBlanks } from '../Activities/FillInBlanks';
@@ -322,25 +322,38 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
                 <Languages className="w-4 h-4 mr-2" /> Translate
             </Button>
             
-            <Button size="sm" variant="secondary" onClick={() => toggleTTS(0.6)}>
-                {ttsState.rate === 0.6 && ttsState.status === 'playing' ? (
-                    <><Pause className="w-4 h-4 mr-2" /> Pause</>
-                ) : ttsState.rate === 0.6 && ttsState.status === 'paused' ? (
-                    <><Play className="w-4 h-4 mr-2" /> Resume</>
-                ) : (
-                    <><Turtle className="w-4 h-4 mr-2" /> Slow</>
-                )}
-            </Button>
+            {shouldShowAudioControls() ? (
+              <>
+                <Button size="sm" variant="secondary" onClick={() => toggleTTS(0.6)}>
+                    {ttsState.rate === 0.6 && ttsState.status === 'playing' ? (
+                        <><Pause className="w-4 h-4 mr-2" /> Pause</>
+                    ) : ttsState.rate === 0.6 && ttsState.status === 'paused' ? (
+                        <><Play className="w-4 h-4 mr-2" /> Resume</>
+                    ) : (
+                        <><Turtle className="w-4 h-4 mr-2" /> Slow</>
+                    )}
+                </Button>
 
-            <Button size="sm" variant="secondary" onClick={() => toggleTTS(1.0)}>
-                {ttsState.rate === 1.0 && ttsState.status === 'playing' ? (
-                    <><Pause className="w-4 h-4 mr-2" /> Pause</>
-                ) : ttsState.rate === 1.0 && ttsState.status === 'paused' ? (
-                    <><Play className="w-4 h-4 mr-2" /> Resume</>
-                ) : (
-                    <><Volume2 className="w-4 h-4 mr-2" /> Listen</>
-                )}
-            </Button>
+                <Button size="sm" variant="secondary" onClick={() => toggleTTS(1.0)}>
+                    {ttsState.rate === 1.0 && ttsState.status === 'playing' ? (
+                        <><Pause className="w-4 h-4 mr-2" /> Pause</>
+                    ) : ttsState.rate === 1.0 && ttsState.status === 'paused' ? (
+                        <><Play className="w-4 h-4 mr-2" /> Resume</>
+                    ) : (
+                        <><Volume2 className="w-4 h-4 mr-2" /> Listen</>
+                    )}
+                </Button>
+              </>
+            ) : (
+               <div className="flex items-center gap-2 bg-yellow-50 p-2 rounded border border-yellow-200">
+                  <span className="text-xs text-yellow-800">⚠️ Audio unavailable.</span>
+                  {getAndroidIntentLink(lesson.id) ? (
+                      <a href={getAndroidIntentLink(lesson.id)} className="text-xs font-bold text-blue-600 underline">Open in Chrome</a>
+                  ) : (
+                      <span className="text-xs text-gray-500">Please use Chrome or Safari.</span>
+                  )}
+               </div>
+            )}
         </div>
 
         <div className="prose max-w-none font-serif text-lg md:text-xl leading-relaxed text-gray-800 bg-indigo-50/50 p-6 rounded-lg">
