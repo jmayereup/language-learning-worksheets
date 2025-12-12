@@ -149,9 +149,7 @@ const App: React.FC = () => {
                             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
                         >
                             <option value="English">English</option>
-                            <option value="French">French</option>
                             <option value="Spanish">Spanish</option>
-                            <option value="German">German</option>
                         </select>
                     </div>
                     <div>
@@ -163,7 +161,6 @@ const App: React.FC = () => {
                         >
                             <option value="A1">A1 (Beginner)</option>
                             <option value="A2">A2 (Elementary)</option>
-                            <option value="B1">B1 (Intermediate)</option>
                         </select>
                     </div>
                     <div>
