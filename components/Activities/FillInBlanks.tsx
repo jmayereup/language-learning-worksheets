@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { FillInBlankItem, VocabularyItem } from '../../types';
 import { normalizeString, shuffleArray } from '../../utils/textUtils';
 import { Button } from '../UI/Button';
-import { ChevronLeft, ChevronRight, Check, RefreshCw } from 'lucide-react';
+import { Check } from 'lucide-react';
 
 interface Props {
   data: FillInBlankItem[];
@@ -12,170 +12,102 @@ interface Props {
   savedAnswers: Record<number, string>;
 }
 
-export const FillInBlanks: React.FC<Props> = ({ data, vocabItems, level, onChange, savedAnswers }) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
+export const FillInBlanks: React.FC<Props> = ({ data, onChange, savedAnswers }) => {
   const [isChecked, setIsChecked] = useState(false);
-  const [isCompleted, setIsCompleted] = useState(false);
-  
+
+  // Randomize question order once on mount/data change
+  const shuffledIndices = useMemo(() => {
+    const indices = data.map((_, i) => i);
+    return shuffleArray(indices);
+  }, [data]);
+
+  // Create word bank from answers
+  const wordBank = useMemo(() => {
+    const answers = data.map(item => item.answer);
+    return shuffleArray(answers);
+  }, [data]);
+
   if (!data || data.length === 0) return null;
 
-  const isBeginner = level === 'A1' || level === 'A2';
-
-  const currentItem = data[currentIndex];
-  const currentAnswer = savedAnswers[currentIndex] || '';
-
-  // Generate options for dropdown if beginner
-  const getOptions = (correctAnswer: string): string[] => {
-    const distractors = vocabItems
-      .filter(v => normalizeString(v.label) !== normalizeString(correctAnswer))
-      .map(v => v.label);
-    
-    // Pick 3 random distractors + correct answer
-    // Explicitly type the array and the generic to ensure proper inference
-    const pool: string[] = [...shuffleArray<string>(distractors).slice(0, 3), correctAnswer];
-    const options = shuffleArray<string>(pool);
-    return options;
+  const handleCheck = () => {
+    setIsChecked(true);
   };
 
-  const handleNext = () => {
-    if (!isChecked) {
-      // Check Mode
-      setIsChecked(true);
-      const isCorrect = normalizeString(currentAnswer) === normalizeString(currentItem.answer);
-      
-      // Auto advance if correct
-      if (isCorrect && currentIndex < data.length - 1) {
-        setTimeout(() => {
-          setIsChecked(false);
-          setCurrentIndex(prev => prev + 1);
-        }, 1000);
-      } else if (isCorrect && currentIndex === data.length - 1) {
-        setTimeout(() => setIsCompleted(true), 1000);
-      }
-    } else {
-      // Next Mode (after checking incorrect answer)
-      if (currentIndex < data.length - 1) {
-        setIsChecked(false);
-        setCurrentIndex(prev => prev + 1);
-      } else {
-        setIsCompleted(true);
-      }
-    }
+  const handleChange = (originalIndex: number, value: string) => {
+    if (isChecked) setIsChecked(false);
+    onChange({
+      ...savedAnswers,
+      [originalIndex]: value
+    });
   };
 
-  const handlePrev = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex(prev => prev - 1);
-      setIsChecked(false);
-      setIsCompleted(false);
-    }
-  };
-
-  const handleRetry = () => {
-    setCurrentIndex(0);
-    setIsChecked(false);
-    setIsCompleted(false);
-    onChange({});
-  };
-
-  // UI for correct/incorrect state
-  const isCorrect = normalizeString(currentAnswer) === normalizeString(currentItem?.answer || '');
-  let inputClass = "border-b-2 border-blue-300 bg-blue-50 text-blue-900 font-semibold px-2 py-1 mx-2 focus:outline-none focus:border-blue-600 transition-colors text-center min-w-[140px] text-lg md:text-xl";
-  
-  if (isChecked) {
-    inputClass = isCorrect
-      ? "border-b-2 border-green-500 bg-green-50 text-green-900 font-bold px-2 py-1 mx-2 text-lg md:text-xl"
-      : "border-b-2 border-red-500 bg-red-50 text-red-900 font-bold px-2 py-1 mx-2 text-lg md:text-xl";
-  }
-
-  if (isCompleted) {
-    // Calculate total score for final display
-    const totalCorrect = data.reduce((acc, item, idx) => {
-      return normalizeString(savedAnswers[idx] || '') === normalizeString(item.answer) ? acc + 1 : acc;
-    }, 0);
-
-    return (
-      <section className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 mb-8 text-center">
-         <h2 className="text-2xl font-bold text-blue-800 mb-4">Activity 2: Fill in the blanks</h2>
-         <div className={`text-3xl font-bold mb-4 ${totalCorrect === data.length ? 'text-green-600' : 'text-blue-600'}`}>
-            {totalCorrect === data.length ? '🎉 Perfect!' : 'Good Job!'}
-         </div>
-         <p className="text-gray-600 text-lg mb-6">You got {totalCorrect} out of {data.length} correct.</p>
-         <Button onClick={handleRetry} variant="secondary">
-           <RefreshCw className="w-4 h-4 mr-2" /> Retry Activity
-         </Button>
-      </section>
-    );
-  }
+  // Calculate score
+  const correctCount = data.reduce((acc, item, index) => {
+    const userAnswer = savedAnswers[index] || '';
+    return normalizeString(userAnswer) === normalizeString(item.answer) ? acc + 1 : acc;
+  }, 0);
 
   return (
-    <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
+    <section className="bg-white p-6 md:p-8 rounded-xl shadow-sm border border-gray-100 mb-8">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-blue-800">Activity 2: Fill in the blanks</h2>
-      </div>
-
-      <div className="min-h-[150px] flex flex-col justify-center items-center py-8">
-        <div className="text-lg md:text-xl leading-loose text-center text-gray-800 max-w-3xl">
-          <span>{currentItem.before}</span>
-          
-          {isBeginner && vocabItems.length > 0 ? (
-             <select 
-               value={currentAnswer}
-               onChange={(e) => onChange({...savedAnswers, [currentIndex]: e.target.value})}
-               disabled={isChecked}
-               className={`${inputClass} rounded cursor-pointer appearance-none py-2 px-4`}
-             >
-               <option value="">Select...</option>
-               {getOptions(currentItem.answer).map((opt, i) => (
-                 <option key={i} value={opt.toLowerCase()}>{opt.toLowerCase()}</option>
-               ))}
-             </select>
-          ) : (
-            <input 
-              type="text"
-              value={currentAnswer}
-              onChange={(e) => onChange({...savedAnswers, [currentIndex]: e.target.value})}
-              disabled={isChecked}
-              className={`${inputClass} rounded`}
-              placeholder="?"
-              autoComplete="off"
-            />
-          )}
-          
-          <span>{currentItem.after}</span>
-        </div>
-
-        {isChecked && !isCorrect && (
-          <div className="mt-4 text-red-600 font-semibold animate-fade-in text-lg">
-            Correct answer: <span className="underline">{currentItem.answer}</span>
+        {isChecked && (
+          <div className={`text-xl font-bold ${correctCount === data.length ? 'text-green-600' : 'text-blue-600'}`}>
+            Score: {correctCount}/{data.length}
           </div>
         )}
       </div>
 
-      {/* Navigation */}
-      <div className="flex items-center justify-between mt-6 pt-6 border-t border-gray-100">
-        <Button 
-          variant="secondary" 
-          onClick={handlePrev} 
-          disabled={currentIndex === 0}
-          className="w-12 h-12 !p-0 rounded-full"
-        >
-          <ChevronLeft className="w-6 h-6" />
-        </Button>
+      {/* Word Bank */}
+      <div className="bg-blue-50 p-4 rounded-lg mb-8 border border-blue-100">
+        <h3 className="text-sm font-semibold text-blue-600 uppercase tracking-wider mb-3">Word Bank</h3>
+        <div className="flex flex-wrap justify-around gap-2">
+          {wordBank.map((word, idx) => (
+            <span 
+              key={idx}
+              className="px-3 py-1.5 bg-white text-blue-800 rounded-md shadow-sm border border-blue-100 font-medium"
+            >
+              {word}
+            </span>
+          ))}
+        </div>
+      </div>
 
-        <span className="font-medium text-gray-500">
-          Question {currentIndex + 1} of {data.length}
-        </span>
+      {/* Questions List */}
+      <div className="space-y-6">
+        {shuffledIndices.map((originalIndex) => {
+          const item = data[originalIndex];
+          const userAnswer = savedAnswers[originalIndex] || '';
+          const isCorrect = normalizeString(userAnswer) === normalizeString(item.answer);
+          
+          let inputClass = "border-b-2 border-gray-300 bg-gray-50 px-2 py-1 mx-2 focus:outline-none focus:border-blue-500 focus:bg-white transition-colors min-w-[120px] text-center font-medium";
+          
+          if (isChecked) {
+            inputClass = isCorrect
+              ? "border-b-2 border-green-500 bg-green-50 text-green-900 font-bold px-2 py-1 mx-2 min-w-[120px] text-center"
+              : "border-b-2 border-red-500 bg-red-50 text-red-900 font-bold px-2 py-1 mx-2 min-w-[120px] text-center";
+          }
 
-        <Button 
-          variant={isChecked && !isCorrect ? "secondary" : "primary"}
-          onClick={handleNext}
-          disabled={!currentAnswer && !isChecked}
-          className="min-w-[120px]"
-        >
-          {isChecked ? (currentIndex === data.length - 1 ? 'Finish' : 'Next') : 'Check'}
-          {!isChecked && <Check className="ml-2 w-4 h-4" />}
-          {isChecked && <ChevronRight className="ml-2 w-4 h-4" />}
+          return (
+            <div key={originalIndex} className="leading-loose text-lg text-gray-700">
+              <span>{item.before}</span>
+              <input
+                type="text"
+                value={userAnswer}
+                onChange={(e) => handleChange(originalIndex, e.target.value)}
+                className={inputClass}
+                placeholder="_____"
+              />
+              <span>{item.after}</span>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Actions */}
+      <div className="mt-8 flex justify-center gap-4">
+        <Button onClick={handleCheck} icon={<Check size={20} />}>
+          Check Answers
         </Button>
       </div>
     </section>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ScrambledItem } from '../../types';
 import { normalizeString, speakText, shouldShowAudioControls } from '../../utils/textUtils';
 import { Button } from '../UI/Button';
-import { ChevronLeft, ChevronRight, Check, RefreshCw, Volume2, Turtle, SkipForward } from 'lucide-react';
+import { ChevronLeft, RefreshCw, Volume2, Turtle, SkipForward } from 'lucide-react';
 
 interface Props {
   data: ScrambledItem[];
