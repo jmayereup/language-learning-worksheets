@@ -34,8 +34,13 @@ const parseLessonContent = (content: string | LessonContent): LessonContent => {
 
 export const fetchLessons = async (language: string, level: string) => {
   try {
+    let filter = `language = "${language}"`;
+    if (level !== 'All') {
+      filter += ` && level = "${level}"`;
+    }
+
     const records = await pb.collection('worksheets').getFullList<LessonRecord>({
-      filter: `language = "${language}" && level = "${level}"`,
+      filter: filter,
       sort: '-created',
     });
     

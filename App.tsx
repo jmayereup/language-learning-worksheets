@@ -3,7 +3,7 @@ import { fetchLessons, fetchLessonById } from './services/pocketbase';
 import { ParsedLesson } from './types';
 import { LessonView } from './components/Lesson/LessonView';
 import { Button } from './components/UI/Button';
-import { BookOpen, Search } from 'lucide-react';
+import { BookOpen, Search, FlaskConical, Video, Feather, FileText } from 'lucide-react';
 
 const App: React.FC = () => {
   const [view, setView] = useState<'home' | 'lesson'>('home');
@@ -11,10 +11,10 @@ const App: React.FC = () => {
   
   // Filter States
   const [language, setLanguage] = useState('English');
-  const [level, setLevel] = useState('A1');
+  const [level, setLevel] = useState('All');
   const [tag, setTag] = useState('All');
 
-  const [lessons, setLessons] = useState<{id: string, title: string, tags: string[]}[]>([]);
+  const [lessons, setLessons] = useState<{id: string, title: string, tags: string[], level: string}[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingLesson, setLoadingLesson] = useState(false);
 
@@ -97,6 +97,14 @@ const App: React.FC = () => {
     return l.tags?.some(t => t.toLowerCase() === tag.toLowerCase());
   });
 
+  const getIconForTag = (tags: string[]) => {
+    const mainTag = tags?.[0]?.toLowerCase() || '';
+    if (mainTag.includes('science')) return <FlaskConical className="w-6 h-6 text-purple-500" />;
+    if (mainTag.includes('video')) return <Video className="w-6 h-6 text-red-500" />;
+    if (mainTag.includes('fable')) return <Feather className="w-6 h-6 text-amber-600" />;
+    return <FileText className="w-6 h-6 text-blue-500" />;
+  };
+
   return (
     <div className="min-h-screen font-sans">
       {/* Navbar - Hidden on print */}
@@ -159,6 +167,7 @@ const App: React.FC = () => {
                             onChange={(e) => setLevel(e.target.value)}
                             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
                         >
+                            <option value="All">All Levels</option>
                             <option value="A1">A1 (Beginner)</option>
                             <option value="A2">A2 (Elementary)</option>
                             <option value="B1">B1 (Intermediate)</option>
@@ -181,29 +190,51 @@ const App: React.FC = () => {
                 </div>
 
                 <div className="mb-6">
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Select a Topic</label>
-                    <div className="relative">
-                        <select 
-                           onChange={(e) => handleSelectLesson(e.target.value)}
-                           className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white appearance-none cursor-pointer"
-                           disabled={loading || lessons.length === 0}
-                           defaultValue=""
-                           value="" 
-                        >
-                            <option value="" disabled>
-                                {loading ? 'Loading topics...' : (lessons.length === 0 ? 'No lessons found' : 'Choose a lesson...')}
-                            </option>
-                            {filteredLessons.map(l => (
-                                <option key={l.id} value={l.id}>{l.title}</option>
-                            ))}
-                        </select>
-                        <div className="absolute right-3 top-3.5 pointer-events-none text-gray-500">
-                            {loading ? <div className="animate-spin h-5 w-5 border-2 border-blue-600 rounded-full border-t-transparent"></div> : <Search size={20} />}
+                    <h2 className="text-xl font-bold text-gray-800 mb-4">Available Lessons</h2>
+                    
+                    {loading ? (
+                        <div className="text-center py-12">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                            <p className="text-gray-500">Loading lessons...</p>
                         </div>
-                    </div>
-                    <div className="mt-2 text-right text-xs text-gray-400">
-                      Showing {filteredLessons.length} of {lessons.length} lessons
-                    </div>
+                    ) : filteredLessons.length === 0 ? (
+                        <div className="text-center py-12 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                            <p className="text-gray-500">No lessons found matching your criteria.</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {filteredLessons.map(l => (
+                                <div 
+                                    key={l.id}
+                                    onClick={() => handleSelectLesson(l.id)}
+                                    className="group bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md hover:border-blue-300 transition-all cursor-pointer flex items-start gap-4"
+                                >
+                                    <div className="flex-shrink-0 p-3 bg-gray-50 rounded-lg group-hover:bg-blue-50 transition-colors">
+                                        {getIconForTag(l.tags)}
+                                    </div>
+                                    
+                                    <div className="flex-grow min-w-0">
+                                        <div className="flex justify-between items-start mb-1">
+                                            <h3 className="font-bold text-gray-800 text-base line-clamp-2 pr-2 group-hover:text-blue-600 transition-colors">
+                                                {l.title}
+                                            </h3>
+                                            <span className="flex-shrink-0 text-[10px] font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                                                {l.level}
+                                            </span>
+                                        </div>
+                                        
+                                        <div className="flex flex-wrap gap-1.5">
+                                            {l.tags?.slice(0, 3).map(tag => (
+                                                <span key={tag} className="text-[10px] text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
+                                                    #{tag}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
                 
                 {loadingLesson && (
