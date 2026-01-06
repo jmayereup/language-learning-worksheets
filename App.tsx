@@ -56,10 +56,9 @@ const App: React.FC = () => {
         const data = await fetchLessons(language, level);
         setLessons(data);
         
-        // Update URL to reflect filters (but don't override lesson if one is active)
-        if (view === 'home') {
-             updateURL({ language, level, category: tag, lesson: '' });
-        }
+        // Update URL to reflect filters without touching the active lesson param.
+        // (Clearing `lesson` is handled explicitly when returning to Home.)
+        updateURL({ language, level, category: tag });
       } catch (err) {
         console.error(err);
       } finally {
