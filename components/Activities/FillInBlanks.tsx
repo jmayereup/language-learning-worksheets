@@ -1,18 +1,19 @@
 import React, { useState, useMemo } from 'react';
 import { FillInBlankItem, VocabularyItem } from '../../types';
-import { normalizeString, shuffleArray } from '../../utils/textUtils';
+import { normalizeString, shuffleArray, speakText } from '../../utils/textUtils';
 import { Button } from '../UI/Button';
-import { Check } from 'lucide-react';
+import { Check, Volume2 } from 'lucide-react';
 
 interface Props {
   data: FillInBlankItem[];
   vocabItems: VocabularyItem[];
   level: string;
+  language: string;
   onChange: (answers: Record<number, string>) => void;
   savedAnswers: Record<number, string>;
 }
 
-export const FillInBlanks: React.FC<Props> = ({ data, onChange, savedAnswers }) => {
+export const FillInBlanks: React.FC<Props> = ({ data, vocabItems, level, language, onChange, savedAnswers }) => {
   const [isChecked, setIsChecked] = useState(false);
 
   // Randomize question order once on mount/data change
@@ -63,7 +64,7 @@ export const FillInBlanks: React.FC<Props> = ({ data, onChange, savedAnswers }) 
         <h3 className="text-sm font-semibold text-blue-600 uppercase tracking-wider mb-3">Word Bank</h3>
         <div className="flex flex-wrap justify-around gap-2">
           {wordBank.map((word, idx) => (
-            <span 
+            <span
               key={idx}
               className="px-3 py-1.5 bg-white text-blue-800 rounded-md shadow-sm border border-blue-100 font-medium"
             >
@@ -79,9 +80,9 @@ export const FillInBlanks: React.FC<Props> = ({ data, onChange, savedAnswers }) 
           const item = data[originalIndex];
           const userAnswer = savedAnswers[originalIndex] || '';
           const isCorrect = normalizeString(userAnswer) === normalizeString(item.answer);
-          
+
           let inputClass = "border-b-2 border-gray-300 bg-gray-50 px-2 py-1 mx-2 focus:outline-none focus:border-blue-500 focus:bg-white transition-colors min-w-[120px] text-center font-medium";
-          
+
           if (isChecked) {
             inputClass = isCorrect
               ? "border-b-2 border-green-500 bg-green-50 text-green-900 font-bold px-2 py-1 mx-2 min-w-[120px] text-center"
@@ -89,7 +90,14 @@ export const FillInBlanks: React.FC<Props> = ({ data, onChange, savedAnswers }) 
           }
 
           return (
-            <div key={originalIndex} className="leading-loose text-lg text-gray-700">
+            <div key={originalIndex} className="leading-loose text-lg text-gray-700 flex flex-wrap items-center">
+              <button
+                onClick={() => speakText(`${item.before} ${item.answer} ${item.after}`, language, 0.7)}
+                className="mr-3 text-gray-400 hover:text-blue-600 transition-colors"
+                title="Hear sentence"
+              >
+                <Volume2 size={20} />
+              </button>
               <span>{item.before}</span>
               <input
                 type="text"

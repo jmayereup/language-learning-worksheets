@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { VocabularyActivity } from '../../types';
 import { Button } from '../UI/Button';
+import { Volume2 } from 'lucide-react';
+import { speakText } from '../../utils/textUtils';
 
 interface Props {
   data: VocabularyActivity;
+  language: string;
   onChange: (answers: Record<string, string>) => void;
   savedAnswers: Record<string, string>;
 }
 
-export const Vocabulary: React.FC<Props> = ({ data, onChange, savedAnswers }) => {
+export const Vocabulary: React.FC<Props> = ({ data, language, onChange, savedAnswers }) => {
   const [shuffledIndices, setShuffledIndices] = useState<number[]>([]);
   const [isChecked, setIsChecked] = useState(false);
   const [score, setScore] = useState(0);
@@ -23,24 +26,24 @@ export const Vocabulary: React.FC<Props> = ({ data, onChange, savedAnswers }) =>
   const handleInputChange = (itemIndex: number, value: string) => {
     // Only allow 1 char
     const char = value.slice(-1).toLowerCase();
-    
+
     const newAnswers = { ...savedAnswers, [`vocab_${itemIndex}`]: char };
     onChange(newAnswers);
-    
+
     // Optional: If you want to clear validation visual when they type, uncomment below
     // setIsChecked(false); 
   };
 
   const checkAnswers = () => {
     let correctCount = 0;
-    
+
     shuffledIndices.forEach(idx => {
       const item = data.items[idx];
       const userAnswer = savedAnswers[`vocab_${idx}`] || '';
       // Find which definition letter corresponds to the correct answer ID
       const correctDefIndex = data.definitions.findIndex(d => d.id === item.answer);
       const correctChar = String.fromCharCode(97 + correctDefIndex); // a, b, c...
-      
+
       if (userAnswer.toLowerCase() === correctChar) {
         correctCount++;
       }
@@ -55,7 +58,7 @@ export const Vocabulary: React.FC<Props> = ({ data, onChange, savedAnswers }) =>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-blue-800">Activity 1: Vocabulary</h2>
       </div>
-      
+
       <p className="text-gray-600 mb-6 text-lg">Select the correct letter for each word. You can check your answers as many times as you like.</p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -66,14 +69,14 @@ export const Vocabulary: React.FC<Props> = ({ data, onChange, savedAnswers }) =>
             const item = data.items[originalIndex];
             const inputId = `vocab_${originalIndex}`;
             const val = savedAnswers[inputId] || '';
-            
+
             // Determine styling based on check state
             let borderClass = "border-gray-300 focus:ring-blue-500 focus:border-blue-500";
             if (isChecked && val) {
-               const correctDefIndex = data.definitions.findIndex(d => d.id === item.answer);
-               const correctChar = String.fromCharCode(97 + correctDefIndex);
-               borderClass = val.toLowerCase() === correctChar 
-                ? "border-green-500 bg-green-50 text-green-700" 
+              const correctDefIndex = data.definitions.findIndex(d => d.id === item.answer);
+              const correctChar = String.fromCharCode(97 + correctDefIndex);
+              borderClass = val.toLowerCase() === correctChar
+                ? "border-green-500 bg-green-50 text-green-700"
                 : "border-red-500 bg-red-50 text-red-700";
             }
 
@@ -87,6 +90,13 @@ export const Vocabulary: React.FC<Props> = ({ data, onChange, savedAnswers }) =>
                   className={`w-12 h-12 text-center text-xl font-bold rounded-md border-2 outline-none transition-colors uppercase ${borderClass}`}
                   placeholder="?"
                 />
+                <button
+                  onClick={() => speakText(item.label, language, 0.7)}
+                  className="text-gray-400 hover:text-blue-600 transition-colors p-1"
+                  title="Hear word"
+                >
+                  <Volume2 size={18} />
+                </button>
                 <span className="font-medium text-gray-700 text-lg">{displayIndex + 1}. {item.label}</span>
               </div>
             );
@@ -97,9 +107,18 @@ export const Vocabulary: React.FC<Props> = ({ data, onChange, savedAnswers }) =>
         <div className="space-y-4">
           <h3 className="font-semibold text-xl text-gray-800 mb-4">Definitions:</h3>
           {data.definitions.map((def, idx) => (
-            <div key={def.id} className="flex gap-3 p-4 bg-indigo-50 rounded-lg border border-indigo-100">
+            <div key={def.id} className="flex gap-3 p-4 bg-indigo-50 rounded-lg border border-indigo-100 items-start">
               <span className="font-bold text-indigo-600 text-lg min-w-[1.5rem]">{String.fromCharCode(97 + idx)}.</span>
-              <span className="text-gray-700 leading-snug text-lg">{def.text}</span>
+              <div className="flex-1 flex justify-between items-start gap-2">
+                <span className="text-gray-700 leading-snug text-lg">{def.text}</span>
+                <button
+                  onClick={() => speakText(def.text, language, 0.7)}
+                  className="text-indigo-300 hover:text-indigo-600 transition-colors p-1 shrink-0"
+                  title="Hear definition"
+                >
+                  <Volume2 size={18} />
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -107,12 +126,12 @@ export const Vocabulary: React.FC<Props> = ({ data, onChange, savedAnswers }) =>
 
       <div className="mt-8 flex flex-col items-center gap-4">
         <div className="flex items-center gap-4">
-            <Button onClick={checkAnswers} size="lg">Check Answers</Button>
-            {isChecked && (
-                <div className={`text-xl font-bold ${score === data.items.length ? 'text-green-600' : 'text-blue-600'}`}>
-                    Score: {score} / {data.items.length}
-                </div>
-            )}
+          <Button onClick={checkAnswers} size="lg">Check Answers</Button>
+          {isChecked && (
+            <div className={`text-xl font-bold ${score === data.items.length ? 'text-green-600' : 'text-blue-600'}`}>
+              Score: {score} / {data.items.length}
+            </div>
+          )}
         </div>
       </div>
     </section>
