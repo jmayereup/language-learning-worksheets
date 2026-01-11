@@ -32,6 +32,12 @@ const parseLessonContent = (content: string | LessonContent): LessonContent => {
   return content;
 };
 
+const getYouTubeId = (url: string) => {
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+  const match = url?.match(regExp);
+  return (match && match[2].length === 11) ? match[2] : null;
+};
+
 export const fetchLessons = async (language: string, level: string) => {
   try {
     let filter = `language = "${language}"`;
@@ -43,15 +49,39 @@ export const fetchLessons = async (language: string, level: string) => {
       filter: filter,
       sort: '-created',
     });
-    
-    return records.map(record => ({
-      id: record.id,
-      // Prefer top-level title, fallback to content title
-      title: record.title || (typeof record.content === 'string' ? JSON.parse(record.content).title : record.content.title) || 'Untitled',
-      level: record.level,
-      language: record.language,
-      tags: record.tags || []
-    }));
+
+    return records.map(record => {
+      const content = typeof record.content === 'string' ? JSON.parse(record.content) : record.content;
+      const title = record.title || content.title || 'Untitled';
+
+      // Extract a snippet for the description, removing the title if it's at the start
+      let description = content.readingText || '';
+      if (description.startsWith(title)) {
+        description = description.substring(title.length).trim();
+      }
+      description = description.substring(0, 120) + (description.length > 120 ? '...' : '');
+
+      let imageUrl = record.image ? getFileUrl(record, record.image) : undefined;
+
+      // Fallback to YouTube thumbnail if no image uploaded
+      if (!imageUrl && record.videoUrl) {
+        const ytId = getYouTubeId(record.videoUrl);
+        if (ytId) {
+          imageUrl = `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`;
+        }
+      }
+
+      return {
+        id: record.id,
+        title,
+        level: record.level,
+        language: record.language,
+        tags: record.tags || [],
+        created: record.created,
+        imageUrl,
+        description
+      };
+    });
   } catch (error) {
     console.error("Error fetching lessons:", error);
     throw error;
@@ -62,12 +92,12 @@ export const fetchLessonById = async (id: string): Promise<ParsedLesson> => {
   try {
     const record = await pb.collection('worksheets').getOne<LessonRecord>(id);
     const content = parseLessonContent(record.content);
-    
+
     // If DB has a title, ensure it overrides the JSON content title
     if (record.title) {
-        content.title = record.title;
+      content.title = record.title;
     }
-    
+
     return {
       ...record,
       content,
