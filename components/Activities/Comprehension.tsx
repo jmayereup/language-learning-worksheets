@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ComprehensionActivity } from '../../types';
 import { Button } from '../UI/Button';
 import { Check, ChevronLeft, ChevronRight, RefreshCw, Volume2 } from 'lucide-react';
-import { speakText } from '../../utils/textUtils';
+import { speakText, shouldShowAudioControls, selectElementText } from '../../utils/textUtils';
 
 interface Props {
   data: ComprehensionActivity;
@@ -105,7 +105,7 @@ export const Comprehension: React.FC<Props> = ({ data, readingText, language, on
         <div className="order-2 lg:order-1">
           <h3 className="font-bold text-gray-500 uppercase mb-2">Reference Text</h3>
           <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 max-h-[300px] overflow-y-auto custom-scrollbar">
-            <p className="text-gray-700 leading-relaxed font-serif text-lg whitespace-pre-line">
+            <p className="text-gray-700 leading-relaxed font-serif text-lg whitespace-pre-line" translate="no">
               {readingText}
             </p>
           </div>
@@ -115,14 +115,19 @@ export const Comprehension: React.FC<Props> = ({ data, readingText, language, on
         <div className="order-1 lg:order-2 flex flex-col justify-center">
           <div className="mb-6 min-h-[120px]">
             <div className="flex items-start gap-3 mb-6">
-              <p className="text-lg md:text-xl font-medium text-gray-800 flex-1">{currentQuestion.text}</p>
-              <button
-                onClick={() => speakText(currentQuestion.text, language, 0.7)}
-                className="text-gray-400 hover:text-blue-600 transition-colors p-1 shrink-0"
-                title="Hear question"
-              >
-                <Volume2 size={24} />
-              </button>
+              <p className="text-lg md:text-xl font-medium text-gray-800 flex-1 selectable-text" translate="no">{currentQuestion.text}</p>
+              {shouldShowAudioControls() && (
+                <button
+                  onClick={(e) => {
+                    speakText(currentQuestion.text, language, 0.7);
+                    selectElementText(e.currentTarget.parentElement?.querySelector('.selectable-text') as HTMLElement);
+                  }}
+                  className="text-gray-400 hover:text-blue-600 transition-colors p-1 shrink-0"
+                  title="Hear question"
+                >
+                  <Volume2 size={24} />
+                </button>
+              )}
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
@@ -144,7 +149,7 @@ export const Comprehension: React.FC<Props> = ({ data, readingText, language, on
                   className="hidden"
                   disabled={isChecked}
                 />
-                <span className="font-bold text-lg">True</span>
+                <span className="font-bold text-lg" translate="no">True</span>
               </label>
 
               <label className={`
@@ -165,7 +170,7 @@ export const Comprehension: React.FC<Props> = ({ data, readingText, language, on
                   className="hidden"
                   disabled={isChecked}
                 />
-                <span className="font-bold text-lg">False</span>
+                <span className="font-bold text-lg" translate="no">False</span>
               </label>
             </div>
 

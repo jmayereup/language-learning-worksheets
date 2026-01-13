@@ -60,3 +60,12 @@ export const getAndroidIntentLink = (lessonId?: string): string => {
 
   return `intent://${urlNoScheme}#Intent;scheme=${scheme};package=com.android.chrome;end`;
 };
+
+export const selectElementText = (element: HTMLElement | null) => {
+  if (!element) return;
+  const selection = window.getSelection();
+  const range = document.createRange();
+  range.selectNodeContents(element);
+  selection?.removeAllRanges();
+  selection?.addRange(range);
+};

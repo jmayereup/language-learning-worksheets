@@ -340,7 +340,9 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
 
         {/* Media Section */}
         <section className="bg-white p-6 rounded-xl shadow-sm border border-indigo-100 mb-8">
-          <h2 className="text-xl font-bold text-indigo-900 mb-4">Reading Passage</h2>
+          <div translate="no">
+            <h2 className="text-xl font-bold text-indigo-900 mb-4">Reading Passage</h2>
+          </div>
 
           {lesson.isVideoLesson && lesson.videoUrl && (
             <div className="relative pt-[56.25%] mb-6 rounded-lg overflow-hidden bg-black shadow-md">
@@ -403,7 +405,7 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
             )}
           </div>
 
-          <div className="prose max-w-none font-serif text-2xl md:text-2xl leading-relaxed text-gray-800 bg-indigo-50/50 p-6 rounded-lg whitespace-pre-line">
+          <div className="prose max-w-none font-serif text-2xl md:text-2xl leading-relaxed text-gray-800 bg-indigo-50/50 p-6 rounded-lg whitespace-pre-line" translate="no">
             {renderReadingPassage(lesson.content.readingText)}
           </div>
         </section>
