@@ -6,7 +6,7 @@ import { Vocabulary } from '../Activities/Vocabulary';
 import { FillInBlanks } from '../Activities/FillInBlanks';
 import { Comprehension } from '../Activities/Comprehension';
 import { Scrambled } from '../Activities/Scrambled';
-import { Volume2, Turtle, Printer, Eye, EyeOff, Languages, Pause, Play, ChevronDown } from 'lucide-react';
+import { Volume2, Turtle, Printer, Eye, EyeOff, Languages, Pause, Play, ChevronDown, Video } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { getVoicesForLang, getBestVoice } from '../../utils/tts';
 
@@ -223,6 +223,30 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
     });
   };
 
+  const renderVideoExploration = () => {
+    if (lesson.isVideoLesson || !lesson.videoUrl) return null;
+
+    return (
+      <section className="bg-white p-6 rounded-xl shadow-sm border border-indigo-100 mb-8 text-center animate-fade-in print:hidden">
+        <div className="inline-flex items-center justify-center w-12 h-12 bg-indigo-100 rounded-full mb-4">
+          <Video className="w-6 h-6 text-indigo-600" />
+        </div>
+        <h2 className="text-2xl font-bold text-indigo-900 mb-2">Explore Further</h2>
+        <p className="text-gray-600 mb-6 text-lg">
+          Want to learn more about this topic? Watch this video to dive deeper!
+        </p>
+        <a
+          href={lesson.videoUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 bg-indigo-600 text-white px-8 py-3 rounded-full font-bold hover:bg-indigo-700 transform hover:scale-105 transition-all shadow-md"
+        >
+          Watch Video on YouTube
+        </a>
+      </section>
+    );
+  };
+
   const calculateBreakdown = () => {
     // Vocab
     let vocabScore = 0;
@@ -349,6 +373,9 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
           {/* Back button now returns to the lesson for revisions instead of exiting */}
           <Button onClick={() => setShowResults(false)} size="sm">Back to Lesson</Button>
         </div>
+        <div className="mt-8">
+          {renderVideoExploration()}
+        </div>
       </div>
     );
   }
@@ -370,7 +397,9 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
 
         {/* Media Section */}
         <section className="bg-white p-6 rounded-xl shadow-sm border border-indigo-100 mb-8">
-          <h2 className="text-xl font-bold text-indigo-900 mb-4">Reading Passage</h2>
+          <div translate="no">
+            <h2 className="text-xl font-bold text-indigo-900 mb-4">Reading Passage</h2>
+          </div>
 
           {lesson.isVideoLesson && lesson.videoUrl && (
             <div className="relative pt-[56.25%] mb-6 rounded-lg overflow-hidden bg-black shadow-md">
@@ -451,7 +480,7 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
             )}
           </div>
 
-          <div className="prose max-w-none font-serif text-2xl md:text-2xl leading-relaxed text-gray-800 bg-indigo-50/50 p-6 rounded-lg whitespace-pre-line">
+          <div className="prose max-w-none font-serif text-2xl md:text-2xl leading-relaxed text-gray-800 bg-indigo-50/50 p-6 rounded-lg whitespace-pre-line" translate="no">
             {renderReadingPassage(lesson.content.readingText)}
           </div>
         </section>
@@ -544,7 +573,7 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
         </section>
 
         {/* Submission */}
-        <section className="bg-indigo-700 p-8 rounded-xl shadow-lg text-white text-center">
+        <section className="bg-indigo-700 p-8 rounded-xl shadow-lg text-white text-center mb-8">
           <h2 className="text-2xl font-bold mb-4">{isNameLocked ? 'Update Score' : 'Finished?'}</h2>
           <div className="max-w-md mx-auto mb-6">
             <label className="block text-white mb-2 text-sm font-semibold uppercase tracking-wider">Nickname and Student Number</label>
@@ -571,6 +600,8 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
             {isNameLocked ? 'See Updated Report Card' : 'See My Score'}
           </button>
         </section>
+
+        {renderVideoExploration()}
       </div>
 
       {/* PRINT LAYOUT (Visible only on print) */}

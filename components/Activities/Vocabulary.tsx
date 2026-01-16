@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { VocabularyActivity } from '../../types';
 import { Button } from '../UI/Button';
 import { Volume2 } from 'lucide-react';
-import { speakText } from '../../utils/textUtils';
+import { speakText, shouldShowAudioControls, selectElementText } from '../../utils/textUtils';
 
 interface Props {
   data: VocabularyActivity;
@@ -90,14 +90,19 @@ export const Vocabulary: React.FC<Props> = ({ data, language, onChange, savedAns
                   className={`w-12 h-12 text-center text-xl font-bold rounded-md border-2 outline-none transition-colors uppercase ${borderClass}`}
                   placeholder="?"
                 />
-                <button
-                  onClick={() => speakText(item.label, language, 0.7)}
-                  className="text-gray-400 hover:text-blue-600 transition-colors p-1"
-                  title="Hear word"
-                >
-                  <Volume2 size={18} />
-                </button>
-                <span className="font-medium text-gray-700 text-lg">{displayIndex + 1}. {item.label}</span>
+                {shouldShowAudioControls() && (
+                  <button
+                    onClick={(e) => {
+                      speakText(item.label, language, 0.7);
+                      selectElementText(e.currentTarget.parentElement?.querySelector('.selectable-text') as HTMLElement);
+                    }}
+                    className="text-gray-400 hover:text-blue-600 transition-colors p-1"
+                    title="Hear word"
+                  >
+                    <Volume2 size={18} />
+                  </button>
+                )}
+                <span className="font-medium text-gray-700 text-lg selectable-text" translate="no">{displayIndex + 1}. {item.label}</span>
               </div>
             );
           })}
@@ -110,14 +115,19 @@ export const Vocabulary: React.FC<Props> = ({ data, language, onChange, savedAns
             <div key={def.id} className="flex gap-3 p-4 bg-indigo-50 rounded-lg border border-indigo-100 items-start">
               <span className="font-bold text-indigo-600 text-lg min-w-[1.5rem]">{String.fromCharCode(97 + idx)}.</span>
               <div className="flex-1 flex justify-between items-start gap-2">
-                <span className="text-gray-700 leading-snug text-lg">{def.text}</span>
-                <button
-                  onClick={() => speakText(def.text, language, 0.7)}
-                  className="text-indigo-300 hover:text-indigo-600 transition-colors p-1 shrink-0"
-                  title="Hear definition"
-                >
-                  <Volume2 size={18} />
-                </button>
+                <span className="text-gray-700 leading-snug text-lg selectable-text" translate="no">{def.text}</span>
+                {shouldShowAudioControls() && (
+                  <button
+                    onClick={(e) => {
+                      speakText(def.text, language, 0.7);
+                      selectElementText(e.currentTarget.parentElement?.querySelector('.selectable-text') as HTMLElement);
+                    }}
+                    className="text-indigo-300 hover:text-indigo-600 transition-colors p-1 shrink-0"
+                    title="Hear definition"
+                  >
+                    <Volume2 size={18} />
+                  </button>
+                )}
               </div>
             </div>
           ))}

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { FillInBlankItem, VocabularyItem } from '../../types';
-import { normalizeString, shuffleArray, speakText } from '../../utils/textUtils';
+import { normalizeString, shuffleArray, speakText, shouldShowAudioControls, selectElementText } from '../../utils/textUtils';
 import { Button } from '../UI/Button';
 import { Check, Volume2 } from 'lucide-react';
 
@@ -62,7 +62,7 @@ export const FillInBlanks: React.FC<Props> = ({ data, vocabItems, level, languag
       {/* Word Bank */}
       <div className="bg-blue-50 p-4 rounded-lg mb-8 border border-blue-100">
         <h3 className="text-sm font-semibold text-blue-600 uppercase tracking-wider mb-3">Word Bank</h3>
-        <div className="flex flex-wrap justify-around gap-2">
+        <div className="flex flex-wrap justify-around gap-2" translate="no">
           {wordBank.map((word, idx) => (
             <span
               key={idx}
@@ -91,22 +91,29 @@ export const FillInBlanks: React.FC<Props> = ({ data, vocabItems, level, languag
 
           return (
             <div key={originalIndex} className="leading-loose text-lg text-gray-700 flex flex-wrap items-center">
-              <button
-                onClick={() => speakText(`${item.before} ${item.answer} ${item.after}`, language, 0.7)}
-                className="mr-3 text-gray-400 hover:text-blue-600 transition-colors"
-                title="Hear sentence"
-              >
-                <Volume2 size={20} />
-              </button>
-              <span>{item.before}</span>
-              <input
-                type="text"
-                value={userAnswer}
-                onChange={(e) => handleChange(originalIndex, e.target.value)}
-                className={inputClass}
-                placeholder="_____"
-              />
-              <span>{item.after}</span>
+              {shouldShowAudioControls() && (
+                <button
+                  onClick={(e) => {
+                    speakText(`${item.before} ${item.answer} ${item.after}`, language, 0.7);
+                    selectElementText(e.currentTarget.parentElement?.querySelector('.selectable-text') as HTMLElement);
+                  }}
+                  className="mr-3 text-gray-400 hover:text-blue-600 transition-colors"
+                  title="Hear sentence"
+                >
+                  <Volume2 size={20} />
+                </button>
+              )}
+              <div className="selectable-text flex flex-wrap items-center" translate="no">
+                <span>{item.before}</span>
+                <input
+                  type="text"
+                  value={userAnswer}
+                  onChange={(e) => handleChange(originalIndex, e.target.value)}
+                  className={inputClass}
+                  placeholder="_____"
+                />
+                <span>{item.after}</span>
+              </div>
             </div>
           );
         })}

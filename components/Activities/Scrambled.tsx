@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ScrambledItem } from '../../types';
-import { normalizeString, speakText, shouldShowAudioControls } from '../../utils/textUtils';
+import { normalizeString, speakText, shouldShowAudioControls, selectElementText } from '../../utils/textUtils';
 import { Button } from '../UI/Button';
 import { ChevronLeft, RefreshCw, Volume2, Turtle, SkipForward } from 'lucide-react';
 
@@ -154,10 +154,26 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
         <h2 className="text-2xl font-bold text-blue-800">Activity 4: Sentences</h2>
         {shouldShowAudioControls() && (
           <div className="flex gap-2">
-            <Button variant="secondary" size="sm" onClick={() => speakText(currentItem.answer, language, 0.7)} title="Slow">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={(e) => {
+                speakText(currentItem.answer, language, 0.7);
+                selectElementText(e.currentTarget.parentElement?.parentElement?.parentElement?.querySelector('.selectable-text') as HTMLElement);
+              }}
+              title="Slow"
+            >
               <Turtle className="w-4 h-4 mr-1" /> Slow
             </Button>
-            <Button variant="secondary" size="sm" onClick={() => speakText(currentItem.answer, language, 1.0)} title="Normal">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={(e) => {
+                speakText(currentItem.answer, language, 1.0);
+                selectElementText(e.currentTarget.parentElement?.parentElement?.parentElement?.querySelector('.selectable-text') as HTMLElement);
+              }}
+              title="Normal"
+            >
               <Volume2 className="w-4 h-4 mr-1" /> Normal
             </Button>
           </div>
@@ -177,25 +193,28 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
             formedSentence.length === 0 && !isChecked ? (
               <span className="text-gray-400 italic pointer-events-none text-lg">Click words below to form the sentence...</span>
             ) : (
-              formedSentence.map(word => (
-                <button
-                  key={word.id}
-                  onClick={() => moveWordToBank(word.id)}
-                  disabled={isCorrectState}
-                  className="bg-white text-blue-800 px-3 py-2 rounded shadow-sm border border-blue-100 font-medium hover:bg-red-50 hover:text-red-600 transition-colors animate-pop-in text-lg"
-                >
-                  {word.text}
-                </button>
-              ))
+              <div className="selectable-text flex flex-wrap gap-2 items-center" translate="no">
+                {formedSentence.map(word => (
+                  <button
+                    key={word.id}
+                    onClick={() => moveWordToBank(word.id)}
+                    disabled={isCorrectState}
+                    className="bg-white text-blue-800 px-3 py-2 rounded shadow-sm border border-blue-100 font-medium hover:bg-red-50 hover:text-red-600 transition-colors animate-pop-in text-lg"
+                  >
+                    {word.text}
+                  </button>
+                ))}
+              </div>
             )
           ) : (
             <input
               type="text"
-              className="w-full bg-transparent outline-none text-lg p-2"
+              className="w-full bg-transparent outline-none text-lg p-2 selectable-text"
               placeholder="Type the sentence here..."
               value={userAnswer}
               onChange={(e) => handleManualInput(e.target.value)}
               disabled={isCorrectState}
+              translate="no"
             />
           )}
         </div>
@@ -214,7 +233,7 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
 
         {/* Word Bank (Beginner Only) */}
         {isBeginner && (
-          <div className="flex flex-wrap gap-3 justify-center">
+          <div className="flex flex-wrap gap-3 justify-center" translate="no">
             {wordBank.map(word => (
               <button
                 key={word.id}
