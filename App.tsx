@@ -4,6 +4,7 @@ import { ParsedLesson } from './types';
 import { LessonView } from './components/Lesson/LessonView';
 import { Button } from './components/UI/Button';
 import { BookOpen, Search, FlaskConical, Video, Feather, FileText } from 'lucide-react';
+import { BrowserSupportWarning } from './components/UI/BrowserSupportWarning';
 
 const App: React.FC = () => {
     const [view, setView] = useState<'home' | 'lesson'>('home');
@@ -114,6 +115,7 @@ const App: React.FC = () => {
 
     return (
         <div className="min-h-screen font-sans">
+            <BrowserSupportWarning />
             {/* Navbar - Hidden on print */}
             <nav className="bg-white border-b border-gray-200 sticky top-0 z-50 print:hidden">
                 <div className="container mx-auto px-4 py-3 flex items-center justify-between">

@@ -43,6 +43,7 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
   const [ttsState, setTtsState] = useState<{ status: 'playing' | 'paused' | 'stopped', rate: number }>({ status: 'stopped', rate: 1.0 });
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [selectedVoiceName, setSelectedVoiceName] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   const displayTitle = lesson.title || lesson.content.title;
 
@@ -52,6 +53,9 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
       const langCode = getLangCode(lesson.language);
       const voices = getVoicesForLang(langCode);
       setAvailableVoices(voices);
+
+      const mobile = /android|iphone|ipad|ipod/i.test(navigator.userAgent.toLowerCase());
+      setIsMobile(mobile);
 
       // Set initial best voice if not already set
       if (!selectedVoiceName) {
@@ -430,7 +434,7 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
 
             {shouldShowAudioControls() ? (
               <div className="flex flex-wrap items-center gap-2">
-                {availableVoices.length > 0 && (
+                {!isMobile && availableVoices.length > 0 && (
                   <div className="relative inline-block">
                     <select
                       value={selectedVoiceName || ''}
