@@ -1,3 +1,5 @@
+import { speak } from './tts';
+
 export const normalizeString = (str: string): string => {
   if (!str) return '';
   // Remove all punctuation and normalize whitespace (mobile browsers can add extra spaces)
@@ -23,23 +25,19 @@ export const getLangCode = (langName: string): string => {
   return map[langName] || "en-US";
 };
 
-export const speakText = (text: string, language: string, rate: number = 1.0) => {
-  if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) return;
-  window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = getLangCode(language);
-  utterance.rate = rate;
-  window.speechSynthesis.speak(utterance);
+export const speakText = (text: string, language: string, rate: number = 1.0, voiceName?: string | null) => {
+  const langCode = getLangCode(language);
+  speak(text, langCode, rate, voiceName);
 };
 
 export const shouldShowAudioControls = (): boolean => {
   const ua = navigator.userAgent.toLowerCase();
-  
+
   // 1. Block known in-app browsers and WebViews
-  if (ua.includes("wv") || ua.includes("webview") || 
-      ua.includes("instagram") || ua.includes("facebook") || 
-      ua.includes("line")) {
-      return false;
+  if (ua.includes("wv") || ua.includes("webview") ||
+    ua.includes("instagram") || ua.includes("facebook") ||
+    ua.includes("line")) {
+    return false;
   }
 
   return true;

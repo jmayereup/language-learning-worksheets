@@ -6,8 +6,9 @@ import { Vocabulary } from '../Activities/Vocabulary';
 import { FillInBlanks } from '../Activities/FillInBlanks';
 import { Comprehension } from '../Activities/Comprehension';
 import { Scrambled } from '../Activities/Scrambled';
-import { Volume2, Turtle, Printer, Eye, EyeOff, Languages, Pause, Play } from 'lucide-react';
+import { Volume2, Turtle, Printer, Eye, EyeOff, Languages, Pause, Play, ChevronDown } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { getVoicesForLang, getBestVoice } from '../../utils/tts';
 
 interface Props {
   lesson: ParsedLesson;
@@ -40,15 +41,37 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
 
   // TTS State
   const [ttsState, setTtsState] = useState<{ status: 'playing' | 'paused' | 'stopped', rate: number }>({ status: 'stopped', rate: 1.0 });
+  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [selectedVoiceName, setSelectedVoiceName] = useState<string | null>(null);
 
   const displayTitle = lesson.title || lesson.content.title;
 
-  // Cleanup speech on unmount
+  // Setup voices
   useEffect(() => {
+    const updateVoices = () => {
+      const langCode = getLangCode(lesson.language);
+      const voices = getVoicesForLang(langCode);
+      setAvailableVoices(voices);
+
+      // Set initial best voice if not already set
+      if (!selectedVoiceName) {
+        const best = getBestVoice(langCode);
+        if (best) setSelectedVoiceName(best.name);
+      }
+    };
+
+    updateVoices();
+    if (window.speechSynthesis.onvoiceschanged !== undefined) {
+      window.speechSynthesis.onvoiceschanged = updateVoices;
+    }
+
     return () => {
       window.speechSynthesis.cancel();
+      if (window.speechSynthesis.onvoiceschanged !== undefined) {
+        window.speechSynthesis.onvoiceschanged = null;
+      }
     };
-  }, []);
+  }, [lesson.language]);
 
   const toggleTTS = (rate: number) => {
     const synth = window.speechSynthesis;
@@ -69,8 +92,15 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
     synth.cancel();
 
     const utterance = new SpeechSynthesisUtterance(lesson.content.readingText);
-    utterance.lang = getLangCode(lesson.language);
+    const langCode = getLangCode(lesson.language);
+    utterance.lang = langCode;
     utterance.rate = rate;
+
+    if (selectedVoiceName) {
+      const voices = synth.getVoices();
+      const voice = voices.find(v => v.name === selectedVoiceName);
+      if (voice) utterance.voice = voice;
+    }
 
     utterance.onend = () => {
       setTtsState(prev => ({ ...prev, status: 'stopped' }));
@@ -150,7 +180,7 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
     // Clean word of any surrounding punctuation for better TTS
     const cleanWord = word.replace(/^[.,!?;:"'()\[\]{}]+|[.,!?;:"'()\[\]{}]+$/g, '');
     if (cleanWord) {
-      speakText(cleanWord, lesson.language, 0.7);
+      speakText(cleanWord, lesson.language, 0.7, selectedVoiceName);
     }
   };
 
@@ -370,7 +400,25 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
             </Button>
 
             {shouldShowAudioControls() ? (
-              <>
+              <div className="flex flex-wrap items-center gap-2">
+                {availableVoices.length > 0 && (
+                  <div className="relative inline-block">
+                    <select
+                      value={selectedVoiceName || ''}
+                      onChange={(e) => setSelectedVoiceName(e.target.value)}
+                      className="appearance-none bg-white border border-gray-200 rounded-lg px-3 py-2 pr-8 text-xs font-medium text-gray-700 hover:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all cursor-pointer shadow-sm"
+                      title="Select TTS Voice"
+                    >
+                      {availableVoices.map(voice => (
+                        <option key={voice.name} value={voice.name}>
+                          {voice.name} {voice.name.toLowerCase().includes('natural') || voice.name.toLowerCase().includes('google') ? '✨' : ''}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none" />
+                  </div>
+                )}
+
                 <Button size="sm" variant="secondary" onClick={() => toggleTTS(0.6)}>
                   {ttsState.rate === 0.6 && ttsState.status === 'playing' ? (
                     <><Pause className="w-4 h-4 mr-2" /> Pause</>
@@ -390,7 +438,7 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
                     <><Volume2 className="w-4 h-4 mr-2" /> Listen</>
                   )}
                 </Button>
-              </>
+              </div>
             ) : (
               <div className="flex items-center gap-2 bg-yellow-50 p-2 rounded border border-yellow-200">
                 <span className="text-xs text-yellow-800">⚠️ Audio unavailable.</span>
@@ -476,7 +524,7 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
                 <div className="flex items-start gap-3 mb-2">
                   <label className="block font-medium text-gray-800 text-lg flex-1">{i + 1}. {q.text}</label>
                   <button
-                    onClick={() => speakText(q.text, lesson.language, 0.7)}
+                    onClick={() => speakText(q.text, lesson.language, 0.7, selectedVoiceName)}
                     className="text-gray-400 hover:text-blue-600 transition-colors p-1 shrink-0"
                     title="Hear question"
                   >
