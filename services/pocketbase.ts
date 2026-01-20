@@ -3,7 +3,21 @@ import { LessonRecord, ParsedLesson, LessonContent } from '../types';
 
 // Initialize PocketBase
 // Note: We use the URL provided in the original application
-const pb = new PocketBase('https://blog.teacherjake.com');
+const createPB = () => {
+  try {
+    // Check if localStorage is available
+    localStorage.getItem('test');
+    return new PocketBase('https://blog.teacherjake.com');
+  } catch (e) {
+    console.warn("localStorage not available, using memory store");
+    // PocketBase automatically falls back to an internal memory store 
+    // if it can't find a global localStorage or if it fails.
+    // But we can be explicit or just handle the error.
+    return new PocketBase('https://blog.teacherjake.com');
+  }
+};
+
+const pb = createPB();
 pb.autoCancellation(false);
 
 export const getFileUrl = (record: LessonRecord, filename: string) => {

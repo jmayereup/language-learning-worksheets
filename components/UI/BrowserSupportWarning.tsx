@@ -24,10 +24,15 @@ export const BrowserSupportWarning: React.FC = () => {
     }, []);
 
     const getAndroidIntentLink = () => {
-        const url = new URL(window.location.href);
-        const urlNoScheme = url.toString().replace(/^https?:\/\//, '');
-        const scheme = window.location.protocol.replace(':', '');
-        return `intent://${urlNoScheme}#Intent;scheme=${scheme};package=com.android.chrome;end`;
+        try {
+            const url = new URL(window.location.href);
+            const urlNoScheme = url.toString().replace(/^https?:\/\//, '');
+            const scheme = window.location.protocol.replace(':', '');
+            return `intent://${urlNoScheme}#Intent;scheme=${scheme};package=com.android.chrome;end`;
+        } catch (e) {
+            console.error("Failed to generate intent link", e);
+            return '';
+        }
     };
 
     if (!isVisible) return null;

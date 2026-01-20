@@ -21,33 +21,53 @@ const App: React.FC = () => {
 
     // Parse URL params for routing
     useEffect(() => {
-        const params = new URLSearchParams(window.location.search);
-        const lessonId = params.get('lesson');
+        const syncParams = () => {
+            const params = new URLSearchParams(window.location.search);
+            const lessonId = params.get('lesson');
 
-        // Sync filters from URL if present
-        const urlLang = params.get('language');
-        const urlLevel = params.get('level');
-        const urlTag = params.get('category');
+            // Sync filters from URL if present
+            const urlLang = params.get('language');
+            const urlLevel = params.get('level');
+            const urlTag = params.get('category');
 
-        if (urlLang) setLanguage(urlLang);
-        if (urlLevel) setLevel(urlLevel);
-        if (urlTag) setTag(urlTag);
+            if (urlLang) setLanguage(urlLang);
+            if (urlLevel) setLevel(urlLevel);
+            if (urlTag) setTag(urlTag);
 
-        if (lessonId) {
-            handleSelectLesson(lessonId);
-        }
-    }, []);
+            if (lessonId && (!currentLesson || currentLesson.id !== lessonId)) {
+                handleSelectLesson(lessonId);
+            } else if (!lessonId && view === 'lesson') {
+                setView('home');
+                setCurrentLesson(null);
+            }
+        };
+
+        syncParams();
+        window.addEventListener('popstate', syncParams);
+        return () => window.removeEventListener('popstate', syncParams);
+    }, [currentLesson?.id, view]);
 
     const updateURL = (params: Record<string, string>) => {
-        const url = new URL(window.location.href);
-        Object.keys(params).forEach(key => {
-            if (params[key]) {
-                url.searchParams.set(key, params[key]);
-            } else {
-                url.searchParams.delete(key);
+        try {
+            const url = new URL(window.location.href);
+            Object.keys(params).forEach(key => {
+                const value = params[key];
+                if (value !== undefined && value !== null) {
+                    if (value === '') {
+                        url.searchParams.delete(key);
+                    } else {
+                        url.searchParams.set(key, value);
+                    }
+                }
+            });
+
+            // Avoid pushing redundant state
+            if (url.toString() !== window.location.href) {
+                window.history.pushState({}, '', url.toString());
             }
-        });
-        window.history.pushState({}, '', url);
+        } catch (e) {
+            console.error("Failed to update URL", e);
+        }
     };
 
     useEffect(() => {
