@@ -295,21 +295,34 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
   const handleFinish = () => {
     if (!studentName.trim()) return;
 
+    // Explicitly dismiss keyboard before major DOM change to prevent iOS hang
+    if (typeof document !== 'undefined' && document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+
     // Lock the name once submitted
     setIsNameLocked(true);
 
-    setFinishTime(new Date().toLocaleString('en-US', {
-      dateStyle: 'short',
-      timeStyle: 'short'
-    }));
+    const now = new Date();
+    // Simplified date formatting for better device compatibility
+    const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+    setFinishTime(`${dateStr}, ${timeStr}`);
+
     setShowResults(true);
 
-    // Only fire confetti if it's the first time or if score improved (optional, keeping simple here)
-    confetti({
-      particleCount: 100,
-      spread: 70,
-      origin: { y: 0.6 }
-    });
+    // Decouple heavy confetti animation from state update to prevent UI thread blocking
+    setTimeout(() => {
+      try {
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 }
+        });
+      } catch (e) {
+        console.warn('Confetti failed:', e);
+      }
+    }, 200);
   };
 
   if (showResults) {
