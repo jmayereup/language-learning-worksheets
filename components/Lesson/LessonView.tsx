@@ -557,9 +557,13 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
                 <div className="flex items-start gap-3 mb-2">
                   <label className="block font-medium text-gray-800 text-lg flex-1">{i + 1}. {q.text}</label>
                   <button
-                    onClick={() => speakText(q.text, lesson.language, 0.7, selectedVoiceName)}
+                    onClick={() => {
+                      const studentAnswer = answers.writing[i];
+                      const textToSpeak = studentAnswer && studentAnswer.trim() ? studentAnswer : q.text;
+                      speakText(textToSpeak, lesson.language, 0.7, selectedVoiceName);
+                    }}
                     className="text-gray-400 hover:text-blue-600 transition-colors p-1 shrink-0"
-                    title="Hear question"
+                    title={answers.writing[i]?.trim() ? "Hear your answer" : "Hear question"}
                   >
                     <Volume2 size={20} />
                   </button>
