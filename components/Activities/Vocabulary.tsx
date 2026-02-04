@@ -9,9 +9,10 @@ interface Props {
   language: string;
   onChange: (answers: Record<string, string>) => void;
   savedAnswers: Record<string, string>;
+  voiceName?: string | null;
 }
 
-export const Vocabulary: React.FC<Props> = ({ data, language, onChange, savedAnswers }) => {
+export const Vocabulary: React.FC<Props> = ({ data, language, onChange, savedAnswers, voiceName }) => {
   const [shuffledIndices, setShuffledIndices] = useState<number[]>([]);
   const [isChecked, setIsChecked] = useState(false);
   const [score, setScore] = useState(0);
@@ -93,7 +94,7 @@ export const Vocabulary: React.FC<Props> = ({ data, language, onChange, savedAns
                 {shouldShowAudioControls() && (
                   <button
                     onClick={(e) => {
-                      speakText(item.label, language, 0.7);
+                      speakText(item.label, language, 0.7, voiceName);
                       selectElementText(e.currentTarget.parentElement?.querySelector('.selectable-text') as HTMLElement);
                     }}
                     className="text-gray-400 hover:text-blue-600 transition-colors p-1"
@@ -119,7 +120,7 @@ export const Vocabulary: React.FC<Props> = ({ data, language, onChange, savedAns
                 {shouldShowAudioControls() && (
                   <button
                     onClick={(e) => {
-                      speakText(def.text, language, 0.7);
+                      speakText(def.text, language, 0.7, voiceName);
                       selectElementText(e.currentTarget.parentElement?.querySelector('.selectable-text') as HTMLElement);
                     }}
                     className="text-indigo-300 hover:text-indigo-600 transition-colors p-1 shrink-0"

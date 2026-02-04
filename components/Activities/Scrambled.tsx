@@ -10,9 +10,10 @@ interface Props {
   language: string;
   onChange: (answers: Record<number, string>) => void;
   savedAnswers: Record<number, string>;
+  voiceName?: string | null;
 }
 
-export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, savedAnswers }) => {
+export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, savedAnswers, voiceName }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [wordBank, setWordBank] = useState<{ id: number, text: string }[]>([]);
   const [formedSentence, setFormedSentence] = useState<{ id: number, text: string }[]>([]);
@@ -70,7 +71,7 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
     if (word) {
       setWordBank(prev => prev.filter(w => w.id !== wordId));
       setFormedSentence(prev => [...prev, word]);
-      speakText(word.text, language);
+      speakText(word.text, language, 1.0, voiceName);
     }
   };
 
@@ -158,7 +159,7 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
               variant="secondary"
               size="sm"
               onClick={(e) => {
-                speakText(currentItem.answer, language, 0.7);
+                speakText(currentItem.answer, language, 0.7, voiceName);
                 selectElementText(e.currentTarget.parentElement?.parentElement?.parentElement?.querySelector('.selectable-text') as HTMLElement);
               }}
               title="Slow"
@@ -169,7 +170,7 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
               variant="secondary"
               size="sm"
               onClick={(e) => {
-                speakText(currentItem.answer, language, 1.0);
+                speakText(currentItem.answer, language, 1.0, voiceName);
                 selectElementText(e.currentTarget.parentElement?.parentElement?.parentElement?.querySelector('.selectable-text') as HTMLElement);
               }}
               title="Normal"

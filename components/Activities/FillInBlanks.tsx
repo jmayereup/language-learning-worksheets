@@ -11,9 +11,10 @@ interface Props {
   language: string;
   onChange: (answers: Record<number, string>) => void;
   savedAnswers: Record<number, string>;
+  voiceName?: string | null;
 }
 
-export const FillInBlanks: React.FC<Props> = ({ data, vocabItems, level, language, onChange, savedAnswers }) => {
+export const FillInBlanks: React.FC<Props> = ({ data, vocabItems, level, language, onChange, savedAnswers, voiceName }) => {
   const [isChecked, setIsChecked] = useState(false);
 
   // Randomize question order once on mount/data change
@@ -94,7 +95,7 @@ export const FillInBlanks: React.FC<Props> = ({ data, vocabItems, level, languag
               {shouldShowAudioControls() && (
                 <button
                   onClick={(e) => {
-                    speakText(`${item.before} ${item.answer} ${item.after}`, language, 0.7);
+                    speakText(`${item.before} ${item.answer} ${item.after}`, language, 0.7, voiceName);
                     selectElementText(e.currentTarget.parentElement?.querySelector('.selectable-text') as HTMLElement);
                   }}
                   className="mr-3 text-gray-400 hover:text-blue-600 transition-colors"
@@ -121,8 +122,8 @@ export const FillInBlanks: React.FC<Props> = ({ data, vocabItems, level, languag
 
       {/* Actions */}
       <div className="mt-8 flex justify-center gap-4">
-        <Button onClick={handleCheck} icon={<Check size={20} />}>
-          Check Answers
+        <Button onClick={handleCheck}>
+          <Check size={20} className="mr-2" /> Check Answers
         </Button>
       </div>
     </section>

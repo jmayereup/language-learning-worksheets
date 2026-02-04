@@ -495,6 +495,7 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
           language={lesson.language}
           savedAnswers={answers.vocabulary}
           onChange={(a) => updateAnswers('vocabulary', a)}
+          voiceName={selectedVoiceName}
         />
 
         {/* Activity 2: Fill in Blanks */}
@@ -505,6 +506,7 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
           language={lesson.language}
           savedAnswers={answers.fillBlanks}
           onChange={(a) => updateAnswers('fillBlanks', a)}
+          voiceName={selectedVoiceName}
         />
 
         {/* Activity 3: Comprehension */}
@@ -514,6 +516,7 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
           language={lesson.language}
           savedAnswers={answers.comprehension}
           onChange={(a) => updateAnswers('comprehension', a)}
+          voiceName={selectedVoiceName}
         />
 
         {/* Activity 4: Scrambled */}
@@ -523,6 +526,7 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
           language={lesson.language}
           savedAnswers={answers.scrambled}
           onChange={(a) => updateAnswers('scrambled', a)}
+          voiceName={selectedVoiceName}
         />
 
         {/* Activity 5: Writing */}

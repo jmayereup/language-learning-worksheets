@@ -10,9 +10,10 @@ interface Props {
   language: string;
   onChange: (answers: Record<number, string>) => void;
   savedAnswers: Record<number, string>;
+  voiceName?: string | null;
 }
 
-export const Comprehension: React.FC<Props> = ({ data, readingText, language, onChange, savedAnswers }) => {
+export const Comprehension: React.FC<Props> = ({ data, readingText, language, onChange, savedAnswers, voiceName }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isChecked, setIsChecked] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
@@ -119,7 +120,7 @@ export const Comprehension: React.FC<Props> = ({ data, readingText, language, on
               {shouldShowAudioControls() && (
                 <button
                   onClick={(e) => {
-                    speakText(currentQuestion.text, language, 0.7);
+                    speakText(currentQuestion.text, language, 0.7, voiceName);
                     selectElementText(e.currentTarget.parentElement?.querySelector('.selectable-text') as HTMLElement);
                   }}
                   className="text-gray-400 hover:text-blue-600 transition-colors p-1 shrink-0"
