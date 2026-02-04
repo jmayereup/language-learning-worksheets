@@ -3,7 +3,8 @@ import { speak } from './tts';
 export const normalizeString = (str: string): string => {
   if (!str) return '';
   // Remove all punctuation and normalize whitespace (mobile browsers can add extra spaces)
-  return str.trim().toLowerCase().replace(/[.!,?;:"'()\[\]{}]/g, '').replace(/\s+/g, ' ').trim();
+  // Included smart quotes (curly quotes) which are common on iOS
+  return str.trim().toLowerCase().replace(/[.!,?;:"'()\[\]{}‘’“”]/g, '').replace(/\s+/g, ' ').trim();
 };
 
 export const shuffleArray = <T,>(array: T[]): T[] => {
