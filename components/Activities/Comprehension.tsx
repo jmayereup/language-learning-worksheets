@@ -54,13 +54,6 @@ export const Comprehension: React.FC<Props> = ({ data, readingText, language, on
     }
   };
 
-  const handlePrev = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex(prev => prev - 1);
-      setIsChecked(false);
-      setIsCompleted(false);
-    }
-  };
 
   const handleRetry = () => {
     setCurrentIndex(0);
@@ -183,16 +176,7 @@ export const Comprehension: React.FC<Props> = ({ data, readingText, language, on
           </div>
 
           {/* Navigation */}
-          <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-            <Button
-              variant="secondary"
-              onClick={handlePrev}
-              disabled={currentIndex === 0}
-              className="w-12 h-12 !p-0 rounded-full"
-            >
-              <ChevronLeft className="w-6 h-6" />
-            </Button>
-
+          <div className="flex items-center justify-end mt-4 pt-4 border-t border-gray-100">
             <Button
               variant={isChecked && !isCorrect ? "secondary" : "primary"}
               onClick={handleNext}
