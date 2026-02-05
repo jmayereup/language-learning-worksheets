@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ComprehensionActivity } from '../../types';
 import { Button } from '../UI/Button';
-import { Check, ChevronLeft, ChevronRight, RefreshCw, Volume2 } from 'lucide-react';
+import { Check, ChevronRight, RefreshCw, Volume2 } from 'lucide-react';
 import { speakText, shouldShowAudioControls, selectElementText } from '../../utils/textUtils';
 
 interface Props {

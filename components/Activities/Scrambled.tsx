@@ -248,17 +248,8 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
         )}
       </div>
 
-      <div className="flex items-center justify-between mt-6 pt-6 border-t border-gray-100">
-        <Button
-          variant="secondary"
-          onClick={() => { setCurrentIndex(prev => prev - 1); setIsChecked(false); setIsCorrectState(false); }}
-          disabled={currentIndex === 0}
-          className="w-12 h-12 !p-0 rounded-full"
-        >
-          <ChevronLeft className="w-6 h-6" />
-        </Button>
-
-        <span className="font-medium text-gray-500">
+      <div className="flex items-center justify-end mt-6 pt-6 border-t border-gray-100">
+        <span className="font-medium text-gray-500 mr-auto">
           {currentIndex + 1} / {data.length}
         </span>
 
