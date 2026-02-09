@@ -447,7 +447,7 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
 
             {shouldShowAudioControls() ? (
               <div className="flex flex-wrap items-center gap-2">
-                {!isMobile && availableVoices.length > 0 && (
+                {availableVoices.length > 0 && (
                   <div className="relative inline-block">
                     <select
                       value={selectedVoiceName || ''}
@@ -457,7 +457,7 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
                     >
                       {availableVoices.map(voice => (
                         <option key={voice.name} value={voice.name}>
-                          {voice.name} {voice.name.toLowerCase().includes('natural') || voice.name.toLowerCase().includes('google') ? '✨' : ''}
+                          {voice.name} {voice.name.toLowerCase().includes('natural') || voice.name.toLowerCase().includes('google') || voice.name.toLowerCase().includes('enhanced') ? '✨' : ''}
                         </option>
                       ))}
                     </select>

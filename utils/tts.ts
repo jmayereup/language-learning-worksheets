@@ -15,8 +15,8 @@ export const getBestVoice = (lang: string): SpeechSynthesisVoice | null => {
     if (langVoices.length === 0) return null;
 
     // 2. Priority list for high-quality voices
-    // Priority: "natural" (Edge), "google" (Chrome), "premium"/"siri" (iOS/macOS)
-    const priorities = ["natural", "google", "premium", "siri"];
+    // Priority: "natural" (Edge), "google" (Chrome), "enhanced"/"premium"/"siri" (iOS/macOS)
+    const priorities = ["natural", "google", "enhanced", "premium", "siri"];
     for (const p of priorities) {
         const found = langVoices.find(v => v.name.toLowerCase().includes(p));
         if (found) return found;
