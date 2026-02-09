@@ -22,7 +22,15 @@ export const getBestVoice = (lang: string): SpeechSynthesisVoice | null => {
         if (found) return found;
     }
 
-    // 3. Fallback to first non-robotic voice if possible
+    // 3. iOS/macOS fallback: known good built-in voices when enhanced isn't available
+    // These are decent quality voices that ship with iOS/macOS
+    const iosFallbacks = ["samantha", "karen", "daniel", "moira", "alex", "victoria", "fiona"];
+    for (const name of iosFallbacks) {
+        const found = langVoices.find(v => v.name.toLowerCase().includes(name));
+        if (found) return found;
+    }
+
+    // 4. Fallback to first non-robotic voice if possible
     // On Windows, "Microsoft" usually means the older robotic ones unless it's "Natural" (caught above)
     const nonRobotic = langVoices.find(v => !v.name.toLowerCase().includes("microsoft"));
     return nonRobotic || langVoices[0];
