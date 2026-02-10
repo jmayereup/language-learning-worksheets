@@ -9,6 +9,7 @@ import { Scrambled } from '../Activities/Scrambled';
 import { Volume2, Turtle, Printer, Eye, EyeOff, Languages, Pause, Play, ChevronDown, Video } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { getVoicesForLang, getBestVoice } from '../../utils/tts';
+import { selectElementText } from '../../utils/textUtils';
 
 interface Props {
   lesson: ParsedLesson;
@@ -38,6 +39,7 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
   const [isNameLocked, setIsNameLocked] = useState(false);
   const [showExamples, setShowExamples] = useState(false);
   const [finishTime, setFinishTime] = useState<string>('');
+  const passageRef = React.useRef<HTMLDivElement>(null);
 
   // TTS State
   const [ttsState, setTtsState] = useState<{ status: 'playing' | 'paused' | 'stopped', rate: number }>({ status: 'stopped', rate: 1.0 });
@@ -112,6 +114,11 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
 
     synth.speak(utterance);
     setTtsState({ status: 'playing', rate });
+
+    // Highlight the reading passage when audio starts
+    if (passageRef.current) {
+      selectElementText(passageRef.current);
+    }
   };
 
   // Memoize shuffled vocab for print layout to ensure consistency
@@ -215,7 +222,7 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
               <span
                 key={j}
                 onClick={() => handleWordClick(sub)}
-                className="cursor-pointer hover:text-indigo-600 hover:bg-indigo-100/50 rounded transition-colors select-none"
+                className="cursor-pointer hover:text-indigo-600 hover:bg-indigo-100/50 rounded transition-colors"
                 title="Click to hear pronunciation"
               >
                 {sub}
@@ -497,7 +504,11 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
             )}
           </div>
 
-          <div className="prose max-w-none font-serif text-2xl md:text-2xl leading-relaxed text-gray-800 bg-indigo-50/50 p-6 rounded-lg whitespace-pre-line" translate="no">
+          <div
+            ref={passageRef}
+            className="prose max-w-none font-serif text-2xl md:text-2xl leading-relaxed text-gray-800 bg-indigo-50/50 p-6 rounded-lg whitespace-pre-line"
+            translate="no"
+          >
             {renderReadingPassage(lesson.content.readingText)}
           </div>
         </section>

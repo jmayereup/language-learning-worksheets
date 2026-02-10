@@ -160,7 +160,6 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
               size="sm"
               onClick={(e) => {
                 speakText(currentItem.answer, language, 0.7, voiceName);
-                selectElementText(e.currentTarget.parentElement?.parentElement?.parentElement?.querySelector('.selectable-text') as HTMLElement);
               }}
               title="Slow"
             >
@@ -171,7 +170,6 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
               size="sm"
               onClick={(e) => {
                 speakText(currentItem.answer, language, 1.0, voiceName);
-                selectElementText(e.currentTarget.parentElement?.parentElement?.parentElement?.querySelector('.selectable-text') as HTMLElement);
               }}
               title="Normal"
             >

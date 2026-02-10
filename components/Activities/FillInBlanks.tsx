@@ -96,12 +96,11 @@ export const FillInBlanks: React.FC<Props> = ({ data, vocabItems, level, languag
                 <button
                   onClick={(e) => {
                     speakText(`${item.before} ${item.answer} ${item.after}`, language, 0.7, voiceName);
-                    selectElementText(e.currentTarget.parentElement?.querySelector('.selectable-text') as HTMLElement);
                   }}
-                  className="mr-3 text-gray-400 hover:text-blue-600 transition-colors"
+                  className="mr-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 p-2 rounded-full transition-colors"
                   title="Hear sentence"
                 >
-                  <Volume2 size={20} />
+                  <Volume2 size={24} />
                 </button>
               )}
               <div className="selectable-text flex flex-wrap items-center" translate="no">

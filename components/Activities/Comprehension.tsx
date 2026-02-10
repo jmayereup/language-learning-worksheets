@@ -114,7 +114,6 @@ export const Comprehension: React.FC<Props> = ({ data, readingText, language, on
                 <button
                   onClick={(e) => {
                     speakText(currentQuestion.text, language, 0.7, voiceName);
-                    selectElementText(e.currentTarget.parentElement?.querySelector('.selectable-text') as HTMLElement);
                   }}
                   className="text-gray-400 hover:text-blue-600 transition-colors p-1 shrink-0"
                   title="Hear question"

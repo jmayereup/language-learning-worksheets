@@ -95,7 +95,6 @@ export const Vocabulary: React.FC<Props> = ({ data, language, onChange, savedAns
                   <button
                     onClick={(e) => {
                       speakText(item.label, language, 0.7, voiceName);
-                      selectElementText(e.currentTarget.parentElement?.querySelector('.selectable-text') as HTMLElement);
                     }}
                     className="text-gray-400 hover:text-blue-600 transition-colors p-1"
                     title="Hear word"
@@ -121,7 +120,6 @@ export const Vocabulary: React.FC<Props> = ({ data, language, onChange, savedAns
                   <button
                     onClick={(e) => {
                       speakText(def.text, language, 0.7, voiceName);
-                      selectElementText(e.currentTarget.parentElement?.querySelector('.selectable-text') as HTMLElement);
                     }}
                     className="text-indigo-300 hover:text-indigo-600 transition-colors p-1 shrink-0"
                     title="Hear definition"
