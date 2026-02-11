@@ -10,6 +10,8 @@ import { Volume2, Turtle, Printer, Eye, EyeOff, Languages, Pause, Play, ChevronD
 import confetti from 'canvas-confetti';
 import { getVoicesForLang, getBestVoice } from '../../utils/tts';
 import { selectElementText } from '../../utils/textUtils';
+import { VoiceSelectorModal } from '../UI/VoiceSelectorModal';
+import { Mic } from 'lucide-react';
 
 interface Props {
   lesson: ParsedLesson;
@@ -40,12 +42,15 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
   const [showExamples, setShowExamples] = useState(false);
   const [finishTime, setFinishTime] = useState<string>('');
   const passageRef = React.useRef<HTMLDivElement>(null);
+  const audioRef = React.useRef<HTMLAudioElement | null>(null);
 
   // TTS State
   const [ttsState, setTtsState] = useState<{ status: 'playing' | 'paused' | 'stopped', rate: number }>({ status: 'stopped', rate: 1.0 });
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [selectedVoiceName, setSelectedVoiceName] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
+  const [audioPreference, setAudioPreference] = useState<'recorded' | 'tts'>(lesson.audioFileUrl ? 'recorded' : 'tts');
 
   const displayTitle = lesson.title || lesson.content.title;
 
@@ -73,6 +78,10 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
 
     return () => {
       window.speechSynthesis.cancel();
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
       if (window.speechSynthesis.onvoiceschanged !== undefined) {
         window.speechSynthesis.onvoiceschanged = null;
       }
@@ -80,6 +89,56 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
   }, [lesson.language]);
 
   const toggleTTS = (rate: number) => {
+    const synth = window.speechSynthesis;
+
+    // Use audio file if available and preferred
+    if (lesson.audioFileUrl && audioPreference === 'recorded') {
+      if (!audioRef.current) {
+        audioRef.current = new Audio(lesson.audioFileUrl);
+        audioRef.current.onended = () => {
+          setTtsState(prev => ({ ...prev, status: 'stopped' }));
+        };
+      }
+
+      const audio = audioRef.current;
+
+      // If clicking the active button
+      if (ttsState.rate === rate && ttsState.status !== 'stopped') {
+        if (ttsState.status === 'playing') {
+          audio.pause();
+          setTtsState(prev => ({ ...prev, status: 'paused' }));
+        } else {
+          audio.play();
+          setTtsState(prev => ({ ...prev, status: 'playing' }));
+        }
+        return;
+      }
+
+      // New start or changing rate
+      synth.cancel(); // Stop any TTS that might be playing
+      audio.pause();
+      audio.currentTime = 0;
+      audio.playbackRate = rate;
+
+      audio.play().catch(e => {
+        console.error("Audio playback failed:", e);
+        // Fallback to TTS if audio file fails
+        playTTS(rate);
+      });
+
+      setTtsState({ status: 'playing', rate });
+
+      // Highlight the reading passage
+      if (passageRef.current) {
+        selectElementText(passageRef.current);
+      }
+      return;
+    }
+
+    playTTS(rate);
+  };
+
+  const playTTS = (rate: number) => {
     const synth = window.speechSynthesis;
 
     // If clicking the active button
@@ -96,6 +155,9 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
 
     // New start or changing rate
     synth.cancel();
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
 
     const utterance = new SpeechSynthesisUtterance(lesson.content.readingText);
     const langCode = getLangCode(lesson.language);
@@ -455,21 +517,38 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
             {shouldShowAudioControls() ? (
               <div className="flex flex-wrap items-center gap-2">
                 {availableVoices.length > 0 && (
-                  <div className="relative inline-block">
-                    <select
-                      value={selectedVoiceName || ''}
-                      onChange={(e) => setSelectedVoiceName(e.target.value)}
-                      className="appearance-none bg-white border border-gray-200 rounded-lg px-3 py-2 pr-8 text-xs font-medium text-gray-700 hover:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all cursor-pointer shadow-sm"
+                  <>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => setIsVoiceModalOpen(true)}
+                      className="flex items-center gap-2"
                       title="Select TTS Voice"
                     >
-                      {availableVoices.map(voice => (
-                        <option key={voice.name} value={voice.name}>
-                          {voice.name} {voice.name.toLowerCase().includes('natural') || voice.name.toLowerCase().includes('google') || voice.name.toLowerCase().includes('enhanced') ? '✨' : ''}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none" />
-                  </div>
+                      <Mic className="w-4 h-4" />
+                      <span className="hidden sm:inline">Voice</span>
+                    </Button>
+
+                    <VoiceSelectorModal
+                      isOpen={isVoiceModalOpen}
+                      onClose={() => setIsVoiceModalOpen(false)}
+                      voices={availableVoices}
+                      selectedVoiceName={selectedVoiceName}
+                      onSelectVoice={(name) => {
+                        setSelectedVoiceName(name);
+                      }}
+                      language={lesson.language}
+                      hasRecordedAudio={!!lesson.audioFileUrl}
+                      audioPreference={audioPreference}
+                      onSelectPreference={(pref) => {
+                        setAudioPreference(pref);
+                        // Stop current playback if switching
+                        window.speechSynthesis.cancel();
+                        if (audioRef.current) audioRef.current.pause();
+                        setTtsState(prev => ({ ...prev, status: 'stopped' }));
+                      }}
+                    />
+                  </>
                 )}
 
                 <Button size="sm" variant="secondary" onClick={() => toggleTTS(0.6)}>

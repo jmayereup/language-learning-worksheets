@@ -68,11 +68,13 @@ export interface LessonRecord {
   title?: string; // Added field
   tags?: string[]; // Added field
   content: LessonContent | string; // PB returns JSON or string depending on parse
+  audioFile?: string; // Added field
 }
 
 export interface ParsedLesson extends Omit<LessonRecord, 'content'> {
   content: LessonContent;
   imageUrl?: string;
+  audioFileUrl?: string;
 }
 
 // State for User Answers

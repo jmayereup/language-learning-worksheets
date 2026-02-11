@@ -115,7 +115,8 @@ export const fetchLessonById = async (id: string): Promise<ParsedLesson> => {
     return {
       ...record,
       content,
-      imageUrl: record.image ? getFileUrl(record, record.image) : undefined
+      imageUrl: record.image ? getFileUrl(record, record.image) : undefined,
+      audioFileUrl: record.audioFile ? getFileUrl(record, record.audioFile) : undefined
     };
   } catch (error) {
     console.error(`Error fetching lesson ${id}:`, error);
