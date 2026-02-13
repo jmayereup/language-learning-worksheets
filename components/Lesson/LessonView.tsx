@@ -43,6 +43,7 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
   const [finishTime, setFinishTime] = useState<string>('');
   const passageRef = React.useRef<HTMLDivElement>(null);
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
+  const userHasSelectedVoice = React.useRef(false);
 
   // TTS State
   const [ttsState, setTtsState] = useState<{ status: 'playing' | 'paused' | 'stopped', rate: number }>({ status: 'stopped', rate: 1.0 });
@@ -64,8 +65,8 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
       const mobile = /android|iphone|ipad|ipod/i.test(navigator.userAgent.toLowerCase());
       setIsMobile(mobile);
 
-      // Set initial best voice if not already set
-      if (!selectedVoiceName) {
+      // Set initial best voice only if user hasn't explicitly chosen one
+      if (!userHasSelectedVoice.current) {
         const best = getBestVoice(langCode);
         if (best) setSelectedVoiceName(best.name);
       }
@@ -535,12 +536,14 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
                       voices={availableVoices}
                       selectedVoiceName={selectedVoiceName}
                       onSelectVoice={(name) => {
+                        userHasSelectedVoice.current = true;
                         setSelectedVoiceName(name);
                       }}
                       language={lesson.language}
                       hasRecordedAudio={!!lesson.audioFileUrl}
                       audioPreference={audioPreference}
                       onSelectPreference={(pref) => {
+                        userHasSelectedVoice.current = true;
                         setAudioPreference(pref);
                         // Stop current playback if switching
                         window.speechSynthesis.cancel();
