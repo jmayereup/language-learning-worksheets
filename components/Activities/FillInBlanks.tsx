@@ -12,10 +12,12 @@ interface Props {
   onChange: (answers: Record<number, string>) => void;
   savedAnswers: Record<number, string>;
   voiceName?: string | null;
+  savedIsChecked?: boolean;
+  onComplete?: (isChecked: boolean) => void;
 }
 
-export const FillInBlanks: React.FC<Props> = ({ data, vocabItems, level, language, onChange, savedAnswers, voiceName }) => {
-  const [isChecked, setIsChecked] = useState(false);
+export const FillInBlanks: React.FC<Props> = ({ data, vocabItems, level, language, onChange, savedAnswers, voiceName, savedIsChecked = false, onComplete }) => {
+  const [isChecked, setIsChecked] = useState(savedIsChecked);
 
   // Randomize question order once on mount/data change
   const shuffledIndices = useMemo(() => {
@@ -33,6 +35,7 @@ export const FillInBlanks: React.FC<Props> = ({ data, vocabItems, level, languag
 
   const handleCheck = () => {
     setIsChecked(true);
+    onComplete?.(true);
   };
 
   const handleChange = (originalIndex: number, value: string) => {

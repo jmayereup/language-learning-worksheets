@@ -11,15 +11,17 @@ interface Props {
   onChange: (answers: Record<number, string>) => void;
   savedAnswers: Record<number, string>;
   voiceName?: string | null;
+  savedIsCompleted?: boolean;
+  onComplete?: (isCompleted: boolean) => void;
 }
 
-export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, savedAnswers, voiceName }) => {
+export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, savedAnswers, voiceName, savedIsCompleted = false, onComplete }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [wordBank, setWordBank] = useState<{ id: number, text: string }[]>([]);
   const [formedSentence, setFormedSentence] = useState<{ id: number, text: string }[]>([]);
   const [isChecked, setIsChecked] = useState(false);
   const [isCorrectState, setIsCorrectState] = useState(false);
-  const [isCompleted, setIsCompleted] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(savedIsCompleted);
 
   if (!data || data.length === 0) return null;
 
@@ -107,6 +109,7 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
           setCurrentIndex(prev => prev + 1);
         } else {
           setIsCompleted(true);
+          onComplete?.(true);
         }
       }, 1500);
     }
@@ -117,6 +120,7 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
       setCurrentIndex(prev => prev + 1);
     } else {
       setIsCompleted(true);
+      onComplete?.(true);
     }
   };
 

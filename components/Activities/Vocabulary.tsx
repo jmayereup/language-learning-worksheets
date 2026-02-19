@@ -10,11 +10,13 @@ interface Props {
   onChange: (answers: Record<string, string>) => void;
   savedAnswers: Record<string, string>;
   voiceName?: string | null;
+  savedIsChecked?: boolean;
+  onComplete?: (isChecked: boolean) => void;
 }
 
-export const Vocabulary: React.FC<Props> = ({ data, language, onChange, savedAnswers, voiceName }) => {
+export const Vocabulary: React.FC<Props> = ({ data, language, onChange, savedAnswers, voiceName, savedIsChecked = false, onComplete }) => {
   const [shuffledIndices, setShuffledIndices] = useState<number[]>([]);
-  const [isChecked, setIsChecked] = useState(false);
+  const [isChecked, setIsChecked] = useState(savedIsChecked);
   const [score, setScore] = useState(0);
 
   useEffect(() => {
@@ -52,6 +54,7 @@ export const Vocabulary: React.FC<Props> = ({ data, language, onChange, savedAns
 
     setScore(correctCount);
     setIsChecked(true);
+    onComplete?.(true);
   };
 
   return (

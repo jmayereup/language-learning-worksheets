@@ -27,12 +27,26 @@ const ScorePill = ({ label, score, total }: { label: string, score: number, tota
   </div>
 );
 
+interface CompletionStates {
+  vocabularyChecked: boolean;
+  fillBlanksChecked: boolean;
+  comprehensionCompleted: boolean;
+  scrambledCompleted: boolean;
+}
+
 const defaultAnswers: UserAnswers = {
   vocabulary: {},
   fillBlanks: {},
   comprehension: {},
   scrambled: {},
   writing: {}
+};
+
+const defaultCompletionStates: CompletionStates = {
+  vocabularyChecked: false,
+  fillBlanksChecked: false,
+  comprehensionCompleted: false,
+  scrambledCompleted: false,
 };
 
 export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
@@ -62,7 +76,19 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
     return '';
   };
 
+  const getInitialCompletionStates = (): CompletionStates => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return parsed.completionStates ?? defaultCompletionStates;
+      }
+    } catch (e) { /* ignore */ }
+    return defaultCompletionStates;
+  };
+
   const [answers, setAnswers] = useState<UserAnswers>(getInitialAnswers);
+  const [completionStates, setCompletionStates] = useState<CompletionStates>(getInitialCompletionStates);
 
   const [showResults, setShowResults] = useState(false);
   const [studentName, setStudentName] = useState(getInitialName);
@@ -117,14 +143,14 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
     };
   }, [lesson.language]);
 
-  // Persist answers and student name to localStorage whenever they change
+  // Persist answers, student name, and completion states to localStorage whenever they change
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ answers, studentName }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ answers, studentName, completionStates }));
     } catch (e) {
       console.warn('Failed to save progress:', e);
     }
-  }, [answers, studentName]);
+  }, [answers, studentName, completionStates]);
 
   const toggleTTS = (rate: number) => {
     const synth = window.speechSynthesis;
@@ -646,6 +672,8 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
           savedAnswers={answers.vocabulary}
           onChange={(a) => updateAnswers('vocabulary', a)}
           voiceName={selectedVoiceName}
+          savedIsChecked={completionStates.vocabularyChecked}
+          onComplete={() => setCompletionStates(prev => ({ ...prev, vocabularyChecked: true }))}
         />
 
         {/* Activity 2: Fill in Blanks */}
@@ -657,6 +685,8 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
           savedAnswers={answers.fillBlanks}
           onChange={(a) => updateAnswers('fillBlanks', a)}
           voiceName={selectedVoiceName}
+          savedIsChecked={completionStates.fillBlanksChecked}
+          onComplete={() => setCompletionStates(prev => ({ ...prev, fillBlanksChecked: true }))}
         />
 
         {/* Activity 3: Comprehension */}
@@ -667,6 +697,8 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
           savedAnswers={answers.comprehension}
           onChange={(a) => updateAnswers('comprehension', a)}
           voiceName={selectedVoiceName}
+          savedIsCompleted={completionStates.comprehensionCompleted}
+          onComplete={() => setCompletionStates(prev => ({ ...prev, comprehensionCompleted: true }))}
         />
 
         {/* Activity 4: Scrambled */}
@@ -677,6 +709,8 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
           savedAnswers={answers.scrambled}
           onChange={(a) => updateAnswers('scrambled', a)}
           voiceName={selectedVoiceName}
+          savedIsCompleted={completionStates.scrambledCompleted}
+          onComplete={() => setCompletionStates(prev => ({ ...prev, scrambledCompleted: true }))}
         />
 
         {/* Activity 5: Writing */}

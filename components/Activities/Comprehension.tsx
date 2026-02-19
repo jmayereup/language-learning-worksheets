@@ -11,12 +11,14 @@ interface Props {
   onChange: (answers: Record<number, string>) => void;
   savedAnswers: Record<number, string>;
   voiceName?: string | null;
+  savedIsCompleted?: boolean;
+  onComplete?: (isCompleted: boolean) => void;
 }
 
-export const Comprehension: React.FC<Props> = ({ data, readingText, language, onChange, savedAnswers, voiceName }) => {
+export const Comprehension: React.FC<Props> = ({ data, readingText, language, onChange, savedAnswers, voiceName, savedIsCompleted = false, onComplete }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isChecked, setIsChecked] = useState(false);
-  const [isCompleted, setIsCompleted] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(savedIsCompleted);
 
   if (!data || !data.questions || data.questions.length === 0) return null;
 
@@ -41,7 +43,10 @@ export const Comprehension: React.FC<Props> = ({ data, readingText, language, on
           setCurrentIndex(prev => prev + 1);
         }, 1000);
       } else if (isCorrect && currentIndex === data.questions.length - 1) {
-        setTimeout(() => setIsCompleted(true), 1000);
+        setTimeout(() => {
+          setIsCompleted(true);
+          onComplete?.(true);
+        }, 1000);
       }
     } else {
       // Next Mode (after incorrect answer or manual advance)
@@ -50,6 +55,7 @@ export const Comprehension: React.FC<Props> = ({ data, readingText, language, on
         setCurrentIndex(prev => prev + 1);
       } else {
         setIsCompleted(true);
+        onComplete?.(true);
       }
     }
   };
