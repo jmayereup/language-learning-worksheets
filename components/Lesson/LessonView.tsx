@@ -27,17 +27,45 @@ const ScorePill = ({ label, score, total }: { label: string, score: number, tota
   </div>
 );
 
+const defaultAnswers: UserAnswers = {
+  vocabulary: {},
+  fillBlanks: {},
+  comprehension: {},
+  scrambled: {},
+  writing: {}
+};
+
 export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
-  const [answers, setAnswers] = useState<UserAnswers>({
-    vocabulary: {},
-    fillBlanks: {},
-    comprehension: {},
-    scrambled: {},
-    writing: {}
-  });
+  const STORAGE_KEY = `lesson-progress-${lesson.id}`;
+
+  const getInitialAnswers = (): UserAnswers => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return parsed.answers ?? defaultAnswers;
+      }
+    } catch (e) {
+      console.warn('Failed to read saved answers:', e);
+    }
+    return defaultAnswers;
+  };
+
+  const getInitialName = (): string => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return parsed.studentName ?? '';
+      }
+    } catch (e) { /* ignore */ }
+    return '';
+  };
+
+  const [answers, setAnswers] = useState<UserAnswers>(getInitialAnswers);
 
   const [showResults, setShowResults] = useState(false);
-  const [studentName, setStudentName] = useState('');
+  const [studentName, setStudentName] = useState(getInitialName);
   const [isNameLocked, setIsNameLocked] = useState(false);
   const [showExamples, setShowExamples] = useState(false);
   const [finishTime, setFinishTime] = useState<string>('');
@@ -88,6 +116,15 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
       }
     };
   }, [lesson.language]);
+
+  // Persist answers and student name to localStorage whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ answers, studentName }));
+    } catch (e) {
+      console.warn('Failed to save progress:', e);
+    }
+  }, [answers, studentName]);
 
   const toggleTTS = (rate: number) => {
     const synth = window.speechSynthesis;
@@ -205,6 +242,13 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
 
   const updateAnswers = (section: keyof UserAnswers, data: any) => {
     setAnswers(prev => ({ ...prev, [section]: data }));
+  };
+
+  const handleBack = () => {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch (e) { /* ignore */ }
+    onBack();
   };
 
   const handlePrint = () => {
@@ -472,7 +516,7 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
       <div className="max-w-4xl mx-auto pb-20 print:hidden">
         {/* Header */}
         <header className="mb-8 text-center">
-          <Button variant="outline" size="sm" onClick={onBack} className="mb-4">← Change Lesson</Button>
+          <Button variant="outline" size="sm" onClick={handleBack} className="mb-4">← Change Lesson</Button>
           <h1 className="text-3xl md:text-4xl font-bold text-blue-900 mb-2">{displayTitle}</h1>
           <div className="flex items-center justify-center gap-4 text-gray-600">
             <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-bold">{lesson.level}</span>

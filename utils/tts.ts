@@ -71,6 +71,10 @@ export const speak = (text: string, lang: string, rate: number = 1.0, voiceName?
     utterance.lang = lang; // Always set lang
 
     utterance.rate = rate;
-    window.speechSynthesis.speak(utterance);
+    try {
+        window.speechSynthesis.speak(utterance);
+    } catch (e) {
+        console.warn('speechSynthesis.speak() failed:', e);
+    }
     return utterance;
 };

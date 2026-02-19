@@ -112,8 +112,12 @@ export const Comprehension: React.FC<Props> = ({ data, readingText, language, on
               <p className="text-lg md:text-xl font-medium text-gray-800 flex-1 selectable-text" translate="no">{currentQuestion.text}</p>
               {shouldShowAudioControls() && (
                 <button
-                  onClick={(e) => {
-                    speakText(currentQuestion.text, language, 0.7, voiceName);
+                  onClick={() => {
+                    try {
+                      setTimeout(() => speakText(currentQuestion.text, language, 0.7, voiceName), 1);
+                    } catch (e) {
+                      console.warn('TTS failed:', e);
+                    }
                   }}
                   className="text-gray-400 hover:text-blue-600 transition-colors p-1 shrink-0"
                   title="Hear question"
