@@ -15,7 +15,7 @@ const App: React.FC = () => {
     const [level, setLevel] = useState('All');
     const [tag, setTag] = useState('All');
 
-    const [lessons, setLessons] = useState<{ id: string, title: string, tags: string[], level: string, created: string, imageUrl?: string, description?: string }[]>([]);
+    const [lessons, setLessons] = useState<{ id: string, title: string, tags: string[], level: string, language: string, created: string, imageUrl?: string, description?: string }[]>([]);
     const [loading, setLoading] = useState(false);
     const [loadingLesson, setLoadingLesson] = useState(false);
 
@@ -149,6 +149,20 @@ const App: React.FC = () => {
                     </div>
                     {view === 'lesson' && (
                         <div className="flex items-center gap-2">
+                            <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => {
+                                    handleViewChange('home');
+                                    // Optional: if we still want to wipe local storage for the lesson on 'Change Lesson'
+                                    try {
+                                        localStorage.removeItem(`lesson-progress-${currentLesson?.id}`);
+                                    } catch (e) {}
+                                }}
+                                className="mr-2"
+                            >
+                                ← Change Lesson
+                            </Button>
                             <div className="text-sm font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded-full truncate max-w-[150px] md:max-w-[200px]">
                                 {currentLesson?.title || currentLesson?.content.title}
                             </div>
@@ -314,7 +328,7 @@ const App: React.FC = () => {
                         </div>
                     </div>
                 ) : (
-                    currentLesson && <LessonView lesson={currentLesson} onBack={() => handleViewChange('home')} />
+                    currentLesson && <LessonView lesson={currentLesson} />
                 )}
             </main>
         </div>

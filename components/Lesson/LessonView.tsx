@@ -15,7 +15,6 @@ import { Mic } from 'lucide-react';
 
 interface Props {
   lesson: ParsedLesson;
-  onBack: () => void;
 }
 
 const ScorePill = ({ label, score, total }: { label: string, score: number, total: number }) => (
@@ -49,7 +48,7 @@ const defaultCompletionStates: CompletionStates = {
   scrambledCompleted: false,
 };
 
-export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
+export const LessonView: React.FC<Props> = ({ lesson }) => {
   const STORAGE_KEY = `lesson-progress-${lesson.id}`;
 
   const getInitialAnswers = (): UserAnswers => {
@@ -184,13 +183,15 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
       audio.currentTime = 0;
       audio.playbackRate = rate;
 
-      audio.play().catch(e => {
-        console.error("Audio playback failed:", e);
-        // Fallback to TTS if audio file fails
-        playTTS(rate);
-      });
-
-      setTtsState({ status: 'playing', rate });
+      audio.play()
+        .then(() => {
+          setTtsState({ status: 'playing', rate });
+        })
+        .catch(e => {
+          console.error("Audio playback failed, falling back to TTS:", e);
+          setAudioPreference('tts');
+          playTTS(rate);
+        });
 
       // Highlight the reading passage
       if (passageRef.current) {
@@ -268,13 +269,6 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
 
   const updateAnswers = (section: keyof UserAnswers, data: any) => {
     setAnswers(prev => ({ ...prev, [section]: data }));
-  };
-
-  const handleBack = () => {
-    try {
-      localStorage.removeItem(STORAGE_KEY);
-    } catch (e) { /* ignore */ }
-    onBack();
   };
 
   const handlePrint = () => {
@@ -542,7 +536,6 @@ export const LessonView: React.FC<Props> = ({ lesson, onBack }) => {
       <div className="max-w-4xl mx-auto pb-20 print:hidden">
         {/* Header */}
         <header className="mb-8 text-center">
-          <Button variant="outline" size="sm" onClick={handleBack} className="mb-4">← Change Lesson</Button>
           <h1 className="text-3xl md:text-4xl font-bold text-blue-900 mb-2">{displayTitle}</h1>
           <div className="flex items-center justify-center gap-4 text-gray-600">
             <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-bold">{lesson.level}</span>

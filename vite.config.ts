@@ -15,12 +15,25 @@ export default defineConfig(({ mode }) => {
       base: './',
       define: {
         'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
+        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
+        'process.env.NODE_ENV': JSON.stringify(mode)
       },
       resolve: {
         alias: {
           '@': path.resolve(__dirname, '.'),
         }
+      },
+      build: process.env.VITE_WC ? {
+        outDir: 'dist/wc',
+        emptyOutDir: false,
+        lib: {
+          entry: path.resolve(__dirname, 'pocketbase-worksheet.tsx'),
+          name: 'TJPocketBaseWorksheet',
+          fileName: (format) => `tj-pocketbase-worksheet.${format}.js`
+        }
+      } : {
+        outDir: 'dist',
+        emptyOutDir: true
       }
     };
 });

@@ -5,13 +5,16 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "npm run build:app && npm run build:wc",
+    "build:app": "vite build",
+    "build:wc": "VITE_WC=true vite build",
     "preview": "vite preview",
     "start": "node server.js"
   },
   "homepage": ".",
   "dependencies": {
     "@tailwindcss/vite": "^4.1.17",
+    "@webcomponents/custom-elements": "^1.6.0",
     "canvas-confetti": "^1.9.4",
     "express": "^5.2.1",
     "lucide-react": "^0.555.0",

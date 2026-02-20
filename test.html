@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TJ Worksheet Web Component Test</title>
+    
+    <!-- Include the compiled CSS from Vite build -->
+    <link rel="stylesheet" href="./dist/wc/language-learning-worksheets.css">
+    
+    <style>
+        body {
+            background-color: #f3f4f6;
+            padding: 2rem;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+        .container {
+            max-w-4xl max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Web Component Test</h2>
+        <p>This is a standard HTML page. Below is the <code>&lt;tj-pocketbase-worksheet&gt;</code> element.</p>
+        
+        <hr style="margin: 2rem 0">
+
+        <!-- The Web Component -->
+        <tj-pocketbase-worksheet>
+            <script type="application/json">
+{
+  "audioFile": "https://blog.teacherjake.com/apps/assets/hobbies_n5ipbmrz1c.mp3",
+  "collectionId": "pbc_167696365",
+  "collectionName": "worksheets",
+  "content": {
+    "title": "The Joy of Creating",
+    "readingText": "Finding the perfect hobby can be a wonderful way to relax and express creativity. In my community, people have very diverse interests that keep them busy during their free time. My neighbor, Thomas, is a skilled craftsman who loves to build things with wood. He spends his weekends in a dusty workshop creating sturdy oak tables and elegant chairs for his family. His daughter, Sophia, has a more modern passion; she prefers to build machines. She is currently working on a small robot that can help clean the floor!\n\nPersonally, I find great joy in creating things with my hands. I love to grow a garden in my backyard, where I cultivate organic vegetables and colorful flowers. With the fresh ingredients I harvest, I often go to the kitchen to bake bread. There is nothing better than the smell of a warm loaf fresh from the oven. I also enjoy fashion, so I recently learned to make my own clothes using unique fabrics and patterns. My cousin, Clara, is similarly artistic, but she prefers to make jewelry from beads and silver wire. Because we create more than we can use, we recently started to sell things online. It is thrilling to see our handmade items travel to new homes around the world.",
+    "activities": {
+      "vocabulary": {
+        "definitions": [
+          { "id": "A", "text": "To construct items like furniture using timber." },
+          { "id": "B", "text": "To assemble mechanical devices or robots." },
+          { "id": "C", "text": "To trade products via the internet." },
+          { "id": "D", "text": "To cultivate plants, fruits, and vegetables outdoors." },
+          { "id": "E", "text": "To craft personal ornaments like necklaces or rings." },
+          { "id": "F", "text": "To make dough and cook it in an oven." },
+          { "id": "G", "text": "To sew your own garments to wear." }
+        ],
+        "items": [
+          { "label": "Build things with wood", "answer": "A" },
+          { "label": "Build machines", "answer": "B" },
+          { "label": "Grow a garden", "answer": "D" },
+          { "label": "Make jewelry", "answer": "E" },
+          { "label": "Sell things online", "answer": "C" },
+          { "label": "Bake bread", "answer": "F" },
+          { "label": "Make my own clothes", "answer": "G" }
+        ]
+      },
+      "fillInTheBlanks": [
+        { "before": "My grandfather has a large workshop where he likes to", "after": "for the whole family.", "answer": "build things with wood" }
+      ],
+      "scrambled": [
+        { "text": "to be generated", "answer": "I use the oven to bake bread." }
+      ],
+      "comprehension": {
+        "questions": [
+          { "text": "Thomas builds robots in his workshop.", "answer": "false" }
+        ]
+      },
+      "writtenExpression": {
+        "questions": [
+          { "text": "Which of the hobbies mentioned in the text would you like to try and why?" }
+        ],
+        "examples": "<p><strong>Examples:</strong></p><ul class='list-disc pl-5'><li>I would like to grow a garden because I love being outside.</li><li>I think making things is better because they are special and unique.</li></ul>"
+      }
+    }
+  },
+  "created": "2026-02-11 06:27:17.324Z",
+  "id": "a795mw7c58gmjo8",
+  "image": "https://blog.teacherjake.com/apps/assets/my_hobbies_q8se7y0inb.jpg",
+  "isVideoLesson": false,
+  "language": "English",
+  "lessonType": "",
+  "level": "B1",
+  "tags": ["general"],
+  "title": "Interesting Hobbies",
+  "updated": "2026-02-13 06:48:55.395Z",
+  "videoUrl": ""
+}
+            </script>
+        </tj-pocketbase-worksheet>
+
+    </div>
+
+    <!-- Include the compiled JS from Vite build -->
+    <!-- The UMD build is usually easier for drop-in script tags -->
+    <script src="./dist/wc/tj-pocketbase-worksheet.umd.js"></script>
+</body>
+</html>
