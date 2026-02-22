@@ -6,7 +6,7 @@ import { Vocabulary } from '../Activities/Vocabulary';
 import { FillInBlanks } from '../Activities/FillInBlanks';
 import { Comprehension } from '../Activities/Comprehension';
 import { Scrambled } from '../Activities/Scrambled';
-import { Volume2, Turtle, Printer, Eye, EyeOff, Languages, Pause, Play, ChevronDown, Video } from 'lucide-react';
+import { Volume2, Turtle, Printer, RotateCcw, Eye, EyeOff, Languages, Pause, Play, ChevronDown, Video } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { getVoicesForLang, getBestVoice } from '../../utils/tts';
 import { selectElementText } from '../../utils/textUtils';
@@ -150,6 +150,22 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
       console.warn('Failed to save progress:', e);
     }
   }, [answers, studentName, completionStates]);
+
+  const handleReset = () => {
+    if (window.confirm('Are you sure you want to clear all your progress? This cannot be undone.')) {
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+        setAnswers(defaultAnswers);
+        setStudentName('');
+        setCompletionStates(defaultCompletionStates);
+        setShowResults(false);
+        setIsNameLocked(false);
+        window.scrollTo(0, 0);
+      } catch (e) {
+        console.warn('Failed to clear progress:', e);
+      }
+    }
+  };
 
   const toggleTTS = (rate: number) => {
     const synth = window.speechSynthesis;
@@ -539,9 +555,18 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
           <h1 className="text-3xl md:text-4xl font-bold text-blue-900 mb-2">{displayTitle}</h1>
           <div className="flex items-center justify-center gap-4 text-gray-600">
             <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-bold">{lesson.level}</span>
-            <button onClick={handlePrint} className="flex items-center hover:text-blue-600 transition-colors">
-              <Printer className="w-4 h-4 mr-1" /> Print
-            </button>
+            <div className="flex gap-4">
+              <button 
+                onClick={handleReset} 
+                className="flex items-center hover:text-red-600 transition-colors"
+                title="Clear all progress"
+              >
+                <RotateCcw className="w-4 h-4 mr-1" /> Reset
+              </button>
+              <button onClick={handlePrint} className="flex items-center hover:text-blue-600 transition-colors">
+                <Printer className="w-4 h-4 mr-1" /> Print
+              </button>
+            </div>
           </div>
         </header>
 
