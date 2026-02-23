@@ -60,7 +60,7 @@ export const Vocabulary: React.FC<Props> = ({ data, language, onChange, savedAns
   return (
     <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-blue-800">Activity 1: Vocabulary</h2>
+        <h2 className="text-2xl font-bold text-green-800">Activity 1: Vocabulary</h2>
       </div>
 
       <p className="text-gray-600 mb-6 text-lg">Select the correct letter for each word. You can check your answers as many times as you like.</p>
@@ -75,7 +75,7 @@ export const Vocabulary: React.FC<Props> = ({ data, language, onChange, savedAns
             const val = savedAnswers[inputId] || '';
 
             // Determine styling based on check state
-            let borderClass = "border-gray-300 focus:ring-blue-500 focus:border-blue-500";
+            let borderClass = "border-gray-300 focus:ring-green-500 focus:border-green-500";
             if (isChecked && val) {
               const correctDefIndex = data.definitions.findIndex(d => d.id === item.answer);
               const correctChar = String.fromCharCode(97 + correctDefIndex);
@@ -99,7 +99,7 @@ export const Vocabulary: React.FC<Props> = ({ data, language, onChange, savedAns
                     onClick={(e) => {
                       speakText(item.label, language, 0.7, voiceName);
                     }}
-                    className="text-gray-400 hover:text-blue-600 transition-colors p-1"
+                    className="text-gray-400 hover:text-green-600 transition-colors p-1"
                     title="Hear word"
                   >
                     <Volume2 size={18} />
@@ -115,8 +115,8 @@ export const Vocabulary: React.FC<Props> = ({ data, language, onChange, savedAns
         <div className="space-y-4">
           <h3 className="font-semibold text-xl text-gray-800 mb-4">Definitions:</h3>
           {data.definitions.map((def, idx) => (
-            <div key={def.id} className="flex gap-3 p-4 bg-indigo-50 rounded-lg border border-indigo-100 items-start">
-              <span className="font-bold text-indigo-600 text-lg min-w-[1.5rem]">{String.fromCharCode(97 + idx)}.</span>
+            <div key={def.id} className="flex gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200 items-start">
+              <span className="font-bold text-gray-500 text-lg min-w-[1.5rem]">{String.fromCharCode(97 + idx)}.</span>
               <div className="flex-1 flex justify-between items-start gap-2">
                 <span className="text-gray-700 leading-snug text-lg selectable-text" translate="no">{def.text}</span>
                 {shouldShowAudioControls() && (
@@ -124,7 +124,7 @@ export const Vocabulary: React.FC<Props> = ({ data, language, onChange, savedAns
                     onClick={(e) => {
                       speakText(def.text, language, 0.7, voiceName);
                     }}
-                    className="text-indigo-300 hover:text-indigo-600 transition-colors p-1 shrink-0"
+                    className="text-gray-400 hover:text-green-600 transition-colors p-1 shrink-0"
                     title="Hear definition"
                   >
                     <Volume2 size={18} />
@@ -140,7 +140,7 @@ export const Vocabulary: React.FC<Props> = ({ data, language, onChange, savedAns
         <div className="flex items-center gap-4">
           <Button onClick={checkAnswers} size="lg">Check Answers</Button>
           {isChecked && (
-            <div className={`text-xl font-bold ${score === data.items.length ? 'text-green-600' : 'text-blue-600'}`}>
+            <div className={`text-xl font-bold ${score === data.items.length ? 'text-green-600' : 'text-green-600'}`}>
               Score: {score} / {data.items.length}
             </div>
           )}

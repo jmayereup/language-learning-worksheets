@@ -20,7 +20,7 @@ interface Props {
 const ScorePill = ({ label, score, total }: { label: string, score: number, total: number }) => (
   <div className="bg-white border border-gray-200 rounded p-2 flex justify-between items-center shadow-sm">
     <span className="text-xs text-gray-600 font-medium truncate mr-2">{label}</span>
-    <span className={`text-sm font-bold ${score === total ? 'text-green-600' : 'text-blue-600'}`}>
+    <span className={`text-sm font-bold ${score === total ? 'text-green-600' : 'text-green-600'}`}>
       {score}/{total}
     </span>
   </div>
@@ -365,7 +365,7 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
               <span
                 key={j}
                 onClick={() => handleWordClick(sub)}
-                className="cursor-pointer hover:text-indigo-600 hover:bg-indigo-100/50 rounded transition-colors"
+                className="cursor-pointer hover:text-green-600 hover:bg-green-100/50 rounded transition-colors"
                 title="Click to hear pronunciation"
               >
                 {sub}
@@ -381,11 +381,11 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
     if (lesson.isVideoLesson || !lesson.videoUrl) return null;
 
     return (
-      <section className="bg-white p-6 rounded-xl shadow-sm border border-indigo-100 mb-8 text-center animate-fade-in print:hidden">
-        <div className="inline-flex items-center justify-center w-12 h-12 bg-indigo-100 rounded-full mb-4">
-          <Video className="w-6 h-6 text-indigo-600" />
+      <section className="bg-white p-6 rounded-xl shadow-sm border border-green-100 mb-8 text-center animate-fade-in print:hidden">
+        <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-4">
+          <Video className="w-6 h-6 text-green-600" />
         </div>
-        <h2 className="text-2xl font-bold text-indigo-900 mb-2">Explore Further</h2>
+        <h2 className="text-2xl font-bold text-green-900 mb-2">Explore Further</h2>
         <p className="text-gray-600 mb-6 text-lg">
           Want to learn more about this topic? Watch this video to dive deeper!
         </p>
@@ -393,7 +393,7 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
           href={lesson.videoUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 bg-indigo-600 text-white px-8 py-3 rounded-full font-bold hover:bg-indigo-700 transform hover:scale-105 transition-all shadow-md"
+          className="inline-flex items-center gap-2 bg-green-600 text-white px-8 py-3 rounded-full font-bold hover:bg-green-700 transform hover:scale-105 transition-all shadow-md"
         >
           Watch Video on YouTube
         </a>
@@ -479,15 +479,15 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
     const scores = calculateBreakdown();
 
     return (
-      <div className="max-w-md mx-auto p-4 bg-white rounded-lg shadow-lg border-t-4 border-blue-600 animate-fade-in my-4 print:hidden">
+      <div className="max-w-md mx-auto p-4 bg-white rounded-lg shadow-lg border-t-4 border-green-600 animate-fade-in my-4 print:hidden">
         {/* Compact Header */}
         <div className="flex justify-between items-start mb-3 pb-2 border-b border-gray-100">
           <div className="pr-4">
-            <h2 className="text-xl font-bold text-blue-900 leading-tight">Report Card</h2>
+            <h2 className="text-xl font-bold text-green-900 leading-tight">Report Card</h2>
             <div className="text-xs text-gray-500 mt-1 leading-tight">{displayTitle}</div>
           </div>
           <div className="text-right whitespace-nowrap">
-            <div className="text-3xl font-bold text-blue-600 leading-none">
+            <div className="text-3xl font-bold text-green-600 leading-none">
               {scores.totalScore}<span className="text-lg text-gray-400">/{scores.maxScore}</span>
             </div>
             <div className="text-[10px] text-gray-400 uppercase tracking-wide font-bold mt-1">Total Score</div>
@@ -521,8 +521,8 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
             <div className="space-y-2">
               {lesson.content.activities.writtenExpression.questions.map((q, i) => (
                 <div key={i} className="text-sm">
-                  <p className="font-semibold text-blue-800 text-xs mb-1 line-clamp-2 leading-tight">{i + 1}. {q.text}</p>
-                  <p className="text-gray-600 text-xs pl-2 border-l-2 border-blue-200 italic bg-gray-50 p-1.5 rounded-r leading-snug">
+                  <p className="font-semibold text-green-800 text-xs mb-1 line-clamp-2 leading-tight">{i + 1}. {q.text}</p>
+                  <p className="text-gray-600 text-xs pl-2 border-l-2 border-green-200 italic bg-gray-50 p-1.5 rounded-r leading-snug">
                     {answers.writing[i] || 'No answer provided'}
                   </p>
                 </div>
@@ -552,9 +552,9 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
       <div className="max-w-4xl mx-auto pb-20 print:hidden">
         {/* Header */}
         <header className="mb-8 text-center">
-          <h1 className="text-3xl md:text-4xl font-bold text-blue-900 mb-2">{displayTitle}</h1>
+          <h1 className="text-3xl md:text-4xl font-bold text-green-900 mb-2">{displayTitle}</h1>
           <div className="flex items-center justify-center gap-4 text-gray-600">
-            <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-bold">{lesson.level}</span>
+            <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-bold">{lesson.level}</span>
             <div className="flex gap-4">
               <button 
                 onClick={handleReset} 
@@ -563,7 +563,7 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
               >
                 <RotateCcw className="w-4 h-4 mr-1" /> Reset
               </button>
-              <button onClick={handlePrint} className="flex items-center hover:text-blue-600 transition-colors">
+              <button onClick={handlePrint} className="flex items-center hover:text-green-600 transition-colors">
                 <Printer className="w-4 h-4 mr-1" /> Print
               </button>
             </div>
@@ -571,9 +571,9 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
         </header>
 
         {/* Media Section */}
-        <section className="bg-white p-6 rounded-xl shadow-sm border border-indigo-100 mb-8">
+        <section className="bg-white p-6 rounded-xl shadow-sm border border-green-100 mb-8">
           <div translate="no">
-            <h2 className="text-xl font-bold text-indigo-900 mb-4">Reading Passage</h2>
+            <h2 className="text-xl font-bold text-green-900 mb-4">Reading Passage</h2>
           </div>
 
           {lesson.isVideoLesson && lesson.videoUrl && (
@@ -598,25 +598,23 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
           )}
 
           {/* Buttons moved above text */}
-          <div className="flex flex-wrap gap-2 mb-4 justify-end">
-            <Button size="sm" variant="secondary" onClick={handleTranslate} title="Translate via Google">
-              <Languages className="w-4 h-4 mr-2" /> Translate
-            </Button>
+          <div className="flex flex-wrap gap-3 mb-4 justify-end text-gray-700">
+            <button className="flex items-center px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg shadow-sm hover:border-green-300 hover:bg-green-50 hover:text-green-600 transition-all" onClick={handleTranslate} title="Translate via Google">
+              <Languages className="w-4 h-4 mr-1.5" /> Translate
+            </button>
 
             {shouldShowAudioControls() ? (
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-3">
                 {availableVoices.length > 0 && (
                   <>
-                    <Button
-                      size="sm"
-                      variant="secondary"
+                    <button
+                      className="flex items-center px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg shadow-sm hover:border-green-300 hover:bg-green-50 hover:text-green-600 transition-all"
                       onClick={() => setIsVoiceModalOpen(true)}
-                      className="flex items-center gap-2"
                       title="Select TTS Voice"
                     >
-                      <Mic className="w-4 h-4" />
+                      <Mic className="w-4 h-4 mr-1.5" />
                       <span className="hidden sm:inline">Voice</span>
-                    </Button>
+                    </button>
 
                     <VoiceSelectorModal
                       isOpen={isVoiceModalOpen}
@@ -642,31 +640,31 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
                   </>
                 )}
 
-                <Button size="sm" variant="secondary" onClick={() => toggleTTS(0.6)}>
+                <button className="flex items-center px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg shadow-sm hover:border-green-300 hover:bg-green-50 hover:text-green-600 transition-all" onClick={() => toggleTTS(0.6)}>
                   {ttsState.rate === 0.6 && ttsState.status === 'playing' ? (
-                    <><Pause className="w-4 h-4 mr-2" /> Pause</>
+                    <><Pause className="w-4 h-4 mr-1.5" /> Pause</>
                   ) : ttsState.rate === 0.6 && ttsState.status === 'paused' ? (
-                    <><Play className="w-4 h-4 mr-2" /> Resume</>
+                    <><Play className="w-4 h-4 mr-1.5" /> Resume</>
                   ) : (
-                    <><Turtle className="w-4 h-4 mr-2" /> Slow</>
+                    <><Turtle className="w-4 h-4 mr-1.5" /> Slow</>
                   )}
-                </Button>
+                </button>
 
-                <Button size="sm" variant="secondary" onClick={() => toggleTTS(1.0)}>
+                <button className="flex items-center px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg shadow-sm hover:border-green-300 hover:bg-green-50 hover:text-green-600 transition-all" onClick={() => toggleTTS(1.0)}>
                   {ttsState.rate === 1.0 && ttsState.status === 'playing' ? (
-                    <><Pause className="w-4 h-4 mr-2" /> Pause</>
+                    <><Pause className="w-4 h-4 mr-1.5" /> Pause</>
                   ) : ttsState.rate === 1.0 && ttsState.status === 'paused' ? (
-                    <><Play className="w-4 h-4 mr-2" /> Resume</>
+                    <><Play className="w-4 h-4 mr-1.5" /> Resume</>
                   ) : (
-                    <><Volume2 className="w-4 h-4 mr-2" /> Listen</>
+                    <><Volume2 className="w-4 h-4 mr-1.5" /> Listen</>
                   )}
-                </Button>
+                </button>
               </div>
             ) : (
               <div className="flex items-center gap-2 bg-yellow-50 p-2 rounded border border-yellow-200">
                 <span className="text-xs text-yellow-800">⚠️ Audio unavailable.</span>
                 {getAndroidIntentLink(lesson.id) ? (
-                  <a href={getAndroidIntentLink(lesson.id)} className="text-xs font-bold text-blue-600 underline">Open in Chrome</a>
+                  <a href={getAndroidIntentLink(lesson.id)} className="text-xs font-bold text-green-600 underline">Open in Chrome</a>
                 ) : (
                   <span className="text-xs text-gray-500">Please use Chrome or Safari.</span>
                 )}
@@ -676,7 +674,7 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
 
           <div
             ref={passageRef}
-            className="prose max-w-none font-serif text-2xl md:text-2xl leading-relaxed text-gray-800 bg-indigo-50/50 p-6 rounded-lg whitespace-pre-line"
+            className="prose max-w-none font-serif text-2xl md:text-2xl leading-relaxed text-gray-800 bg-gray-50/70 p-6 rounded-lg whitespace-pre-line border border-gray-200"
             translate="no"
           >
             {renderReadingPassage(lesson.content.readingText)}
@@ -734,7 +732,7 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
         {/* Activity 5: Writing */}
         <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold text-blue-800">Activity 5: Written Expression</h2>
+            <h2 className="text-2xl font-bold text-green-800">Activity 5: Written Expression</h2>
             <Button
               variant="outline"
               size="sm"
@@ -749,9 +747,9 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
           <p className="text-gray-600 mb-6 text-lg">Answer the questions with 1 or 2 complete sentences.</p>
 
           {showExamples && lesson.content.activities.writtenExpression.examples && (
-            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg animate-fade-in">
+            <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg animate-fade-in shadow-sm">
               <div
-                className="prose prose-sm text-blue-800"
+                className="prose prose-sm text-green-800"
                 dangerouslySetInnerHTML={{ __html: lesson.content.activities.writtenExpression.examples }}
               />
             </div>
@@ -768,14 +766,14 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
                       const textToSpeak = studentAnswer && studentAnswer.trim() ? studentAnswer : q.text;
                       speakText(textToSpeak, lesson.language, 0.7, selectedVoiceName);
                     }}
-                    className="text-gray-400 hover:text-blue-600 transition-colors p-1 shrink-0"
+                    className="text-gray-400 hover:text-green-600 transition-colors p-1 shrink-0"
                     title={answers.writing[i]?.trim() ? "Hear your answer" : "Hear question"}
                   >
                     <Volume2 size={20} />
                   </button>
                 </div>
                 <textarea
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow text-lg"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-shadow text-lg"
                   rows={3}
                   placeholder="Your answer..."
                   value={answers.writing[i] || ''}
@@ -787,19 +785,19 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
         </section>
 
         {/* Submission */}
-        <section className="bg-indigo-700 p-8 rounded-xl shadow-lg text-white text-center mb-8">
+        <section className="bg-green-700 p-8 rounded-xl shadow-lg text-white text-center mb-8">
           <h2 className="text-2xl font-bold mb-4">{isNameLocked ? 'Update Score' : 'Finished?'}</h2>
           <div className="max-w-md mx-auto mb-6">
             <label className="block text-white mb-2 text-sm font-semibold uppercase tracking-wider">Nickname and Student Number</label>
             {isNameLocked ? (
-              <div className="w-full p-3 rounded-lg bg-white text-blue-900 font-bold text-xl shadow-sm">
+              <div className="w-full p-3 rounded-lg bg-white text-green-900 font-bold text-xl shadow-sm">
                 {studentName}
               </div>
             ) : (
               <input
                 type="text"
                 aria-label="Nickname and Student Number"
-                className="w-full p-3 rounded-lg bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-blue-400 text-lg font-semibold"
+                className="w-full p-3 rounded-lg bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-green-400 text-lg font-semibold"
                 placeholder="Jake 01"
                 value={studentName}
                 onChange={(e) => setStudentName(e.target.value)}
@@ -809,7 +807,7 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
           <button
             onClick={handleFinish}
             disabled={!studentName.trim()}
-            className="bg-white text-blue-800 border border-blue-800 font-bold py-3 px-8 rounded-full shadow-lg hover:bg-gray-100 transform hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-white text-green-800 border border-green-800 font-bold py-3 px-8 rounded-full shadow-lg hover:bg-gray-100 transform hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isNameLocked ? 'See Updated Report Card' : 'See My Score'}
           </button>

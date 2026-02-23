@@ -45,3 +45,12 @@
         background: #cbd5e1;
     }
 }
+
+@media print {
+    @page { margin: 0.5cm; }
+    body { 
+        margin: 0; 
+        padding: 0;
+        background: white;
+    }
+}

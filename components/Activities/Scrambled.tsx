@@ -138,8 +138,8 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
     }, 0);
     return (
       <section className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 mb-8 text-center">
-        <h2 className="text-2xl font-bold text-blue-800 mb-4">Activity 4: Sentences</h2>
-        <div className={`text-3xl font-bold mb-4 ${totalCorrect === data.length ? 'text-green-600' : 'text-blue-600'}`}>
+        <h2 className="text-2xl font-bold text-green-800 mb-4">Activity 4: Sentences</h2>
+        <div className={`text-3xl font-bold mb-4 ${totalCorrect === data.length ? 'text-green-600' : 'text-green-600'}`}>
           Activity Completed!
         </div>
         <p className="text-gray-600 text-lg mb-6">Score: {totalCorrect} / {data.length}</p>
@@ -155,33 +155,37 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
 
   return (
     <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-blue-800">Activity 4: Sentences</h2>
+      <div className="flex justify-between items-center mb-2">
+        <h2 className="text-2xl font-bold text-green-800">Activity 4: Sentences</h2>
         {shouldShowAudioControls() && (
-          <div className="flex gap-2">
-            <Button
-              variant="secondary"
-              size="sm"
+          <div className="flex gap-3 text-gray-700">
+            <button
+              className="flex items-center px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg shadow-sm hover:border-green-300 hover:bg-green-50 hover:text-green-600 transition-all"
               onClick={(e) => {
                 speakText(currentItem.answer, language, 0.7, voiceName);
               }}
               title="Slow"
             >
-              <Turtle className="w-4 h-4 mr-1" /> Slow
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
+              <Turtle className="w-4 h-4 mr-1.5" /> Slow
+            </button>
+            <button
+              className="flex items-center px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg shadow-sm hover:border-green-300 hover:bg-green-50 hover:text-green-600 transition-all"
               onClick={(e) => {
                 speakText(currentItem.answer, language, 1.0, voiceName);
               }}
               title="Normal"
             >
-              <Volume2 className="w-4 h-4 mr-1" /> Normal
-            </Button>
+              <Volume2 className="w-4 h-4 mr-1.5" /> Normal
+            </button>
           </div>
         )}
       </div>
+
+      <p className="text-gray-600 mb-6 text-lg">
+        {level === 'B1' 
+          ? 'Listen to the audio and type the sentence.' 
+          : 'Unscramble the words to form a correct sentence.'}
+      </p>
 
       <div className="min-h-[200px] py-4">
         {/* Answer Area */}
@@ -189,7 +193,7 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
           min-h-[80px] p-4 rounded-lg mb-6 border-2 flex flex-wrap gap-2 items-center transition-colors
           ${isChecked
             ? (isCorrect ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50')
-            : 'border-dashed border-gray-300 bg-gray-50'
+            : 'border-dashed border-green-300 bg-green-50/30'
           }
         `}>
           {isBeginner ? (
@@ -202,7 +206,7 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
                     key={word.id}
                     onClick={() => moveWordToBank(word.id)}
                     disabled={isCorrectState}
-                    className="bg-white text-blue-800 px-3 py-2 rounded shadow-sm border border-blue-100 font-medium hover:bg-red-50 hover:text-red-600 transition-colors animate-pop-in text-lg"
+                    className="bg-white text-green-800 px-3 py-2 rounded shadow-sm border border-green-200 font-medium hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-colors animate-pop-in text-lg"
                   >
                     {word.text}
                   </button>
@@ -241,7 +245,7 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
               <button
                 key={word.id}
                 onClick={() => moveWordToSentence(word.id)}
-                className="bg-blue-100 text-blue-800 px-4 py-2 rounded-lg shadow-sm font-medium hover:bg-blue-200 hover:scale-105 transition-all text-lg"
+                className="bg-white text-green-800 px-4 py-2 rounded-lg shadow-sm border border-green-200 font-medium hover:bg-green-50 hover:border-green-300 hover:scale-105 transition-all text-lg"
               >
                 {word.text}
               </button>

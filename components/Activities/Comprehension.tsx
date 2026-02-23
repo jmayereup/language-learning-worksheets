@@ -77,8 +77,8 @@ export const Comprehension: React.FC<Props> = ({ data, readingText, language, on
 
     return (
       <section className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 mb-8 text-center">
-        <h2 className="text-2xl font-bold text-blue-800 mb-4">Activity 3: Comprehension</h2>
-        <div className={`text-3xl font-bold mb-4 ${score === data.questions.length ? 'text-green-600' : 'text-blue-600'}`}>
+        <h2 className="text-2xl font-bold text-green-800 mb-4">Activity 3: Comprehension</h2>
+        <div className={`text-3xl font-bold mb-4 ${score === data.questions.length ? 'text-green-600' : 'text-green-600'}`}>
           {score === data.questions.length ? '🎉 Perfect!' : 'Good Job!'}
         </div>
         <p className="text-gray-600 text-lg mb-6">You got {score} out of {data.questions.length} correct.</p>
@@ -94,7 +94,7 @@ export const Comprehension: React.FC<Props> = ({ data, readingText, language, on
   return (
     <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-blue-800">Activity 3: Comprehension</h2>
+        <h2 className="text-2xl font-bold text-green-800">Activity 3: Comprehension</h2>
         <span className="font-medium text-gray-500 text-sm">
           Question {currentIndex + 1} of {data.questions.length}
         </span>
@@ -104,7 +104,7 @@ export const Comprehension: React.FC<Props> = ({ data, readingText, language, on
         {/* Reading Text Column */}
         <div className="order-2 lg:order-1">
           <h3 className="font-bold text-gray-500 uppercase mb-2">Reference Text</h3>
-          <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 max-h-[300px] overflow-y-auto custom-scrollbar">
+          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 max-h-[300px] overflow-y-auto custom-scrollbar shadow-sm">
             <p className="text-gray-700 leading-relaxed font-serif text-lg whitespace-pre-line" translate="no">
               {readingText}
             </p>
@@ -125,7 +125,7 @@ export const Comprehension: React.FC<Props> = ({ data, readingText, language, on
                       console.warn('TTS failed:', e);
                     }
                   }}
-                  className="text-gray-400 hover:text-blue-600 transition-colors p-1 shrink-0"
+                  className="text-gray-400 hover:text-green-600 transition-colors p-1 shrink-0"
                   title="Hear question"
                 >
                   <Volume2 size={24} />
@@ -139,8 +139,8 @@ export const Comprehension: React.FC<Props> = ({ data, readingText, language, on
                           ${userAnswer === 'true'
                   ? (isChecked
                     ? (currentQuestion.answer === 'true' ? 'border-green-500 bg-green-50 text-green-700' : 'border-red-500 bg-red-50 text-red-700')
-                    : 'border-blue-500 bg-blue-50 text-blue-700')
-                  : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50 text-gray-600'
+                    : 'border-green-500 bg-green-50 text-green-700')
+                  : 'border-gray-200 hover:border-green-300 hover:bg-gray-50 text-gray-600'
                 }
                       `}>
                 <input
@@ -160,8 +160,8 @@ export const Comprehension: React.FC<Props> = ({ data, readingText, language, on
                           ${userAnswer === 'false'
                   ? (isChecked
                     ? (currentQuestion.answer === 'false' ? 'border-green-500 bg-green-50 text-green-700' : 'border-red-500 bg-red-50 text-red-700')
-                    : 'border-blue-500 bg-blue-50 text-blue-700')
-                  : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50 text-gray-600'
+                    : 'border-green-500 bg-green-50 text-green-700')
+                  : 'border-gray-200 hover:border-green-300 hover:bg-gray-50 text-gray-600'
                 }
                       `}>
                 <input
