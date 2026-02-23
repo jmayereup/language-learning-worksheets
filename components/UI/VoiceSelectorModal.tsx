@@ -65,9 +65,9 @@ export const VoiceSelectorModal: React.FC<Props> = ({
             {/* Modal Container */}
             <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden animate-scale-in border border-slate-100 flex flex-col max-h-[85vh]">
                 {/* Header */}
-                <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-indigo-50 to-white">
+                <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-green-50 to-white">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-100">
+                        <div className="w-10 h-10 rounded-2xl bg-green-600 flex items-center justify-center text-white shadow-lg shadow-green-100">
                             <Volume2 size={22} />
                         </div>
                         <div>
@@ -146,21 +146,21 @@ export const VoiceSelectorModal: React.FC<Props> = ({
                                     className={`
                     group relative p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between
                     ${isSelected
-                                            ? 'border-indigo-600 bg-indigo-50/50 ring-4 ring-indigo-50'
-                                            : 'border-slate-100 bg-white hover:border-indigo-200 hover:bg-slate-50'
+                                            ? 'border-green-600 bg-green-50/50 ring-4 ring-green-50'
+                                            : 'border-slate-100 bg-white hover:border-green-200 hover:bg-slate-50'
                                         }
                   `}
                                 >
                                     <div className="flex items-center gap-4 flex-1 min-w-0">
                                         <div className={`
                       w-10 h-10 rounded-xl flex items-center justify-center shrink-0
-                      ${isSelected ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-white'}
+                      ${isSelected ? 'bg-green-600 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-white'}
                     `}>
                                             {isSelected ? <CheckCircle2 size={20} /> : <Globe size={20} />}
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2">
-                                                <span className={`font-bold truncate ${isSelected ? 'text-indigo-900' : 'text-slate-700'}`}>
+                                                <span className={`font-bold truncate ${isSelected ? 'text-green-900' : 'text-slate-700'}`}>
                                                     {voice.name.replace(/Microsoft |Google /g, '')}
                                                 </span>
                                                 {isNatural && (
@@ -182,8 +182,8 @@ export const VoiceSelectorModal: React.FC<Props> = ({
                                         className={`
                       ml-3 p-2 rounded-xl transition-all shrink-0
                       ${testPlaying === voice.name
-                                                ? 'bg-indigo-600 text-white animate-pulse'
-                                                : 'bg-slate-50 text-slate-400 hover:bg-indigo-100 hover:text-indigo-600'
+                                                ? 'bg-green-600 text-white animate-pulse'
+                                                : 'bg-slate-50 text-slate-400 hover:bg-green-100 hover:text-green-600'
                                             }
                     `}
                                         title="Preview Voice"

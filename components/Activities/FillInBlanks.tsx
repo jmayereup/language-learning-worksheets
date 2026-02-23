@@ -55,22 +55,22 @@ export const FillInBlanks: React.FC<Props> = ({ data, vocabItems, level, languag
   return (
     <section className="bg-white p-6 md:p-8 rounded-xl shadow-sm border border-gray-100 mb-8">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-blue-800">Activity 2: Fill in the blanks</h2>
+        <h2 className="text-2xl font-bold text-green-800">Activity 2: Fill in the blanks</h2>
         {isChecked && (
-          <div className={`text-xl font-bold ${correctCount === data.length ? 'text-green-600' : 'text-blue-600'}`}>
+          <div className={`text-xl font-bold ${correctCount === data.length ? 'text-green-600' : 'text-green-600'}`}>
             Score: {correctCount}/{data.length}
           </div>
         )}
       </div>
 
       {/* Word Bank */}
-      <div className="bg-blue-50 p-4 rounded-lg mb-8 border border-blue-100">
-        <h3 className="text-sm font-semibold text-blue-600 uppercase tracking-wider mb-3">Word Bank</h3>
+      <div className="bg-gray-50 p-4 rounded-lg mb-8 border border-gray-200">
+        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Word Bank</h3>
         <div className="flex flex-wrap justify-around gap-2" translate="no">
           {wordBank.map((word, idx) => (
             <span
               key={idx}
-              className="px-3 py-1.5 bg-white text-blue-800 rounded-md shadow-sm border border-blue-100 font-medium"
+              className="px-3 py-1.5 bg-white text-gray-800 rounded-md shadow-sm border border-gray-100 font-medium"
             >
               {word}
             </span>
@@ -85,7 +85,7 @@ export const FillInBlanks: React.FC<Props> = ({ data, vocabItems, level, languag
           const userAnswer = savedAnswers[originalIndex] || '';
           const isCorrect = normalizeString(userAnswer) === normalizeString(item.answer);
 
-          let inputClass = "border-b-2 border-gray-300 bg-gray-50 px-2 py-1 mx-2 focus:outline-none focus:border-blue-500 focus:bg-white transition-colors min-w-[120px] text-center font-medium";
+          let inputClass = "border-b-2 border-gray-300 bg-gray-50 px-2 py-1 mx-2 focus:outline-none focus:border-green-500 focus:bg-white transition-colors min-w-[120px] text-center font-medium";
 
           if (isChecked) {
             inputClass = isCorrect
@@ -100,7 +100,7 @@ export const FillInBlanks: React.FC<Props> = ({ data, vocabItems, level, languag
                   onClick={(e) => {
                     speakText(`${item.before} ${item.answer} ${item.after}`, language, 0.7, voiceName);
                   }}
-                  className="mr-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 p-2 rounded-full transition-colors"
+                  className="mr-1 text-gray-400 hover:text-green-600 hover:bg-green-50 p-2 rounded-full transition-colors"
                   title="Hear sentence"
                 >
                   <Volume2 size={24} />

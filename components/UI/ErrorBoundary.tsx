@@ -60,14 +60,14 @@ export class ErrorBoundary extends React.Component<Props, State> {
                             {isAndroid ? (
                                 <a
                                     href={this.getAndroidIntentLink()}
-                                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-2xl text-center shadow-lg shadow-blue-200 transition-all active:scale-95"
+                                    className="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-2xl text-center shadow-lg shadow-green-200 transition-all active:scale-95"
                                 >
                                     Open in Chrome
                                 </a>
                             ) : (
                                 <button
                                     onClick={() => alert('Please tap your browser menu and select "Open in Safari" or "Open in Browser".')}
-                                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-2xl text-center shadow-lg shadow-blue-200 transition-all active:scale-95"
+                                    className="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-2xl text-center shadow-lg shadow-green-200 transition-all active:scale-95"
                                 >
                                     How to Open
                                 </button>
