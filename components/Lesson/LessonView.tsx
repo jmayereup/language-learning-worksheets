@@ -11,7 +11,8 @@ import confetti from 'canvas-confetti';
 import { getVoicesForLang, getBestVoice } from '../../utils/tts';
 import { selectElementText } from '../../utils/textUtils';
 import { VoiceSelectorModal } from '../UI/VoiceSelectorModal';
-import { Mic } from 'lucide-react';
+import { Mic, CheckCircle, AlertCircle, Loader } from 'lucide-react';
+import { config } from '../../config';
 
 interface Props {
   lesson: ParsedLesson;
@@ -64,15 +65,15 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
     return defaultAnswers;
   };
 
-  const getInitialName = (): string => {
+  const getInitialValue = (key: string, defaultValue: string = ''): string => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        return parsed.studentName ?? '';
+        return parsed[key] ?? defaultValue;
       }
     } catch (e) { /* ignore */ }
-    return '';
+    return defaultValue;
   };
 
   const getInitialCompletionStates = (): CompletionStates => {
@@ -90,7 +91,10 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
   const [completionStates, setCompletionStates] = useState<CompletionStates>(getInitialCompletionStates);
 
   const [showResults, setShowResults] = useState(false);
-  const [studentName, setStudentName] = useState(getInitialName);
+  const [studentName, setStudentName] = useState(() => getInitialValue('studentName'));
+  const [studentId, setStudentId] = useState(() => getInitialValue('studentId'));
+  const [homeroom, setHomeroom] = useState(() => getInitialValue('homeroom'));
+  
   const [isNameLocked, setIsNameLocked] = useState(false);
   const [showExamples, setShowExamples] = useState(false);
   const [finishTime, setFinishTime] = useState<string>('');
@@ -105,6 +109,12 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
   const [isMobile, setIsMobile] = useState(false);
   const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
   const [audioPreference, setAudioPreference] = useState<'recorded' | 'tts'>(lesson.audioFileUrl ? 'recorded' : 'tts');
+
+  // Submission State
+  const [teacherCode, setTeacherCode] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionStatus, setSubmissionStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [submissionMessage, setSubmissionMessage] = useState('');
 
   const displayTitle = lesson.title || lesson.content.title;
 
@@ -142,14 +152,14 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
     };
   }, [lesson.language]);
 
-  // Persist answers, student name, and completion states to localStorage whenever they change
+  // Persist answers, student info, and completion states to localStorage whenever they change
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ answers, studentName, completionStates }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ answers, studentName, studentId, homeroom, completionStates }));
     } catch (e) {
       console.warn('Failed to save progress:', e);
     }
-  }, [answers, studentName, completionStates]);
+  }, [answers, studentName, studentId, homeroom, completionStates]);
 
   const handleReset = () => {
     if (window.confirm('Are you sure you want to clear all your progress? This cannot be undone.')) {
@@ -157,9 +167,13 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
         localStorage.removeItem(STORAGE_KEY);
         setAnswers(defaultAnswers);
         setStudentName('');
+        setStudentId('');
+        setHomeroom('');
+        setTeacherCode('');
         setCompletionStates(defaultCompletionStates);
         setShowResults(false);
         setIsNameLocked(false);
+        setSubmissionStatus('idle');
         window.scrollTo(0, 0);
       } catch (e) {
         console.warn('Failed to clear progress:', e);
@@ -443,7 +457,10 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
   };
 
   const handleFinish = () => {
-    if (!studentName.trim()) return;
+    if (!studentName.trim() || !studentId.trim() || !homeroom.trim()) {
+      alert('Please fill in your Nickname, Student ID, and Homeroom.');
+      return;
+    }
 
     // Explicitly dismiss keyboard before major DOM change to prevent iOS hang
     if (typeof document !== 'undefined' && document.activeElement instanceof HTMLElement) {
@@ -475,6 +492,57 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
     }, 200);
   };
 
+  const handleSubmitScore = async () => {
+    if (teacherCode !== '6767') {
+      alert('Incorrect Teacher Code. Please take a screenshot of your report card and show it to your teacher.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmissionStatus('idle');
+    setSubmissionMessage('');
+
+    const scores = calculateBreakdown();
+    const payload = {
+      nickname: studentName,
+      homeroom: homeroom,
+      studentId: studentId,
+      quizName: displayTitle,
+      score: scores.totalScore,
+      total: scores.maxScore
+    };
+
+    const submissionUrl = config?.submissionUrl || 'https://script.google.com/macros/s/AKfycbzqV42jFksBwJ_3jFhYq4o_d6o7Y63K_1oA4oZ1UeWp-M4y3F25r0xQ-Kk1n8F1uG1Q/exec';
+
+    if (submissionUrl === 'YOUR_WEB_APP_URL_HERE') {
+      alert('WARNING: Submission URL is not configured. Please contact your teacher.');
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      await fetch(submissionUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8',
+        },
+        body: JSON.stringify(payload)
+      });
+      
+      // With 'no-cors', the response is opaque and we cannot read its content
+      // We assume success if the fetch promise doesn't reject (network error)
+      setSubmissionStatus('success');
+      setSubmissionMessage('Score submitted successfully!');
+    } catch (error) {
+      console.error('Submission failed:', error);
+      setSubmissionStatus('error');
+      setSubmissionMessage('Failed to submit score. Please check your connection or take a screenshot.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   if (showResults) {
     const scores = calculateBreakdown();
 
@@ -495,12 +563,22 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
         </div>
 
         {/* Student Info Bar */}
-        <div className="bg-gray-50 rounded-lg p-2.5 mb-3 flex justify-between items-center text-sm border border-gray-100">
-          <div>
-            <div className="text-[10px] text-gray-500 uppercase font-bold">Student</div>
-            <div className="font-bold text-gray-800 text-sm">{studentName || 'Anonymous'}</div>
+        <div className="bg-gray-50 rounded-lg p-2.5 mb-3 flex flex-col sm:flex-row justify-between sm:items-center text-sm border border-gray-100 gap-2">
+          <div className="flex gap-4 flex-wrap">
+            <div>
+              <div className="text-[10px] text-gray-500 uppercase font-bold">Nickname</div>
+              <div className="font-bold text-gray-800 text-sm">{studentName || 'Anonymous'}</div>
+            </div>
+            <div>
+              <div className="text-[10px] text-gray-500 uppercase font-bold">ID</div>
+              <div className="font-bold text-gray-800 text-sm">{studentId || '-'}</div>
+            </div>
+            <div>
+              <div className="text-[10px] text-gray-500 uppercase font-bold">Homeroom</div>
+              <div className="font-bold text-gray-800 text-sm">{homeroom || '-'}</div>
+            </div>
           </div>
-          <div className="text-right">
+          <div className="sm:text-right">
             <div className="text-[10px] text-gray-500 uppercase font-bold">Date</div>
             <div className="font-medium text-gray-800 text-xs">{finishTime}</div>
           </div>
@@ -533,7 +611,56 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
 
         {/* Footer Message */}
         <div className="mt-3 text-center">
-          <p className="text-[12px] text-gray-600 italic">Take a screenshot to send to your teacher.</p>
+          <p className="text-[12px] text-gray-600 italic mb-4">Take a screenshot to send to your teacher.</p>
+        </div>
+
+        {/* Submission Section */}
+        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mt-4 mb-4">
+          <h3 className="font-bold text-gray-800 text-sm mb-2">Submit to Teacher</h3>
+          
+          {submissionStatus === 'success' ? (
+            <div className="flex items-center gap-2 text-green-700 bg-green-50 p-3 rounded-lg border border-green-200">
+              <CheckCircle className="w-5 h-5 shrink-0" />
+              <p className="text-sm font-medium">{submissionMessage}</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">Teacher Code</label>
+                <input
+                  type="text"
+                  placeholder="Enter 4-digit code"
+                  value={teacherCode}
+                  onChange={(e) => setTeacherCode(e.target.value)}
+                  disabled={isSubmitting}
+                  className="w-full sm:w-1/2 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-400 focus:outline-none text-sm"
+                />
+              </div>
+
+              {submissionStatus === 'error' && (
+                <div className="flex items-start gap-2 text-red-700 text-xs bg-red-50 p-2 rounded">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <p>{submissionMessage}</p>
+                </div>
+              )}
+
+              <Button
+                onClick={handleSubmitScore}
+                disabled={isSubmitting || !teacherCode.trim()}
+                className="w-full sm:w-auto flex items-center justify-center gap-2"
+                size="sm"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader className="w-4 h-4 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  'Submit Score'
+                )}
+              </Button>
+            </div>
+          )}
         </div>
 
         <div className="mt-4 flex justify-center gap-2 print:hidden">
@@ -787,26 +914,49 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
         {/* Submission */}
         <section className="bg-green-700 p-8 rounded-xl shadow-lg text-white text-center mb-8">
           <h2 className="text-2xl font-bold mb-4">{isNameLocked ? 'Update Score' : 'Finished?'}</h2>
-          <div className="max-w-md mx-auto mb-6">
-            <label className="block text-white mb-2 text-sm font-semibold uppercase tracking-wider">Nickname and Student Number</label>
+          <div className="max-w-xl mx-auto mb-6">
             {isNameLocked ? (
-              <div className="w-full p-3 rounded-lg bg-white text-green-900 font-bold text-xl shadow-sm">
-                {studentName}
+              <div className="w-full p-3 rounded-lg bg-white text-green-900 font-bold text-xl shadow-sm mb-4">
+                {studentName} • {studentId} • {homeroom}
               </div>
             ) : (
-              <input
-                type="text"
-                aria-label="Nickname and Student Number"
-                className="w-full p-3 rounded-lg bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-green-400 text-lg font-semibold"
-                placeholder="Jake 01"
-                value={studentName}
-                onChange={(e) => setStudentName(e.target.value)}
-              />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-white mb-2 text-xs font-semibold uppercase tracking-wider text-left">Nickname</label>
+                  <input
+                    type="text"
+                    className="w-full p-3 rounded-lg bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-green-400 text-lg font-semibold"
+                    placeholder="Jake"
+                    value={studentName}
+                    onChange={(e) => setStudentName(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-white mb-2 text-xs font-semibold uppercase tracking-wider text-left">Student ID</label>
+                  <input
+                    type="text"
+                    className="w-full p-3 rounded-lg bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-green-400 text-lg font-semibold"
+                    placeholder="01"
+                    value={studentId}
+                    onChange={(e) => setStudentId(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-white mb-2 text-xs font-semibold uppercase tracking-wider text-left">Homeroom</label>
+                  <input
+                    type="text"
+                    className="w-full p-3 rounded-lg bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-green-400 text-lg font-semibold"
+                    placeholder="M1/1"
+                    value={homeroom}
+                    onChange={(e) => setHomeroom(e.target.value)}
+                  />
+                </div>
+              </div>
             )}
           </div>
           <button
             onClick={handleFinish}
-            disabled={!studentName.trim()}
+            disabled={!studentName.trim() || !studentId.trim() || !homeroom.trim()}
             className="bg-white text-green-800 border border-green-800 font-bold py-3 px-8 rounded-full shadow-lg hover:bg-gray-100 transform hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isNameLocked ? 'See Updated Report Card' : 'See My Score'}
