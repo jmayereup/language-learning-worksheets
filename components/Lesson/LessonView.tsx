@@ -493,7 +493,7 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
   };
 
   const handleSubmitScore = async () => {
-    if (teacherCode !== '6767') {
+    if (teacherCode.trim() !== '6767') {
       alert('Incorrect Teacher Code. Please take a screenshot of your report card and show it to your teacher.');
       return;
     }
@@ -533,7 +533,7 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
       // With 'no-cors', the response is opaque and we cannot read its content
       // We assume success if the fetch promise doesn't reject (network error)
       setSubmissionStatus('success');
-      setSubmissionMessage('Score submitted successfully!');
+      setSubmissionMessage('Score sent to teacher! (Please take a screenshot as backup.)');
     } catch (error) {
       console.error('Submission failed:', error);
       setSubmissionStatus('error');
