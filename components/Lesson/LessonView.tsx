@@ -13,10 +13,17 @@ import { selectElementText } from '../../utils/textUtils';
 import { VoiceSelectorModal } from '../UI/VoiceSelectorModal';
 import { Mic, CheckCircle, AlertCircle, Loader } from 'lucide-react';
 import { config } from '../../config';
+import { StandardLessonContent, InformationGapContent, LessonContent } from '../../types';
+import { InformationGapView } from './InformationGapView';
+import { GenericLessonLayout } from './GenericLessonLayout';
 
 interface Props {
   lesson: ParsedLesson;
 }
+
+const isStandardLesson = (content: LessonContent): content is StandardLessonContent => {
+  return 'activities' in content;
+};
 
 const ScorePill = ({ label, score, total }: { label: string, score: number, total: number }) => (
   <div className="bg-white border border-gray-200 rounded p-2 flex justify-between items-center shadow-sm">
@@ -116,7 +123,8 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
   const [submissionStatus, setSubmissionStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [submissionMessage, setSubmissionMessage] = useState('');
 
-  const displayTitle = lesson.title || lesson.content.title;
+  const isStandard = isStandardLesson(lesson.content);
+  const displayTitle = lesson.title || (isStandard ? (lesson.content as StandardLessonContent).title : (lesson.content as InformationGapContent).topic);
 
   // Setup voices
   useEffect(() => {
@@ -254,7 +262,8 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
       audioRef.current.pause();
     }
 
-    const utterance = new SpeechSynthesisUtterance(lesson.content.readingText);
+    const readingText = isStandard ? (lesson.content as StandardLessonContent).readingText : '';
+    const utterance = new SpeechSynthesisUtterance(readingText);
     const langCode = getLangCode(lesson.language);
     utterance.lang = langCode;
     utterance.rate = rate;
@@ -280,13 +289,14 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
 
   // Memoize shuffled vocab for print layout to ensure consistency
   const printVocabItems = useMemo(() =>
-    shuffleArray([...lesson.content.activities.vocabulary.items]),
-    [lesson.content.activities.vocabulary.items]
+    isStandard ? shuffleArray([...(lesson.content as StandardLessonContent).activities.vocabulary.items]) : [],
+    [isStandard, lesson.content]
   );
 
   // Memoize scrambled sentences for print layout
   const printScrambledItems = useMemo(() => {
-    return lesson.content.activities.scrambled.map(item => {
+    if (!isStandard) return [];
+    return (lesson.content as StandardLessonContent).activities.scrambled.map(item => {
       // Create scrambled version of the answer
       const words = item.answer.replace(/[.!?]+$/, '').split(/\s+/).filter(w => w);
       const shuffled = shuffleArray([...words]);
@@ -295,7 +305,7 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
         scrambledText: shuffled.join(' / ')
       };
     });
-  }, [lesson.content.activities.scrambled]);
+  }, [isStandard, lesson.content]);
 
   const updateAnswers = (section: keyof UserAnswers, data: any) => {
     setAnswers(prev => ({ ...prev, [section]: data }));
@@ -306,7 +316,7 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
   };
 
   const handleTranslate = async () => {
-    const text = lesson.content.readingText;
+    const text = isStandard ? (lesson.content as StandardLessonContent).readingText : '';
     const langMap: Record<string, string> = {
       "English": "en",
       "French": "fr",
@@ -416,33 +426,47 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
   };
 
   const calculateBreakdown = () => {
+    if (!isStandard) {
+        // Simple scoring for Information Gap for now
+        // This might need more specific logic later
+        return {
+            vocab: { score: 0, total: 0 },
+            fill: { score: 0, total: 0 },
+            comp: { score: 0, total: 0 },
+            scrambled: { score: 0, total: 0 },
+            totalScore: 0,
+            maxScore: 0
+        };
+    }
+    
     // Vocab
     let vocabScore = 0;
-    const vocabTotal = lesson.content.activities.vocabulary.items.length;
-    lesson.content.activities.vocabulary.items.forEach((item, idx) => {
-      const correctDefIndex = lesson.content.activities.vocabulary.definitions.findIndex(d => d.id === item.answer);
+    const standardContent = lesson.content as StandardLessonContent;
+    const vocabTotal = standardContent.activities.vocabulary.items.length;
+    standardContent.activities.vocabulary.items.forEach((item, idx) => {
+      const correctDefIndex = standardContent.activities.vocabulary.definitions.findIndex(d => d.id === item.answer);
       const correctChar = String.fromCharCode(97 + correctDefIndex);
       if ((answers.vocabulary[`vocab_${idx}`] || '').toLowerCase() === correctChar) vocabScore++;
     });
 
     // Fill Blanks
     let fillScore = 0;
-    const fillTotal = lesson.content.activities.fillInTheBlanks.length;
-    lesson.content.activities.fillInTheBlanks.forEach((item, idx) => {
+    const fillTotal = standardContent.activities.fillInTheBlanks.length;
+    standardContent.activities.fillInTheBlanks.forEach((item, idx) => {
       if (normalizeString(answers.fillBlanks[idx] || '') === normalizeString(item.answer)) fillScore++;
     });
 
     // Comprehension
     let compScore = 0;
-    const compTotal = lesson.content.activities.comprehension.questions.length;
-    lesson.content.activities.comprehension.questions.forEach((q, idx) => {
+    const compTotal = standardContent.activities.comprehension.questions.length;
+    standardContent.activities.comprehension.questions.forEach((q, idx) => {
       if (answers.comprehension[idx] === q.answer) compScore++;
     });
 
     // Scrambled
     let scrambledScore = 0;
-    const scrambledTotal = lesson.content.activities.scrambled.length;
-    lesson.content.activities.scrambled.forEach((item, idx) => {
+    const scrambledTotal = standardContent.activities.scrambled.length;
+    standardContent.activities.scrambled.forEach((item, idx) => {
       if (normalizeString(answers.scrambled[idx] || '') === normalizeString(item.answer)) scrambledScore++;
     });
 
@@ -593,11 +617,11 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
         </div>
 
         {/* Written Responses - Compact */}
-        {lesson.content.activities.writtenExpression.questions.length > 0 && (
+        {isStandard && (lesson.content as StandardLessonContent).activities.writtenExpression.questions.length > 0 && (
           <div className="border-t border-gray-100 pt-2 mb-2">
             <h3 className="font-bold text-gray-700 text-[10px] uppercase mb-2 tracking-wider">Written Responses</h3>
             <div className="space-y-2">
-              {lesson.content.activities.writtenExpression.questions.map((q, i) => (
+              {(lesson.content as StandardLessonContent).activities.writtenExpression.questions.map((q, i) => (
                 <div key={i} className="text-sm">
                   <p className="font-semibold text-green-800 text-xs mb-1 line-clamp-2 leading-tight">{i + 1}. {q.text}</p>
                   <p className="text-gray-600 text-xs pl-2 border-l-2 border-green-200 italic bg-gray-50 p-1.5 rounded-r leading-snug">
@@ -668,149 +692,160 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
           <Button onClick={() => setShowResults(false)} size="sm">Back to Lesson</Button>
         </div>
         <div className="mt-8">
-          {renderVideoExploration()}
+          {isStandard && renderVideoExploration()}
         </div>
       </div>
     );
   }
 
+  if (lesson.lessonType === 'information-gap') {
+    return (
+      <InformationGapView 
+        lesson={{...lesson, content: lesson.content as InformationGapContent}} 
+        onReset={handleReset}
+        onFinish={handleFinish}
+        studentName={studentName}
+        setStudentName={setStudentName}
+        studentId={studentId}
+        setStudentId={setStudentId}
+        homeroom={homeroom}
+        setHomeroom={setHomeroom}
+        isNameLocked={isNameLocked}
+      />
+    );
+  }
+
   return (
     <>
-      <div className="max-w-4xl mx-auto pb-20 print:hidden">
-        {/* Header */}
-        <header className="mb-8 text-center">
-          <h1 className="text-3xl md:text-4xl font-bold text-green-900 mb-2">{displayTitle}</h1>
-          <div className="flex items-center justify-center gap-4 text-gray-600">
-            <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-bold">{lesson.level}</span>
-            <div className="flex gap-4">
-              <button 
-                onClick={handleReset} 
-                className="flex items-center hover:text-red-600 transition-colors"
-                title="Clear all progress"
-              >
-                <RotateCcw className="w-4 h-4 mr-1" /> Reset
-              </button>
-              <button onClick={handlePrint} className="flex items-center hover:text-green-600 transition-colors">
-                <Printer className="w-4 h-4 mr-1" /> Print
-              </button>
-            </div>
+      <GenericLessonLayout
+      lesson={lesson}
+      displayTitle={displayTitle}
+      studentName={studentName}
+      setStudentName={setStudentName}
+      studentId={studentId}
+      setStudentId={setStudentId}
+      homeroom={homeroom}
+      setHomeroom={setHomeroom}
+      isNameLocked={isNameLocked}
+      onFinish={handleFinish}
+      onBack={handleReset}
+      showBack={true}
+    >
+      {/* Media Section */}
+      <section className="bg-white p-6 rounded-xl shadow-sm border border-green-100 mb-8">
+        <div translate="no">
+          <h2 className="text-xl font-bold text-green-900 mb-4">{isStandard ? 'Reading Passage' : 'Information'}</h2>
+        </div>
+
+        {lesson.isVideoLesson && lesson.videoUrl && (
+          <div className="relative pt-[56.25%] mb-6 rounded-lg overflow-hidden bg-black shadow-md">
+            <iframe
+              className="absolute top-0 left-0 w-full h-full"
+              src={lesson.videoUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
+              allowFullScreen
+            />
           </div>
-        </header>
+        )}
 
-        {/* Media Section */}
-        <section className="bg-white p-6 rounded-xl shadow-sm border border-green-100 mb-8">
-          <div translate="no">
-            <h2 className="text-xl font-bold text-green-900 mb-4">Reading Passage</h2>
+        {/* Image now displays regardless of video status */}
+        {lesson.imageUrl && (
+          <div className="w-full flex justify-center mb-6">
+            <img
+              src={lesson.imageUrl}
+              alt="Lesson topic"
+              className="w-full h-auto max-h-[500px] object-contain rounded-lg shadow-sm"
+            />
           </div>
+        )}
 
-          {lesson.isVideoLesson && lesson.videoUrl && (
-            <div className="relative pt-[56.25%] mb-6 rounded-lg overflow-hidden bg-black shadow-md">
-              <iframe
-                className="absolute top-0 left-0 w-full h-full"
-                src={lesson.videoUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
-                allowFullScreen
-              />
-            </div>
-          )}
+        {/* Buttons moved above text */}
+        <div className="flex flex-wrap gap-3 mb-4 justify-end text-gray-700">
+          <button className="flex items-center px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg shadow-sm hover:border-green-300 hover:bg-green-50 hover:text-green-600 transition-all" onClick={handleTranslate} title="Translate via Google">
+            <Languages className="w-4 h-4 mr-1.5" /> Translate
+          </button>
 
-          {/* Image now displays regardless of video status */}
-          {lesson.imageUrl && (
-            <div className="w-full flex justify-center mb-6">
-              <img
-                src={lesson.imageUrl}
-                alt="Lesson topic"
-                className="w-full h-auto max-h-[500px] object-contain rounded-lg shadow-sm"
-              />
-            </div>
-          )}
+          {shouldShowAudioControls() ? (
+            <div className="flex flex-wrap items-center gap-3">
+              {availableVoices.length > 0 && (
+                <>
+                  <button
+                    className="flex items-center px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg shadow-sm hover:border-green-300 hover:bg-green-50 hover:text-green-600 transition-all"
+                    onClick={() => setIsVoiceModalOpen(true)}
+                    title="Select TTS Voice"
+                  >
+                    <Mic className="w-4 h-4 mr-1.5" />
+                    <span className="hidden sm:inline">Voice</span>
+                  </button>
 
-          {/* Buttons moved above text */}
-          <div className="flex flex-wrap gap-3 mb-4 justify-end text-gray-700">
-            <button className="flex items-center px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg shadow-sm hover:border-green-300 hover:bg-green-50 hover:text-green-600 transition-all" onClick={handleTranslate} title="Translate via Google">
-              <Languages className="w-4 h-4 mr-1.5" /> Translate
-            </button>
+                  <VoiceSelectorModal
+                    isOpen={isVoiceModalOpen}
+                    onClose={() => setIsVoiceModalOpen(false)}
+                    voices={availableVoices}
+                    selectedVoiceName={selectedVoiceName}
+                    onSelectVoice={(name) => {
+                      userHasSelectedVoice.current = true;
+                      setSelectedVoiceName(name);
+                    }}
+                    language={lesson.language}
+                    hasRecordedAudio={!!lesson.audioFileUrl}
+                    audioPreference={audioPreference}
+                    onSelectPreference={(pref) => {
+                      userHasSelectedVoice.current = true;
+                      setAudioPreference(pref);
+                      // Stop current playback if switching
+                      window.speechSynthesis.cancel();
+                      if (audioRef.current) audioRef.current.pause();
+                      setTtsState(prev => ({ ...prev, status: 'stopped' }));
+                    }}
+                  />
+                </>
+              )}
 
-            {shouldShowAudioControls() ? (
-              <div className="flex flex-wrap items-center gap-3">
-                {availableVoices.length > 0 && (
-                  <>
-                    <button
-                      className="flex items-center px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg shadow-sm hover:border-green-300 hover:bg-green-50 hover:text-green-600 transition-all"
-                      onClick={() => setIsVoiceModalOpen(true)}
-                      title="Select TTS Voice"
-                    >
-                      <Mic className="w-4 h-4 mr-1.5" />
-                      <span className="hidden sm:inline">Voice</span>
-                    </button>
-
-                    <VoiceSelectorModal
-                      isOpen={isVoiceModalOpen}
-                      onClose={() => setIsVoiceModalOpen(false)}
-                      voices={availableVoices}
-                      selectedVoiceName={selectedVoiceName}
-                      onSelectVoice={(name) => {
-                        userHasSelectedVoice.current = true;
-                        setSelectedVoiceName(name);
-                      }}
-                      language={lesson.language}
-                      hasRecordedAudio={!!lesson.audioFileUrl}
-                      audioPreference={audioPreference}
-                      onSelectPreference={(pref) => {
-                        userHasSelectedVoice.current = true;
-                        setAudioPreference(pref);
-                        // Stop current playback if switching
-                        window.speechSynthesis.cancel();
-                        if (audioRef.current) audioRef.current.pause();
-                        setTtsState(prev => ({ ...prev, status: 'stopped' }));
-                      }}
-                    />
-                  </>
-                )}
-
-                <button className="flex items-center px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg shadow-sm hover:border-green-300 hover:bg-green-50 hover:text-green-600 transition-all" onClick={() => toggleTTS(0.6)}>
-                  {ttsState.rate === 0.6 && ttsState.status === 'playing' ? (
-                    <><Pause className="w-4 h-4 mr-1.5" /> Pause</>
-                  ) : ttsState.rate === 0.6 && ttsState.status === 'paused' ? (
-                    <><Play className="w-4 h-4 mr-1.5" /> Resume</>
-                  ) : (
-                    <><Turtle className="w-4 h-4 mr-1.5" /> Slow</>
-                  )}
-                </button>
-
-                <button className="flex items-center px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg shadow-sm hover:border-green-300 hover:bg-green-50 hover:text-green-600 transition-all" onClick={() => toggleTTS(1.0)}>
-                  {ttsState.rate === 1.0 && ttsState.status === 'playing' ? (
-                    <><Pause className="w-4 h-4 mr-1.5" /> Pause</>
-                  ) : ttsState.rate === 1.0 && ttsState.status === 'paused' ? (
-                    <><Play className="w-4 h-4 mr-1.5" /> Resume</>
-                  ) : (
-                    <><Volume2 className="w-4 h-4 mr-1.5" /> Listen</>
-                  )}
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 bg-yellow-50 p-2 rounded border border-yellow-200">
-                <span className="text-xs text-yellow-800">⚠️ Audio unavailable.</span>
-                {getAndroidIntentLink(lesson.id) ? (
-                  <a href={getAndroidIntentLink(lesson.id)} className="text-xs font-bold text-green-600 underline">Open in Chrome</a>
+              <button className="flex items-center px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg shadow-sm hover:border-green-300 hover:bg-green-50 hover:text-green-600 transition-all" onClick={() => toggleTTS(0.6)}>
+                {ttsState.rate === 0.6 && ttsState.status === 'playing' ? (
+                  <><Pause className="w-4 h-4 mr-1.5" /> Pause</>
+                ) : ttsState.rate === 0.6 && ttsState.status === 'paused' ? (
+                  <><Play className="w-4 h-4 mr-1.5" /> Resume</>
                 ) : (
-                  <span className="text-xs text-gray-500">Please use Chrome or Safari.</span>
+                  <><Turtle className="w-4 h-4 mr-1.5" /> Slow</>
                 )}
-              </div>
-            )}
-          </div>
+              </button>
 
-          <div
-            ref={passageRef}
-            className="prose max-w-none font-serif text-2xl md:text-2xl leading-relaxed text-gray-800 bg-gray-50/70 p-6 rounded-lg whitespace-pre-line border border-gray-200"
-            translate="no"
-          >
-            {renderReadingPassage(lesson.content.readingText)}
-          </div>
-        </section>
+              <button className="flex items-center px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg shadow-sm hover:border-green-300 hover:bg-green-50 hover:text-green-600 transition-all" onClick={() => toggleTTS(1.0)}>
+                {ttsState.rate === 1.0 && ttsState.status === 'playing' ? (
+                  <><Pause className="w-4 h-4 mr-1.5" /> Pause</>
+                ) : ttsState.rate === 1.0 && ttsState.status === 'paused' ? (
+                  <><Play className="w-4 h-4 mr-1.5" /> Resume</>
+                ) : (
+                  <><Volume2 className="w-4 h-4 mr-1.5" /> Listen</>
+                )}
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 bg-yellow-50 p-2 rounded border border-yellow-200">
+              <span className="text-xs text-yellow-800">⚠️ Audio unavailable.</span>
+              {getAndroidIntentLink(lesson.id) ? (
+                <a href={getAndroidIntentLink(lesson.id)} className="text-xs font-bold text-green-600 underline">Open in Chrome</a>
+              ) : (
+                <span className="text-xs text-gray-500">Please use Chrome or Safari.</span>
+              )}
+            </div>
+          )}
+        </div>
 
-        {/* Activity 1: Vocabulary */}
+        <div
+          ref={passageRef}
+          className="prose max-w-none font-serif text-2xl md:text-2xl leading-relaxed text-gray-800 bg-gray-50/70 p-6 rounded-lg whitespace-pre-line border border-gray-200"
+          translate="no"
+        >
+          {isStandard && renderReadingPassage((lesson.content as StandardLessonContent).readingText)}
+        </div>
+      </section>
+
+      {/* Activity 1: Vocabulary */}
+      {isStandard && (
         <Vocabulary
-          data={lesson.content.activities.vocabulary}
+          data={(lesson.content as StandardLessonContent).activities.vocabulary}
           language={lesson.language}
           savedAnswers={answers.vocabulary}
           onChange={(a) => updateAnswers('vocabulary', a)}
@@ -818,11 +853,13 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
           savedIsChecked={completionStates.vocabularyChecked}
           onComplete={() => setCompletionStates(prev => ({ ...prev, vocabularyChecked: true }))}
         />
+      )}
 
-        {/* Activity 2: Fill in Blanks */}
+      {/* Activity 2: Fill in Blanks */}
+      {isStandard && (
         <FillInBlanks
-          data={lesson.content.activities.fillInTheBlanks}
-          vocabItems={lesson.content.activities.vocabulary.items}
+          data={(lesson.content as StandardLessonContent).activities.fillInTheBlanks}
+          vocabItems={(lesson.content as StandardLessonContent).activities.vocabulary.items}
           level={lesson.level.replace('Level ', '')}
           language={lesson.language}
           savedAnswers={answers.fillBlanks}
@@ -831,11 +868,13 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
           savedIsChecked={completionStates.fillBlanksChecked}
           onComplete={() => setCompletionStates(prev => ({ ...prev, fillBlanksChecked: true }))}
         />
+      )}
 
-        {/* Activity 3: Comprehension */}
+      {/* Activity 3: Comprehension */}
+      {isStandard && (
         <Comprehension
-          data={lesson.content.activities.comprehension}
-          readingText={lesson.content.readingText}
+          data={(lesson.content as StandardLessonContent).activities.comprehension}
+          readingText={(lesson.content as StandardLessonContent).readingText}
           language={lesson.language}
           savedAnswers={answers.comprehension}
           onChange={(a) => updateAnswers('comprehension', a)}
@@ -843,10 +882,12 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
           savedIsCompleted={completionStates.comprehensionCompleted}
           onComplete={() => setCompletionStates(prev => ({ ...prev, comprehensionCompleted: true }))}
         />
+      )}
 
-        {/* Activity 4: Scrambled */}
+      {/* Activity 4: Scrambled */}
+      {isStandard && (
         <Scrambled
-          data={lesson.content.activities.scrambled}
+          data={(lesson.content as StandardLessonContent).activities.scrambled}
           level={lesson.level.replace('Level ', '')}
           language={lesson.language}
           savedAnswers={answers.scrambled}
@@ -855,8 +896,10 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
           savedIsCompleted={completionStates.scrambledCompleted}
           onComplete={() => setCompletionStates(prev => ({ ...prev, scrambledCompleted: true }))}
         />
+      )}
 
-        {/* Activity 5: Writing */}
+      {/* Activity 5: Writing */}
+      {isStandard && (
         <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-bold text-green-800">Activity 5: Written Expression</h2>
@@ -873,17 +916,17 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
 
           <p className="text-gray-600 mb-6 text-lg">Answer the questions with 1 or 2 complete sentences.</p>
 
-          {showExamples && lesson.content.activities.writtenExpression.examples && (
+          {showExamples && (lesson.content as StandardLessonContent).activities.writtenExpression.examples && (
             <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg animate-fade-in shadow-sm">
               <div
                 className="prose prose-sm text-green-800"
-                dangerouslySetInnerHTML={{ __html: lesson.content.activities.writtenExpression.examples }}
+                dangerouslySetInnerHTML={{ __html: (lesson.content as StandardLessonContent).activities.writtenExpression.examples }}
               />
             </div>
           )}
 
           <div className="space-y-6">
-            {lesson.content.activities.writtenExpression.questions.map((q, i) => (
+            {(lesson.content as StandardLessonContent).activities.writtenExpression.questions.map((q, i) => (
               <div key={i}>
                 <div className="flex items-start gap-3 mb-2">
                   <label className="block font-medium text-gray-800 text-lg flex-1">{i + 1}. {q.text}</label>
@@ -910,61 +953,10 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
             ))}
           </div>
         </section>
+      )}
 
-        {/* Submission */}
-        <section className="bg-green-700 p-8 rounded-xl shadow-lg text-white text-center mb-8">
-          <h2 className="text-2xl font-bold mb-4">{isNameLocked ? 'Update Score' : 'Finished?'}</h2>
-          <div className="max-w-xl mx-auto mb-6">
-            {isNameLocked ? (
-              <div className="w-full p-3 rounded-lg bg-white text-green-900 font-bold text-xl shadow-sm mb-4">
-                {studentName} • {studentId} • {homeroom}
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-white mb-2 text-xs font-semibold uppercase tracking-wider text-left">Nickname</label>
-                  <input
-                    type="text"
-                    className="w-full p-3 rounded-lg bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-green-400 text-lg font-semibold"
-                    placeholder="Jake"
-                    value={studentName}
-                    onChange={(e) => setStudentName(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-white mb-2 text-xs font-semibold uppercase tracking-wider text-left">Student ID</label>
-                  <input
-                    type="text"
-                    className="w-full p-3 rounded-lg bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-green-400 text-lg font-semibold"
-                    placeholder="01"
-                    value={studentId}
-                    onChange={(e) => setStudentId(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-white mb-2 text-xs font-semibold uppercase tracking-wider text-left">Homeroom</label>
-                  <input
-                    type="text"
-                    className="w-full p-3 rounded-lg bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-green-400 text-lg font-semibold"
-                    placeholder="M1/1"
-                    value={homeroom}
-                    onChange={(e) => setHomeroom(e.target.value)}
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-          <button
-            onClick={handleFinish}
-            disabled={!studentName.trim() || !studentId.trim() || !homeroom.trim()}
-            className="bg-white text-green-800 border border-green-800 font-bold py-3 px-8 rounded-full shadow-lg hover:bg-gray-100 transform hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isNameLocked ? 'See Updated Report Card' : 'See My Score'}
-          </button>
-        </section>
-
-        {renderVideoExploration()}
-      </div>
+      {isStandard && renderVideoExploration()}
+    </GenericLessonLayout>
 
       {/* PRINT LAYOUT (Visible only on print) */}
       <div className="hidden print:block font-serif text-black max-w-[210mm] mx-auto p-4">
@@ -989,7 +981,7 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
             />
           )}
           <div className="text-xs text-justify leading-snug columns-2 gap-6 whitespace-pre-line">
-            {lesson.content.readingText}
+            {isStandard ? (lesson.content as StandardLessonContent).readingText : ''}
           </div>
         </div>
 
@@ -1000,7 +992,7 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
             <div className="grid grid-cols-2 gap-4 text-xs">
               <div>
                 <p className="font-bold mb-1 text-[10px] text-gray-500 uppercase">Definitions</p>
-                {lesson.content.activities.vocabulary.definitions.map((def, i) => (
+                {isStandard && (lesson.content as StandardLessonContent).activities.vocabulary.definitions.map((def, i) => (
                   <div key={def.id} className="mb-1">
                     <span className="font-bold mr-1">{String.fromCharCode(97 + i)}.</span>
                     {def.text}
@@ -1022,7 +1014,7 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
           <div className="break-inside-avoid">
             <h2 className="font-bold text-sm mb-2 border-b border-gray-300 pb-1">2. Fill in the Blanks</h2>
             <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-xs">
-              {lesson.content.activities.fillInTheBlanks.map((item, i) => (
+              {isStandard && (lesson.content as StandardLessonContent).activities.fillInTheBlanks.map((item, i) => (
                 <div key={i}>
                   {i + 1}. {item.before} <span className="inline-block w-16 border-b border-black"></span> {item.after}
                 </div>
@@ -1034,7 +1026,7 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
           <div className="break-inside-avoid">
             <h2 className="font-bold text-sm mb-2 border-b border-gray-300 pb-1">3. Comprehension</h2>
             <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-xs">
-              {lesson.content.activities.comprehension.questions.map((q, i) => (
+              {isStandard && (lesson.content as StandardLessonContent).activities.comprehension.questions.map((q, i) => (
                 <div key={i}>
                   {i + 1}. {q.text} <span className="ml-2 whitespace-nowrap">[ ] True [ ] False</span>
                 </div>
@@ -1059,7 +1051,7 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
           <div className="break-inside-avoid">
             <h2 className="font-bold text-sm mb-2 border-b border-gray-300 pb-1">5. Written Expression</h2>
             <div className="text-xs space-y-4">
-              {lesson.content.activities.writtenExpression.questions.map((q, i) => (
+              {isStandard && (lesson.content as StandardLessonContent).activities.writtenExpression.questions.map((q, i) => (
                 <div key={i}>
                   <p className="font-semibold mb-1">{i + 1}. {q.text}</p>
                   <div className="border-b border-gray-300 h-4 w-full mb-2"></div>

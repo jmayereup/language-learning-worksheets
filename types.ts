@@ -42,7 +42,27 @@ export interface WritingActivity {
   examples: string; // HTML string
 }
 
-export interface LessonContent {
+export interface InformationGapQuestion {
+  asker_id: number;
+  question: string;
+  options: string[];
+  correct_answer: string;
+}
+
+export interface InformationGapBlock {
+  text_holder_id: number;
+  text: string;
+  questions: InformationGapQuestion[];
+}
+
+export interface InformationGapContent {
+  topic: string;
+  scenario_description: string;
+  player_count: number;
+  blocks: InformationGapBlock[];
+}
+
+export interface StandardLessonContent {
   title: string;
   readingText: string;
   activities: {
@@ -53,6 +73,8 @@ export interface LessonContent {
     writtenExpression: WritingActivity;
   };
 }
+
+export type LessonContent = StandardLessonContent | InformationGapContent;
 
 export interface LessonRecord {
   id: string;
@@ -65,6 +87,7 @@ export interface LessonRecord {
   image: string;
   videoUrl: string;
   isVideoLesson: boolean;
+  lessonType?: string; // e.g. "information-gap"
   title?: string; // Added field
   tags?: string[]; // Added field
   content: LessonContent | string; // PB returns JSON or string depending on parse
