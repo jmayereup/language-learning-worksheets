@@ -6,7 +6,7 @@ import { speakText } from '../../utils/textUtils';
 
 interface InformationGapQuestionsProps {
   questions: InformationGapQuestion[];
-  onFinish: () => void;
+  onFinish: (score: number, total: number) => void;
   language: string;
 }
 
@@ -27,7 +27,7 @@ export const InformationGapQuestions: React.FC<InformationGapQuestionsProps> = (
         <p className="text-gray-500 font-bold text-xl mb-4">No questions for this role.</p>
         <p className="text-gray-400">Wait for your partner to ask you questions, then show them this screen when you are both done.</p>
         <div className="mt-8">
-            <Button onClick={onFinish} className="bg-green-600 hover:bg-green-700 shadow-lg">Finish Lesson</Button>
+            <Button onClick={() => onFinish(0, 0)} className="bg-green-600 hover:bg-green-700 shadow-lg">Finish Lesson</Button>
         </div>
       </div>
     );
@@ -55,10 +55,10 @@ export const InformationGapQuestions: React.FC<InformationGapQuestionsProps> = (
         </div>
 
         <Button 
-          onClick={onFinish} 
+          onClick={() => onFinish(score, questions.length)} 
           className="w-full max-w-sm h-16 text-xl font-black bg-green-600 hover:bg-green-700 hover:scale-105 transition-all shadow-xl rounded-2xl"
         >
-          View Results Report
+          {percentage === 100 ? 'Continue' : 'View Results Report'}
         </Button>
       </div>
     );

@@ -55,11 +55,18 @@ export interface InformationGapBlock {
   questions: InformationGapQuestion[];
 }
 
-export interface InformationGapContent {
+export interface InformationGapActivity {
   topic: string;
   scenario_description: string;
-  player_count: number;
   blocks: InformationGapBlock[];
+}
+
+export interface InformationGapContent {
+  topic?: string; // Optional for backward compatibility
+  scenario_description?: string; // Optional for backward compatibility
+  player_count: number;
+  blocks?: InformationGapBlock[]; // Optional for backward compatibility
+  activities?: InformationGapActivity[];
 }
 
 export interface StandardLessonContent {
@@ -74,7 +81,7 @@ export interface StandardLessonContent {
   };
 }
 
-export type LessonContent = StandardLessonContent | InformationGapContent;
+export type LessonContent = StandardLessonContent | InformationGapContent | InformationGapActivity[];
 
 export interface LessonRecord {
   id: string;
