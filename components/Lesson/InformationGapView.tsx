@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { InformationGapContent, ParsedLesson } from '../../types';
 import { Button } from '../UI/Button';
-import { Users, CheckCircle } from 'lucide-react';
+import { Users, CheckCircle, Mic, Turtle, Volume2, Pause, Play } from 'lucide-react';
 import { InformationGapQuestions } from '../Activities/InformationGapQuestions';
-import { speakText } from '../../utils/textUtils';
+import { speakText, selectElementText } from '../../utils/textUtils';
 import { GenericLessonLayout } from './GenericLessonLayout';
+import { VoiceSelectorModal } from '../UI/VoiceSelectorModal';
 
 interface InformationGapViewProps {
   lesson: ParsedLesson & { content: InformationGapContent };
@@ -17,6 +18,15 @@ interface InformationGapViewProps {
   homeroom: string;
   setHomeroom: (homeroom: string) => void;
   isNameLocked: boolean;
+  toggleTTS: (rate: number, overrideText?: string) => void;
+  ttsState: { status: 'playing' | 'paused' | 'stopped', rate: number };
+  availableVoices: SpeechSynthesisVoice[];
+  selectedVoiceName: string | null;
+  setSelectedVoiceName: (name: string) => void;
+  isVoiceModalOpen: boolean;
+  setIsVoiceModalOpen: (isOpen: boolean) => void;
+  audioPreference: 'recorded' | 'tts';
+  setAudioPreference: (pref: 'recorded' | 'tts') => void;
 }
 
 interface ActivityResult {
@@ -34,14 +44,57 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
   setStudentId,
   homeroom,
   setHomeroom,
-  isNameLocked
+  isNameLocked,
+  toggleTTS,
+  ttsState,
+  availableVoices,
+  selectedVoiceName,
+  setSelectedVoiceName,
+  isVoiceModalOpen,
+  setIsVoiceModalOpen,
+  audioPreference,
+  setAudioPreference,
 }) => {
   const [currentPlayer, setCurrentPlayer] = useState<number | null>(null);
   const [currentActivityIndex, setCurrentActivityIndex] = useState(0);
   const [activityResults, setActivityResults] = useState<ActivityResult[]>([]);
   const [isFinished, setIsFinished] = useState(false);
+  const passageRef = React.useRef<HTMLDivElement>(null);
 
   const { content } = lesson;
+
+  const handleWordClick = (word: string) => {
+    const cleanWord = word.replace(/^[.,!?;:"'()\[\]{}]+|[.,!?;:"'()\[\]{}]+$/g, '');
+    if (cleanWord) {
+      speakText(cleanWord, lesson.language, 0.7, selectedVoiceName);
+    }
+  };
+
+  const renderClickableText = (text: string) => {
+    if (!text) return null;
+    const segments = text.split(/(\s+)/);
+    return segments.map((segment, i) => {
+      if (/^\s+$/.test(segment)) return segment;
+      const subSegments = segment.split(/([.,!?;:"'()\[\]{}]+)/).filter(Boolean);
+      return (
+        <React.Fragment key={i}>
+          {subSegments.map((sub, j) => {
+            if (/^[.,!?;:"'()\[\]{}]+$/.test(sub)) return <span key={j}>{sub}</span>;
+            return (
+              <span
+                key={j}
+                onClick={() => handleWordClick(sub)}
+                className="cursor-pointer hover:text-green-600 hover:bg-green-100/50 rounded transition-colors"
+                title="Click to hear pronunciation"
+              >
+                {sub}
+              </span>
+            );
+          })}
+        </React.Fragment>
+      );
+    });
+  };
 
   // Normalize activities - support:
   // 1. Array of activities directly: [...]
@@ -241,14 +294,58 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
         <hr className="my-6 border-gray-100" />
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-black text-green-900 uppercase tracking-tight">Your Secret Information</h2>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="rounded-full font-bold"
-            onClick={() => speakText(myTextBlocks.map(b => b.text).join(' '), lesson.language)}
-          >
-            Listen
-          </Button>
+          <div className="flex flex-wrap items-center gap-3">
+            {availableVoices.length > 0 && (
+              <>
+                <button
+                  className="flex items-center px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg shadow-sm hover:border-green-300 hover:bg-green-50 hover:text-green-600 transition-all bg-white"
+                  onClick={() => setIsVoiceModalOpen(true)}
+                  title="Select TTS Voice"
+                >
+                  <Mic className="w-4 h-4 mr-1.5 text-gray-600" />
+                  <span className="text-gray-700 font-bold">Voice</span>
+                </button>
+
+                <VoiceSelectorModal
+                  isOpen={isVoiceModalOpen}
+                  onClose={() => setIsVoiceModalOpen(false)}
+                  voices={availableVoices}
+                  selectedVoiceName={selectedVoiceName}
+                  onSelectVoice={setSelectedVoiceName}
+                  language={lesson.language}
+                  hasRecordedAudio={!!lesson.audioFileUrl}
+                  audioPreference={audioPreference}
+                  onSelectPreference={setAudioPreference}
+                />
+              </>
+            )}
+
+            <button 
+              className="flex items-center px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg shadow-sm hover:border-green-300 hover:bg-green-50 hover:text-green-600 transition-all bg-white" 
+              onClick={() => toggleTTS(0.6, myTextBlocks.map(b => b.text).join(' '))}
+            >
+              {ttsState.rate === 0.6 && ttsState.status === 'playing' ? (
+                <><Pause className="w-4 h-4 mr-1.5 text-gray-600" /> <span className="text-gray-700 font-bold">Pause</span></>
+              ) : ttsState.rate === 0.6 && ttsState.status === 'paused' ? (
+                <><Play className="w-4 h-4 mr-1.5 text-gray-600" /> <span className="text-gray-700 font-bold">Resume</span></>
+              ) : (
+                <><Turtle className="w-4 h-4 mr-1.5 text-gray-600" /> <span className="text-gray-700 font-bold">Slow</span></>
+              )}
+            </button>
+
+            <button 
+              className="flex items-center px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg shadow-sm hover:border-green-300 hover:bg-green-50 hover:text-green-600 transition-all bg-white" 
+              onClick={() => toggleTTS(1.0, myTextBlocks.map(b => b.text).join(' '))}
+            >
+              {ttsState.rate === 1.0 && ttsState.status === 'playing' ? (
+                <><Pause className="w-4 h-4 mr-1.5 text-gray-600" /> <span className="text-gray-700 font-bold">Pause</span></>
+              ) : ttsState.rate === 1.0 && ttsState.status === 'paused' ? (
+                <><Play className="w-4 h-4 mr-1.5 text-gray-600" /> <span className="text-gray-700 font-bold">Resume</span></>
+              ) : (
+                <><Volume2 className="w-4 h-4 mr-1.5 text-gray-600" /> <span className="text-gray-700 font-bold">Listen</span></>
+              )}
+            </button>
+          </div>
         </div>
         
         <div className="space-y-6">
@@ -257,7 +354,7 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
               key={i} 
               className="prose max-w-none font-serif text-2xl leading-relaxed text-gray-800 bg-gray-50/50 p-6 rounded-2xl border border-gray-100 italic relative z-10"
             >
-              {block.text}
+              {renderClickableText(block.text)}
             </div>
           )) : (
             <div className="text-center py-8 text-gray-400 italic font-medium">
@@ -281,6 +378,7 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
           questions={myQuestions} 
           onFinish={handleActivityFinish}
           language={lesson.language}
+          selectedVoiceName={selectedVoiceName}
         />
       </section>
 

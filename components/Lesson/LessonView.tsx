@@ -190,11 +190,11 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
     }
   };
 
-  const toggleTTS = (rate: number) => {
+  const toggleTTS = (rate: number, overrideText?: string) => {
     const synth = window.speechSynthesis;
 
-    // Use audio file if available and preferred
-    if (lesson.audioFileUrl && audioPreference === 'recorded') {
+    // Use audio file if available and preferred, but ONLY if no override text is provided
+    if (!overrideText && lesson.audioFileUrl && audioPreference === 'recorded') {
       if (!audioRef.current) {
         audioRef.current = new Audio(lesson.audioFileUrl);
         audioRef.current.onended = () => {
@@ -239,10 +239,10 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
       return;
     }
 
-    playTTS(rate);
+    playTTS(rate, overrideText);
   };
 
-  const playTTS = (rate: number) => {
+  const playTTS = (rate: number, overrideText?: string) => {
     const synth = window.speechSynthesis;
 
     // If clicking the active button
@@ -263,7 +263,7 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
       audioRef.current.pause();
     }
 
-    const readingText = isStandard ? (lesson.content as StandardLessonContent).readingText : '';
+    const readingText = overrideText || (isStandard ? (lesson.content as StandardLessonContent).readingText : '');
     const utterance = new SpeechSynthesisUtterance(readingText);
     const langCode = getLangCode(lesson.language);
     utterance.lang = langCode;
@@ -283,7 +283,7 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
     setTtsState({ status: 'playing', rate });
 
     // Highlight the reading passage when audio starts
-    if (passageRef.current) {
+    if (passageRef.current && !overrideText) {
       selectElementText(passageRef.current);
     }
   };
@@ -713,6 +713,24 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
           homeroom={homeroom}
           setHomeroom={setHomeroom}
           isNameLocked={isNameLocked}
+          toggleTTS={toggleTTS}
+          ttsState={ttsState}
+          availableVoices={availableVoices}
+          selectedVoiceName={selectedVoiceName}
+          setSelectedVoiceName={(name) => {
+            userHasSelectedVoice.current = true;
+            setSelectedVoiceName(name);
+          }}
+          isVoiceModalOpen={isVoiceModalOpen}
+          setIsVoiceModalOpen={setIsVoiceModalOpen}
+          audioPreference={audioPreference}
+          setAudioPreference={(pref) => {
+            userHasSelectedVoice.current = true;
+            setAudioPreference(pref);
+            window.speechSynthesis.cancel();
+            if (audioRef.current) audioRef.current.pause();
+            setTtsState(prev => ({ ...prev, status: 'stopped' }));
+          }}
         />
       </React.Suspense>
     );

@@ -8,12 +8,14 @@ interface InformationGapQuestionsProps {
   questions: InformationGapQuestion[];
   onFinish: (score: number, total: number) => void;
   language: string;
+  selectedVoiceName: string | null;
 }
 
 export const InformationGapQuestions: React.FC<InformationGapQuestionsProps> = ({ 
   questions, 
   onFinish,
-  language
+  language,
+  selectedVoiceName
 }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -99,7 +101,7 @@ export const InformationGapQuestions: React.FC<InformationGapQuestionsProps> = (
       <div className="mb-10 text-center">
         <div className="flex justify-center mb-4">
             <button 
-                onClick={() => speakText(currentQuestion.question, language)}
+                onClick={() => speakText(currentQuestion.question, language, 0.7, selectedVoiceName)}
                 className="w-12 h-12 bg-green-50 text-green-600 rounded-full flex items-center justify-center hover:bg-green-100 transition-colors"
             >
                 <Volume2 className="w-6 h-6" />
