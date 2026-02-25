@@ -55,12 +55,7 @@ export const JSONKeyValueEditor: React.FC<JSONKeyValueEditorProps> = ({
                 const isNextNumber = nextKey !== undefined && /^\d+$/.test(nextKey);
                 
                 if (isLast) {
-                    // Try to parse as number or boolean if possible, otherwise keep as string
-                    const val = data[path];
-                    if (val === 'true') current[key] = true;
-                    else if (val === 'false') current[key] = false;
-                    else if (!isNaN(Number(val)) && val.trim() !== '') current[key] = Number(val);
-                    else current[key] = val;
+                    current[key] = data[path];
                 } else {
                     if (!(key in current)) {
                         current[key] = isNextNumber ? [] : {};
@@ -80,7 +75,7 @@ export const JSONKeyValueEditor: React.FC<JSONKeyValueEditorProps> = ({
         return Object.keys(flatData).filter(key => 
             key.toLowerCase().includes(searchTerm.toLowerCase()) || 
             flatData[key].toLowerCase().includes(searchTerm.toLowerCase())
-        ).sort();
+        );
     }, [flatData, searchTerm]);
 
     const handleValueChange = (key: string, value: string) => {
