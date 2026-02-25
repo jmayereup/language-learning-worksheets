@@ -29,6 +29,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
     const [jsonContent, setJsonContent] = useState('');
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [audioFile, setAudioFile] = useState<File | null>(null);
+    const [lessonType, setLessonType] = useState('worksheet');
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [showVisualEditor, setShowVisualEditor] = useState(false);
 
@@ -43,6 +44,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                     setSelectedTags(lesson.tags || []);
                     setVideoUrl(lesson.videoUrl || '');
                     setIsVideoLesson(lesson.isVideoLesson || false);
+                    setLessonType(lesson.lessonType || 'worksheet');
                     setJsonContent(JSON.stringify(lesson.content, null, 2));
                 } catch (err) {
                     setError('Failed to load lesson for editing');
@@ -93,6 +95,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
             selectedTags.forEach(tag => formData.append('tags', tag));
             formData.append('videoUrl', videoUrl);
             formData.append('isVideoLesson', String(isVideoLesson));
+            formData.append('lessonType', lessonType);
             formData.append('content', JSON.stringify(parsedContent));
             
             if (imageFile) {
@@ -206,9 +209,25 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                                         <option value="A2">A2 (Elementary)</option>
                                         <option value="B1">B1 (Intermediate)</option>
                                         <option value="B2">B2 (Upper Int)</option>
-                                        <option value="C1">C1 (Advanced)</option>
                                     </select>
                                 </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-black text-gray-700 mb-2 ml-1 uppercase tracking-wider">Lesson Type</label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                    <Layout className="h-4 w-4 text-gray-400" />
+                                </div>
+                                <select
+                                    value={lessonType}
+                                    onChange={(e) => setLessonType(e.target.value)}
+                                    className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none appearance-none"
+                                >
+                                    <option value="worksheet">Worksheet (Standard)</option>
+                                    <option value="information-gap">Information-Gap</option>
+                                </select>
                             </div>
                         </div>
 
@@ -348,7 +367,10 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                                 <Layout className="w-3 h-3" /> Visual Editor
                             </Button>
                             <a 
-                                href="https://gemini.google.com/gem/1a183ceHi_da5ac9scUQ3AXs0A5-TcOtn?usp=sharing" 
+                                href={lessonType === 'information-gap' 
+                                    ? "https://gemini.google.com/gem/1bdsM9tYk1Qb4lcCsnPVOTK1FR_37HYnX?usp=sharing"
+                                    : "https://gemini.google.com/gem/1a183ceHi_da5ac9scUQ3AXs0A5-TcOtn?usp=sharing"
+                                }
                                 target="_blank" 
                                 rel="noopener noreferrer"
                                 className="text-[10px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 bg-blue-50 px-2 py-1 rounded-md border border-blue-100 transition-colors"

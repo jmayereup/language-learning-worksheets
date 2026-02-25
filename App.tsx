@@ -16,7 +16,7 @@ const App: React.FC = () => {
     const [level, setLevel] = useState('All');
     const [tag, setTag] = useState('All');
 
-    const [lessons, setLessons] = useState<{ id: string, title: string, tags: string[], level: string, language: string, created: string, imageUrl?: string, description?: string }[]>([]);
+    const [lessons, setLessons] = useState<ParsedLesson[]>([]);
     const [loading, setLoading] = useState(false);
     const [loadingLesson, setLoadingLesson] = useState(false);
 
@@ -81,7 +81,7 @@ const App: React.FC = () => {
             setLoading(true);
             try {
                 const data = await fetchLessons(language, level);
-                setLessons(data);
+                setLessons(data as any);
 
                 // Update URL to reflect filters without touching the active lesson param.
                 // (Clearing `lesson` is handled explicitly when returning to Home.)
@@ -172,7 +172,7 @@ const App: React.FC = () => {
                                 ← Change Lesson
                             </Button>
                             <div className="text-sm font-medium text-green-600 bg-green-50 px-3 py-1 rounded-full truncate max-w-[150px] md:max-w-[200px]">
-                                {currentLesson?.title || currentLesson?.content.title}
+                                {currentLesson?.title}
                             </div>
                             <Button
                                 size="sm"
@@ -297,9 +297,9 @@ const App: React.FC = () => {
                                                             {l.title}
                                                         </h3>
 
-                                                        {l.description && (
+                                                        {(l.seo || l.description) && (
                                                             <p className="text-gray-500 text-sm leading-relaxed line-clamp-2 mb-0">
-                                                                {l.description}
+                                                                {l.seo || l.description}
                                                             </p>
                                                         )}
                                                     </div>

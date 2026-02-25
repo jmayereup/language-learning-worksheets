@@ -103,14 +103,13 @@ export const fetchLessons = async (language: string, level: string) => {
       }
 
       return {
-        id: record.id,
+        ...record,
         title,
-        level: record.level,
-        language: record.language,
-        tags: record.tags || [],
-        created: record.created,
+        content,
         imageUrl,
-        description
+        description,
+        collectionId: record.collectionId || '',
+        collectionName: record.collectionName || ''
       };
     });
   } catch (error) {
@@ -125,8 +124,8 @@ export const fetchLessonById = async (id: string): Promise<ParsedLesson> => {
     const content = parseLessonContent(record.content);
 
     // If DB has a title, ensure it overrides the JSON content title
-    if (record.title) {
-      content.title = record.title;
+    if (record.title && 'title' in content) {
+      (content as any).title = record.title;
     }
 
     return {
@@ -158,14 +157,12 @@ export const fetchAllLessons = async () => {
       }
 
       return {
-        id: record.id,
+        ...record,
         title,
-        level: record.level,
-        language: record.language,
-        tags: record.tags || [],
-        created: record.created,
+        content,
         imageUrl,
-        creatorId: record.creatorId
+        collectionId: record.collectionId || '',
+        collectionName: record.collectionName || ''
       };
     });
   } catch (error) {

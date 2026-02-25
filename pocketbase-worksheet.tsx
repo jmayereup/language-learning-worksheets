@@ -51,7 +51,8 @@ class TJPocketBaseWorksheet extends HTMLElement {
           content: rawData.content,
           image: rawData.image || '',
           collectionId: rawData.collectionId || '',
-          collectionName: rawData.collectionName || ''
+          collectionName: rawData.collectionName || '',
+          seo: rawData.seo
         };
       }
 
