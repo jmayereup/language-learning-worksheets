@@ -88,8 +88,8 @@ export const InformationGapQuestions: React.FC<InformationGapQuestionsProps> = (
   };
 
   return (
-    <div className="bg-white p-2 md:p-4 rounded-3xl shadow-lg border border-gray-100 animate-fade-in">
-      <div className="flex justify-between items-center mb-10">
+    <div className="bg-white p-4 md:p-4 rounded-3xl shadow-lg border border-gray-100 animate-fade-in">
+      <div className="flex justify-between items-center mb-4">
         <div className="bg-gray-100 text-gray-500 px-4 py-1.5 rounded-full text-sm font-black">
           QUESTION {currentQuestionIndex + 1} OF {questions.length}
         </div>
@@ -107,12 +107,12 @@ export const InformationGapQuestions: React.FC<InformationGapQuestionsProps> = (
                 <Volume2 className="w-6 h-6" />
             </button>
         </div>
-        <h3 className="text-3xl font-black text-gray-900 leading-tight">
+        <h3 className="text-xl md:text-2xl font-black text-gray-900 leading-tight">
           {currentQuestion.question}
         </h3>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 mb-10">
+      <div className="grid grid-cols-1 gap-4 mb-2">
         {currentQuestion.options.map((option, i) => {
           let optionStyles = "bg-gray-50 border-2 border-gray-100 text-gray-700 hover:border-green-300 hover:bg-green-50";
           if (showFeedback) {
@@ -130,7 +130,7 @@ export const InformationGapQuestions: React.FC<InformationGapQuestionsProps> = (
               key={i}
               onClick={() => handleOptionSelect(option)}
               disabled={showFeedback}
-              className={`p-6 rounded-2xl text-left text-xl transition-all flex justify-between items-center ${optionStyles}`}
+              className={`p-4 md:p-6 rounded-2xl text-left text-lg md:text-xl transition-all flex justify-between items-center ${optionStyles}`}
             >
               <span>{option}</span>
               {showFeedback && option === currentQuestion.correct_answer && <CheckCircle2 className="w-8 h-8 text-green-600" />}

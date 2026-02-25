@@ -219,8 +219,8 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
       playerRole={currentPlayer}
       variant="white"
     >
-      <div className="mb-6 flex flex-col md:flex-row items-center justify-between gap-4 px-2 pl-2 h-fit">
-        <div className="flex items-center gap-2 p-2 w-1/2">
+      <div className="mb-6 flex flex-col md:flex-row items-center justify-between gap-4 px-2 h-fit">
+        <div className="flex items-center justify-center gap-2 p-2 w-full md:w-auto">
             {activities.map((_, idx) => (
                 <button
                     key={idx}
@@ -242,7 +242,7 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
             ))}
         </div>
         
-        <div className="flex items-center justify-between md:justify-end gap-6">
+        <div className="flex items-center justify-center md:justify-end gap-6 w-full md:w-auto">
             <div className="text-xs font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">
                 Activity {currentActivityIndex + 1} of {activities.length}
             </div>
@@ -255,14 +255,13 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
       </div>
 
       {/* Information for the current player */}
-      <section className="bg-white p-8 rounded-3xl shadow-sm border border-green-100 mb-8 overflow-hidden relative">
-        <div className="mb-4">
+      <section className="bg-transparent sm:bg-white p-2 sm:p-8 rounded-3xl sm:shadow-sm sm:border sm:border-green-100 mb-8 overflow-hidden relative">
+        <div className="mb-6">
             <h1 className="text-xl font-black text-gray-900 leading-tight mb-2 tracking-tight">{currentActivity.topic}</h1>
             <p className="text-base text-gray-500 font-medium leading-relaxed">Read your information below and ask your partner questions to find the missing details.</p>
         </div>
-        <hr className="my-6 border-gray-100" />
         <div className="flex flex-col md:flex-row items-center justify-between mb-4">
-          <h2 className="text-sm mb-2 font-black text-green-900 uppercase tracking-widest opacity-70">Your Secret Information</h2>
+          <h2 className="text-lg mb-4 font-black text-green-900 uppercase tracking-widest opacity-70">Your Secret Information</h2>
           <AudioControls 
             onVoiceOpen={availableVoices.length > 0 ? () => setIsVoiceModalOpen(true) : undefined}
             onSlowToggle={() => toggleTTS(0.6, myTextBlocks.map(b => b.text).join(' '))}
@@ -291,7 +290,7 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
           {myTextBlocks.length > 0 ? myTextBlocks.map((block, i) => (
             <div 
               key={i} 
-              className="prose max-w-none font-serif text-lg md:text-2xl leading-relaxed text-gray-800 bg-transparent p-0 sm:bg-gray-50/50 sm:p-6 rounded-2xl sm:border sm:border-gray-100 italic relative z-10"
+              className="max-w-none font-sans text-xl leading-relaxed text-gray-800 bg-transparent p-0 sm:bg-gray-50/50 sm:p-6 rounded-2xl sm:border sm:border-gray-100 relative z-10"
             >
               {renderClickableText(block.text)}
             </div>
@@ -304,14 +303,13 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
       </section>
 
       {/* Questions to ask the partner */}
-      <section className="mb-12">
+      <section className="mb-6 p-2">
         <div className="flex items-center gap-3 mb-6 ml-2">
           <div className="bg-green-600 p-2 rounded-lg">
             <CheckCircle className="w-5 h-5 text-white" />
           </div>
           <h2 className="text-2xl font-black text-gray-900 tracking-tight">Your Task: Ask Your Partner</h2>
         </div>
-        
         <InformationGapQuestions 
           key={currentActivityIndex}
           questions={myQuestions} 
