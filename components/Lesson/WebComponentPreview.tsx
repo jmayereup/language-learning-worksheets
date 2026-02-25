@@ -32,7 +32,7 @@ export const WebComponentPreview: React.FC<WebComponentPreviewProps> = ({ lesson
   }, null, 2);
 
   const embedCode = `<!-- TJ Worksheet Embed -->
-<link rel="stylesheet" href="https://blog.teacherjake.com/apps/worksheets/dist/wc/language-learning-worksheets.css">
+<link rel="stylesheet" href="https://worksheets.teacherjake.com/wc/language-learning-worksheets.css">
 
 <tj-pocketbase-worksheet>
   <script type="application/json">
@@ -40,7 +40,7 @@ ${embedData}
   </script>
 </tj-pocketbase-worksheet>
 
-<script src="https://blog.teacherjake.com/apps/worksheets/dist/wc/tj-pocketbase-worksheet.umd.js"></script>`;
+<script src="https://worksheets.teacherjake.com/wc/tj-pocketbase-worksheet.umd.js"></script>`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(embedCode);
@@ -55,7 +55,7 @@ ${embedData}
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-60 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-fade-in">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-scale-in">
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">

@@ -151,7 +151,7 @@ const App: React.FC = () => {
                 <div className="container mx-auto px-4 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleViewChange('home')}>
                         {/* <img src="https://blog.teacherjake.com/apps/assets/tj-logo.png" alt="Logo" className="h-10 w-auto" /> */}
-                        <a href="https://blog.teacherjake.com" className="hover:opacity-80 transition-opacity">
+                        <a href="https://www.teacherjake.com" className="hover:opacity-80 transition-opacity">
                             <img src="https://blog.teacherjake.com/apps/assets/tj-logo.png" alt="Teacher Jake Logo"
                                 className="h-10 w-auto "></img>
                         </a>
@@ -159,7 +159,7 @@ const App: React.FC = () => {
                     </div>
                     {view === 'lesson' && (
                         <div className="flex items-center gap-3">
-                            <div className="text-sm font-medium text-green-600 bg-green-50 px-3 py-1 rounded-full truncate max-w-[120px] sm:max-w-[200px] md:max-w-[300px]">
+                            <div className="hidden sm:block text-sm font-medium text-green-600 bg-green-50 px-3 py-1 rounded-full truncate sm:max-w-[200px] md:max-w-[300px]">
                                 {currentLesson?.title}
                             </div>
                             <Button

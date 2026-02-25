@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { ParsedLesson, StandardLessonContent, UserAnswers } from '../../types';
-import { Languages, Video, Volume2, Turtle, Mic, Pause, Play, Eye, EyeOff } from 'lucide-react';
+import { Languages, Video, Eye, EyeOff } from 'lucide-react';
 import { shuffleArray, getLangCode, shouldShowAudioControls, normalizeString, selectElementText } from '../../utils/textUtils';
 import { speakText } from '../../utils/textUtils';
 import { GenericLessonLayout } from './GenericLessonLayout';
@@ -9,6 +9,7 @@ import { FillInBlanks } from '../Activities/FillInBlanks';
 import { Comprehension } from '../Activities/Comprehension';
 import { Scrambled } from '../Activities/Scrambled';
 import { VoiceSelectorModal } from '../UI/VoiceSelectorModal';
+import { AudioControls } from '../UI/AudioControls';
 import { Button } from '../UI/Button';
 import { LessonFooter } from './LessonFooter';
 import { RotateCcw } from 'lucide-react';
@@ -192,7 +193,7 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
       showBack={false}
     >
       {/* Media Section */}
-      <section className="bg-white p-2 rounded-xl shadow-sm border border-green-100 mb-4">
+      <section className="bg-white p-2 rounded-xl sm:shadow-sm sm:border sm:border-green-100 mb-4">
         <div translate="no">
           <h2 className="text-xl font-bold text-green-900 mb-4">Reading Passage</h2>
         </div>
@@ -217,65 +218,36 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
           </div>
         )}
 
-        {/* Buttons moved above text */}
-        <div className="flex flex-wrap gap-3 mb-4 justify-end text-gray-700">
-          <button className="flex items-center px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg shadow-sm hover:border-green-300 hover:bg-green-50 hover:text-green-600 transition-all" onClick={handleTranslate} title="Translate via Google">
-            <Languages className="w-4 h-4 mr-1.5" /> Translate
-          </button>
+        {/* Unified Audio Controls */}
+        <div className="flex justify-center sm:justify-end mb-4">
+          <AudioControls 
+            onTranslate={handleTranslate}
+            onVoiceOpen={availableVoices.length > 0 ? () => setIsVoiceModalOpen(true) : undefined}
+            onSlowToggle={() => toggleTTS(0.6)}
+            onListenToggle={() => toggleTTS(1.0)}
+            ttsStatus={ttsState.status}
+            currentRate={ttsState.rate}
+            hasVoices={availableVoices.length > 0}
+          />
 
-          {shouldShowAudioControls() ? (
-            <div className="flex flex-wrap items-center gap-3">
-              {availableVoices.length > 0 && (
-                <>
-                  <button
-                    className="flex items-center px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg shadow-sm hover:border-green-300 hover:bg-green-50 hover:text-green-600 transition-all"
-                    onClick={() => setIsVoiceModalOpen(true)}
-                    title="Select TTS Voice"
-                  >
-                    <Mic className="w-4 h-4 mr-1.5" />
-                    <span className="hidden sm:inline">Voice</span>
-                  </button>
-
-                  <VoiceSelectorModal
-                    isOpen={isVoiceModalOpen}
-                    onClose={() => setIsVoiceModalOpen(false)}
-                    voices={availableVoices}
-                    selectedVoiceName={selectedVoiceName}
-                    onSelectVoice={setSelectedVoiceName}
-                    language={lesson.language}
-                    hasRecordedAudio={!!lesson.audioFileUrl}
-                    audioPreference={audioPreference}
-                    onSelectPreference={setAudioPreference}
-                  />
-                </>
-              )}
-
-              <button className="flex items-center px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg shadow-sm hover:border-green-300 hover:bg-green-50 hover:text-green-600 transition-all" onClick={() => toggleTTS(0.6)}>
-                {ttsState.rate === 0.6 && ttsState.status === 'playing' ? (
-                  <><Pause className="w-4 h-4 mr-1.5" /> Pause</>
-                ) : ttsState.rate === 0.6 && ttsState.status === 'paused' ? (
-                  <><Play className="w-4 h-4 mr-1.5" /> Resume</>
-                ) : (
-                  <><Turtle className="w-4 h-4 mr-1.5" /> Slow</>
-                )}
-              </button>
-
-              <button className="flex items-center px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg shadow-sm hover:border-green-300 hover:bg-green-50 hover:text-green-600 transition-all" onClick={() => toggleTTS(1.0)}>
-                {ttsState.rate === 1.0 && ttsState.status === 'playing' ? (
-                  <><Pause className="w-4 h-4 mr-1.5" /> Pause</>
-                ) : ttsState.rate === 1.0 && ttsState.status === 'paused' ? (
-                  <><Play className="w-4 h-4 mr-1.5" /> Resume</>
-                ) : (
-                  <><Volume2 className="w-4 h-4 mr-1.5" /> Listen</>
-                )}
-              </button>
-            </div>
-          ) : null}
+          {availableVoices.length > 0 && (
+            <VoiceSelectorModal
+              isOpen={isVoiceModalOpen}
+              onClose={() => setIsVoiceModalOpen(false)}
+              voices={availableVoices}
+              selectedVoiceName={selectedVoiceName}
+              onSelectVoice={setSelectedVoiceName}
+              language={lesson.language}
+              hasRecordedAudio={!!lesson.audioFileUrl}
+              audioPreference={audioPreference}
+              onSelectPreference={setAudioPreference}
+            />
+          )}
         </div>
 
         <div
           ref={passageRef}
-          className="prose max-w-none text-xl leading-relaxed text-gray-800 bg-gray-50 p-6 rounded-lg border border-gray-100"
+          className="prose max-w-none text-lg leading-relaxed text-gray-800 bg-transparent p-0 sm:bg-gray-50 sm:p-6 rounded-lg sm:border sm:border-gray-100"
           translate="no"
         >
           {renderReadingPassage(standardContent.readingText)}

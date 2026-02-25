@@ -58,7 +58,7 @@ export const Vocabulary: React.FC<Props> = ({ data, language, onChange, savedAns
   };
 
   return (
-    <section className="bg-white p-2 rounded-xl shadow-sm border border-gray-100 mb-2">
+    <section className="bg-white p-2 rounded-xl sm:shadow-sm sm:border sm:border-gray-100 mb-2">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-green-800">Activity 1: Vocabulary</h2>
       </div>

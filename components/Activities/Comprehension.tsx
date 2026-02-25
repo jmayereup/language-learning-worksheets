@@ -76,7 +76,7 @@ export const Comprehension: React.FC<Props> = ({ data, readingText, language, on
     });
 
     return (
-      <section className="bg-white p-2 rounded-xl shadow-sm border border-gray-100 mb-2 text-center">
+      <section className="bg-white p-2 rounded-xl sm:shadow-sm sm:border sm:border-gray-100 mb-2 text-center">
         <h2 className="text-2xl font-bold text-green-800 mb-4">Activity 3: Comprehension</h2>
         <div className={`text-3xl font-bold mb-4 ${score === data.questions.length ? 'text-green-600' : 'text-green-600'}`}>
           {score === data.questions.length ? '🎉 Perfect!' : 'Good Job!'}
@@ -92,7 +92,7 @@ export const Comprehension: React.FC<Props> = ({ data, readingText, language, on
   const isCorrect = userAnswer === currentQuestion.answer;
 
   return (
-    <section className="bg-white p-2 rounded-xl shadow-sm border border-gray-100 mb-2">
+    <section className="bg-white p-2 rounded-xl sm:shadow-sm sm:border sm:border-gray-100 mb-2">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-green-800">Activity 3: Comprehension</h2>
         <span className="font-medium text-gray-500 text-sm">

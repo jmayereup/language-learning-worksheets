@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { InformationGapContent, ParsedLesson, UserAnswers } from '../../types';
 import { Button } from '../UI/Button';
-import { Users, CheckCircle, Mic, Turtle, Volume2, Pause, Play, RotateCcw } from 'lucide-react';
+import { Users, CheckCircle, RotateCcw } from 'lucide-react';
 import { InformationGapQuestions } from '../Activities/InformationGapQuestions';
 import { speakText, selectElementText } from '../../utils/textUtils';
 import { GenericLessonLayout } from './GenericLessonLayout';
 import { VoiceSelectorModal } from '../UI/VoiceSelectorModal';
+import { AudioControls } from '../UI/AudioControls';
 import { LessonFooter } from './LessonFooter';
 
 interface InformationGapViewProps {
@@ -256,71 +257,41 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
       {/* Information for the current player */}
       <section className="bg-white p-8 rounded-3xl shadow-sm border border-green-100 mb-8 overflow-hidden relative">
         <div className="mb-4">
-            <h1 className="text-3xl font-black text-gray-900 leading-tight mb-2">{currentActivity.topic}</h1>
-            <p className="text-lg text-gray-500 font-medium">{currentActivity.scenario_description}</p>
+            <h1 className="text-xl font-black text-gray-900 leading-tight mb-2 tracking-tight">{currentActivity.topic}</h1>
+            <p className="text-base text-gray-500 font-medium leading-relaxed">Read your information below and ask your partner questions to find the missing details.</p>
         </div>
         <hr className="my-6 border-gray-100" />
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-black text-green-900 uppercase tracking-tight">Your Secret Information</h2>
-          <div className="flex flex-wrap items-center gap-3">
-            {availableVoices.length > 0 && (
-              <>
-                <button
-                  className="flex items-center px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg shadow-sm hover:border-green-300 hover:bg-green-50 hover:text-green-600 transition-all bg-white"
-                  onClick={() => setIsVoiceModalOpen(true)}
-                  title="Select TTS Voice"
-                >
-                  <Mic className="w-4 h-4 mr-1.5 text-gray-600" />
-                  <span className="text-gray-700 font-bold">Voice</span>
-                </button>
+        <div className="flex flex-col md:flex-row items-center justify-between mb-4">
+          <h2 className="text-sm mb-2 font-black text-green-900 uppercase tracking-widest opacity-70">Your Secret Information</h2>
+          <AudioControls 
+            onVoiceOpen={availableVoices.length > 0 ? () => setIsVoiceModalOpen(true) : undefined}
+            onSlowToggle={() => toggleTTS(0.6, myTextBlocks.map(b => b.text).join(' '))}
+            onListenToggle={() => toggleTTS(1.0, myTextBlocks.map(b => b.text).join(' '))}
+            ttsStatus={ttsState.status}
+            currentRate={ttsState.rate}
+            hasVoices={availableVoices.length > 0}
+          />
 
-                <VoiceSelectorModal
-                  isOpen={isVoiceModalOpen}
-                  onClose={() => setIsVoiceModalOpen(false)}
-                  voices={availableVoices}
-                  selectedVoiceName={selectedVoiceName}
-                  onSelectVoice={setSelectedVoiceName}
-                  language={lesson.language}
-                  hasRecordedAudio={!!lesson.audioFileUrl}
-                  audioPreference={audioPreference}
-                  onSelectPreference={setAudioPreference}
-                />
-              </>
-            )}
-
-            <button 
-              className="flex items-center px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg shadow-sm hover:border-green-300 hover:bg-green-50 hover:text-green-600 transition-all bg-white" 
-              onClick={() => toggleTTS(0.6, myTextBlocks.map(b => b.text).join(' '))}
-            >
-              {ttsState.rate === 0.6 && ttsState.status === 'playing' ? (
-                <><Pause className="w-4 h-4 mr-1.5 text-gray-600" /> <span className="text-gray-700 font-bold">Pause</span></>
-              ) : ttsState.rate === 0.6 && ttsState.status === 'paused' ? (
-                <><Play className="w-4 h-4 mr-1.5 text-gray-600" /> <span className="text-gray-700 font-bold">Resume</span></>
-              ) : (
-                <><Turtle className="w-4 h-4 mr-1.5 text-gray-600" /> <span className="text-gray-700 font-bold">Slow</span></>
-              )}
-            </button>
-
-            <button 
-              className="flex items-center px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg shadow-sm hover:border-green-300 hover:bg-green-50 hover:text-green-600 transition-all bg-white" 
-              onClick={() => toggleTTS(1.0, myTextBlocks.map(b => b.text).join(' '))}
-            >
-              {ttsState.rate === 1.0 && ttsState.status === 'playing' ? (
-                <><Pause className="w-4 h-4 mr-1.5 text-gray-600" /> <span className="text-gray-700 font-bold">Pause</span></>
-              ) : ttsState.rate === 1.0 && ttsState.status === 'paused' ? (
-                <><Play className="w-4 h-4 mr-1.5 text-gray-600" /> <span className="text-gray-700 font-bold">Resume</span></>
-              ) : (
-                <><Volume2 className="w-4 h-4 mr-1.5 text-gray-600" /> <span className="text-gray-700 font-bold">Listen</span></>
-              )}
-            </button>
-          </div>
+          {availableVoices.length > 0 && (
+            <VoiceSelectorModal
+              isOpen={isVoiceModalOpen}
+              onClose={() => setIsVoiceModalOpen(false)}
+              voices={availableVoices}
+              selectedVoiceName={selectedVoiceName}
+              onSelectVoice={setSelectedVoiceName}
+              language={lesson.language}
+              hasRecordedAudio={!!lesson.audioFileUrl}
+              audioPreference={audioPreference}
+              onSelectPreference={setAudioPreference}
+            />
+          )}
         </div>
         
         <div className="space-y-6">
           {myTextBlocks.length > 0 ? myTextBlocks.map((block, i) => (
             <div 
               key={i} 
-              className="prose max-w-none font-serif text-2xl leading-relaxed text-gray-800 bg-gray-50/50 p-6 rounded-2xl border border-gray-100 italic relative z-10"
+              className="prose max-w-none font-serif text-lg md:text-2xl leading-relaxed text-gray-800 bg-transparent p-0 sm:bg-gray-50/50 sm:p-6 rounded-2xl sm:border sm:border-gray-100 italic relative z-10"
             >
               {renderClickableText(block.text)}
             </div>
