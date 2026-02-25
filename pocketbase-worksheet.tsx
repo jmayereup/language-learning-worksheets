@@ -3,7 +3,7 @@ import React from 'react';
 import { LessonView } from './components/Lesson/LessonView';
 import './index.css'; // Ensure tailwind is imported
 
-class TJPocketBaseWorksheet extends HTMLElement {
+export class TJPocketBaseWorksheet extends HTMLElement {
   private root: any = null;
   private mountPoint: HTMLDivElement | null = null;
 

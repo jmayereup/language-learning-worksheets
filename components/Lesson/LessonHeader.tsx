@@ -1,5 +1,4 @@
-import React from 'react';
-import { ArrowLeft, Mic } from 'lucide-react';
+import { ArrowLeft, Mic, X } from 'lucide-react';
 
 interface LessonHeaderProps {
   title: string;
@@ -25,17 +24,18 @@ export const LessonHeader: React.FC<LessonHeaderProps> = ({
   return (
     <div className="animate-fade-in">
       {playerRole && (
-        <header className="mb-4 flex items-center justify-between animate-fade-in print:hidden">
-          <button 
-            onClick={onBack}
-            className="flex items-center text-gray-500 hover:text-green-600 font-bold transition-colors bg-gray-50 px-4 py-2 rounded-xl border border-gray-100 shadow-sm"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" /> Change Role
-          </button>
-          <div className="bg-green-100 text-green-800 px-4 py-1.5 rounded-full text-sm font-black uppercase tracking-wider">
+        <div className="flex justify-center mb-6 pt-2 print:hidden relative">
+          <div className="bg-green-100 text-green-800 px-4 py-1.5 rounded-full text-sm font-black uppercase tracking-wider shadow-sm border border-green-200/50">
             Player {playerRole}
           </div>
-        </header>
+          <button 
+            onClick={onBack}
+            className="absolute top-0 right-0 p-3 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all group"
+            title="Change Role"
+          >
+            <X className="w-6 h-6 group-hover:scale-110 transition-transform" />
+          </button>
+        </div>
       )}
 
       <section className="text-center mb-8 md:mb-12">

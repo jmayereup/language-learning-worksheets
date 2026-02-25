@@ -3,13 +3,15 @@ import { fetchLessons, fetchLessonById } from './services/pocketbase';
 import { ParsedLesson } from './types';
 import { LessonView } from './components/Lesson/LessonView';
 import { Button } from './components/UI/Button';
-import { BookOpen, Search, FlaskConical, Video, Feather, FileText } from 'lucide-react';
+import { BookOpen, Search, FlaskConical, Video, Feather, FileText, X, Eye } from 'lucide-react';
 import { BrowserSupportWarning } from './components/UI/BrowserSupportWarning';
 import { AdminDashboard } from './components/Admin/AdminDashboard';
+import { WebComponentPreview } from './components/Lesson/WebComponentPreview';
 
 const App: React.FC = () => {
     const [view, setView] = useState<'home' | 'lesson' | 'admin'>('home');
     const [currentLesson, setCurrentLesson] = useState<ParsedLesson | null>(null);
+    const [showPreview, setShowPreview] = useState(false);
 
     // Filter States
     const [language, setLanguage] = useState('English');
@@ -156,22 +158,8 @@ const App: React.FC = () => {
                         <span className="hidden md:block font-bold text-gray-700">Worksheets</span>
                     </div>
                     {view === 'lesson' && (
-                        <div className="flex items-center gap-2">
-                            <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => {
-                                    handleViewChange('home');
-                                    // Optional: if we still want to wipe local storage for the lesson on 'Change Lesson'
-                                    try {
-                                        localStorage.removeItem(`lesson-progress-${currentLesson?.id}`);
-                                    } catch (e) {}
-                                }}
-                                className="mr-2"
-                            >
-                                ← Change Lesson
-                            </Button>
-                            <div className="text-sm font-medium text-green-600 bg-green-50 px-3 py-1 rounded-full truncate max-w-[150px] md:max-w-[200px]">
+                        <div className="flex items-center gap-3">
+                            <div className="text-sm font-medium text-green-600 bg-green-50 px-3 py-1 rounded-full truncate max-w-[120px] sm:max-w-[200px] md:max-w-[300px]">
                                 {currentLesson?.title}
                             </div>
                             <Button
@@ -181,16 +169,36 @@ const App: React.FC = () => {
                                     navigator.clipboard.writeText(window.location.href);
                                     alert('Link copied to clipboard!');
                                 }}
-                                className="hidden md:inline-flex"
+                                className="hidden sm:inline-flex"
                             >
                                 Share
                             </Button>
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setShowPreview(true)}
+                                className="hidden md:inline-flex gap-2"
+                            >
+                                <Eye className="w-4 h-4" /> Preview
+                            </Button>
+                            <button 
+                                onClick={() => {
+                                    handleViewChange('home');
+                                    try {
+                                        localStorage.removeItem(`lesson-progress-${currentLesson?.id}`);
+                                    } catch (e) {}
+                                }}
+                                className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
+                                title="Close Lesson"
+                            >
+                                <X className="w-6 h-6" />
+                            </button>
                         </div>
                     )}
                 </div>
             </nav>
 
-            <main className="container mx-auto px-4 py-8 print:p-0 print:m-0 print:max-w-none">
+            <main className="container mx-auto px-0 py-4 print:p-0 print:m-0 print:max-w-none">
                 {view === 'home' ? (
                     <div className="max-w-3xl mx-auto print:hidden">
                         <div className="text-center mb-12">
@@ -341,6 +349,13 @@ const App: React.FC = () => {
                     currentLesson && <LessonView lesson={currentLesson} />
                 )}
             </main>
+
+            {showPreview && currentLesson && (
+                <WebComponentPreview 
+                    lesson={currentLesson} 
+                    onClose={() => setShowPreview(false)} 
+                />
+            )}
         </div>
     );
 };

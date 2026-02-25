@@ -101,6 +101,7 @@ export interface LessonRecord {
   audioFile?: string; // Added field
   creatorId?: string; // Added field
   seo?: string; // Added field
+  description?: string; // Added field
 }
 
 export interface ParsedLesson extends Omit<LessonRecord, 'content'> {
@@ -117,4 +118,12 @@ export interface UserAnswers {
   scrambled: Record<number, string>; // index -> user formed sentence
   writing: Record<number, string>; // index -> user text
   infoGap?: Record<number, { score: number, total: number }>; // activityIndex -> result
+}
+
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      'tj-pocketbase-worksheet': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
+    }
+  }
 }
