@@ -14,8 +14,9 @@ import { VoiceSelectorModal } from '../UI/VoiceSelectorModal';
 import { Mic, CheckCircle, AlertCircle, Loader } from 'lucide-react';
 import { config } from '../../config';
 import { StandardLessonContent, InformationGapContent, LessonContent } from '../../types';
-import { InformationGapView } from './InformationGapView';
 import { GenericLessonLayout } from './GenericLessonLayout';
+
+const InformationGapView = React.lazy(() => import('./InformationGapView').then(m => ({ default: m.InformationGapView })));
 
 interface Props {
   lesson: ParsedLesson;
@@ -700,18 +701,20 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
 
   if (lesson.lessonType === 'information-gap') {
     return (
-      <InformationGapView 
-        lesson={{...lesson, content: lesson.content as InformationGapContent}} 
-        onReset={handleReset}
-        onFinish={handleFinish}
-        studentName={studentName}
-        setStudentName={setStudentName}
-        studentId={studentId}
-        setStudentId={setStudentId}
-        homeroom={homeroom}
-        setHomeroom={setHomeroom}
-        isNameLocked={isNameLocked}
-      />
+      <React.Suspense fallback={<div className="flex items-center justify-center p-20"><Loader className="w-8 h-8 animate-spin text-green-600" /></div>}>
+        <InformationGapView 
+          lesson={{...lesson, content: lesson.content as InformationGapContent}} 
+          onReset={handleReset}
+          onFinish={handleFinish}
+          studentName={studentName}
+          setStudentName={setStudentName}
+          studentId={studentId}
+          setStudentId={setStudentId}
+          homeroom={homeroom}
+          setHomeroom={setHomeroom}
+          isNameLocked={isNameLocked}
+        />
+      </React.Suspense>
     );
   }
 
