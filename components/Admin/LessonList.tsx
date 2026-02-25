@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { fetchAllLessons, deleteLesson, getCurrentUser } from '../../services/pocketbase';
+import { triggerRebuild } from '../../services/deploy';
 import { Button } from '../UI/Button';
 import { Edit, Trash2, ExternalLink, RefreshCw, Layers, Globe, Calendar } from 'lucide-react';
 
@@ -34,6 +35,9 @@ export const LessonList: React.FC<LessonListProps> = ({ onEdit }) => {
             try {
                 await deleteLesson(id);
                 setLessons(lessons.filter(l => l.id !== id));
+                
+                // Trigger Cloudflare rebuild
+                triggerRebuild();
             } catch (err) {
                 alert('Failed to delete lesson');
             }
@@ -75,7 +79,7 @@ export const LessonList: React.FC<LessonListProps> = ({ onEdit }) => {
                             <tr key={lesson.id} className="hover:bg-green-50/30 transition-colors group">
                                 <td className="px-6 py-5">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-16 h-10 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0 border border-gray-200">
+                                        <div className="w-16 h-10 rounded-lg bg-gray-100 overflow-hidden shrink-0 border border-gray-200">
                                             {lesson.imageUrl ? (
                                                 <img src={lesson.imageUrl} alt="" className="w-full h-full object-cover" />
                                             ) : (

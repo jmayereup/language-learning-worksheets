@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { fetchLessonById, createLesson, updateLesson } from '../../services/pocketbase';
+import { triggerRebuild } from '../../services/deploy';
 import { Button } from '../UI/Button';
-import { Save, X, AlertCircle, FileJson, Info, Globe, Layers, Tag as TagIcon, Video, Check, Image as ImageIcon, Music } from 'lucide-react';
+import { Save, X, AlertCircle, FileJson, Info, Globe, Layers, Tag as TagIcon, Video, Check, Image as ImageIcon, Music, Layout } from 'lucide-react';
+import { Modal } from '../UI/Modal';
+import { JSONKeyValueEditor } from './JSONKeyValueEditor';
 
 const TAG_OPTIONS = ['science', 'video', 'general', 'fable', 'M1-2'];
 
@@ -27,6 +30,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [audioFile, setAudioFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [showVisualEditor, setShowVisualEditor] = useState(false);
 
     useEffect(() => {
         if (lessonId) {
@@ -103,12 +107,21 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
             } else {
                 await createLesson(formData);
             }
+            
+            // Trigger Cloudflare rebuild
+            triggerRebuild();
+            
             onSave();
         } catch (err: any) {
             setError(err.message || 'Failed to save lesson');
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleVisualEditorApply = (updatedData: any) => {
+        setJsonContent(JSON.stringify(updatedData, null, 2));
+        setShowVisualEditor(false);
     };
 
     if (fetching) {
@@ -140,7 +153,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
             <form onSubmit={handleSubmit} className="p-8">
                 {error && (
                     <div className="mb-8 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3 text-red-700">
-                        <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                        <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
                         <p className="text-sm font-bold">{error}</p>
                     </div>
                 )}
@@ -321,17 +334,28 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
 
                 <div className="mb-10">
                     <div className="flex items-center justify-between mb-3 ml-1">
-                        <label className="block text-sm font-black text-gray-700 uppercase tracking-wider flex items-center gap-2">
+                        <label className="text-sm font-black text-gray-700 uppercase tracking-wider flex items-center gap-2">
                             <FileJson className="w-4 h-4" /> Worksheet JSON Content
                         </label>
-                        <a 
-                            href="https://gemini.google.com/gem/1a183ceHi_da5ac9scUQ3AXs0A5-TcOtn?usp=sharing" 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-[10px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 bg-blue-50 px-2 py-1 rounded-md border border-blue-100 transition-colors"
-                        >
-                            <Info className="w-3 h-3" /> Get JSON from Gemini
-                        </a>
+                        <div className="flex items-center gap-2">
+                            <Button 
+                                type="button" 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => setShowVisualEditor(true)}
+                                className="text-[10px] font-bold flex items-center gap-1.5"
+                            >
+                                <Layout className="w-3 h-3" /> Visual Editor
+                            </Button>
+                            <a 
+                                href="https://gemini.google.com/gem/1a183ceHi_da5ac9scUQ3AXs0A5-TcOtn?usp=sharing" 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-[10px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 bg-blue-50 px-2 py-1 rounded-md border border-blue-100 transition-colors"
+                            >
+                                <Info className="w-3 h-3" /> Get JSON from Gemini
+                            </a>
+                        </div>
                     </div>
                     <textarea
                         value={jsonContent}
@@ -339,6 +363,36 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                         className="w-full h-[500px] p-6 bg-gray-900 text-green-400 font-mono text-sm leading-relaxed rounded-2xl focus:ring-2 focus:ring-green-500 outline-none border-none shadow-inner"
                         spellCheck={false}
                     />
+
+                    <Modal 
+                        isOpen={showVisualEditor} 
+                        onClose={() => setShowVisualEditor(false)} 
+                        title="Worksheet Content Editor"
+                    >
+                        {(() => {
+                            try {
+                                const data = JSON.parse(jsonContent);
+                                return (
+                                    <JSONKeyValueEditor 
+                                        initialData={data} 
+                                        onApply={handleVisualEditorApply} 
+                                        onCancel={() => setShowVisualEditor(false)} 
+                                    />
+                                );
+                            } catch (e) {
+                                return (
+                                    <div className="p-12 text-center">
+                                        <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+                                        <h3 className="text-lg font-bold text-gray-900 mb-2">Invalid JSON Content</h3>
+                                        <p className="text-gray-500 max-w-sm mx-auto">Please fix the syntax errors in the JSON textarea before using the visual editor.</p>
+                                        <Button variant="outline" onClick={() => setShowVisualEditor(false)} className="mt-8">
+                                            Go Back
+                                        </Button>
+                                    </div>
+                                );
+                            }
+                        })()}
+                    </Modal>
                 </div>
 
                 <div className="flex justify-end gap-3 pt-6 border-t border-gray-100">
