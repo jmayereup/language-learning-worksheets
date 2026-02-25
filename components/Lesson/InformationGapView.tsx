@@ -63,8 +63,32 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
     return (
       <div className="max-w-4xl mx-auto py-12 px-4 animate-fade-in">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-extrabold text-green-900 mb-4 tracking-tight leading-tight">{mainTitle}</h1>
-          <p className="text-xl text-gray-600 font-medium">{mainDesc}</p>
+          {lesson.imageUrl && (
+            <div className="mb-8">
+              <img 
+                src={lesson.imageUrl} 
+                alt={mainTitle} 
+                className="max-h-64 mx-auto rounded-3xl shadow-lg object-contain bg-white p-4 border border-gray-100"
+              />
+            </div>
+          )}
+          
+          <div className="flex justify-center gap-2 mb-6">
+            <span className="bg-green-100 text-green-800 px-4 py-1.5 rounded-full text-sm font-black uppercase tracking-wider border border-green-200">
+                {lesson.language}
+            </span>
+            {lesson.level && (
+              <span className="bg-blue-100 text-blue-800 px-4 py-1.5 rounded-full text-sm font-black uppercase tracking-wider border border-blue-200">
+                {lesson.level}
+              </span>
+            )}
+            <span className="bg-purple-100 text-purple-800 px-4 py-1.5 rounded-full text-sm font-black uppercase tracking-wider border border-purple-200">
+                Speaking
+            </span>
+          </div>
+
+          <h1 className="text-4xl md:text-5xl font-black text-green-900 mb-4 tracking-tight leading-tight max-w-2xl mx-auto">{mainTitle}</h1>
+          <p className="text-xl text-gray-600 font-medium max-w-xl mx-auto">{mainDesc}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-2xl mx-auto">

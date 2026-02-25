@@ -100,6 +100,8 @@ export interface LessonRecord {
   content: LessonContent | string; // PB returns JSON or string depending on parse
   audioFile?: string; // Added field
   creatorId?: string; // Added field
+  seo?: string; // Added field
+  description?: string; // Added field
 }
 
 export interface ParsedLesson extends Omit<LessonRecord, 'content'> {
