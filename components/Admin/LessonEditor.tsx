@@ -1,0 +1,355 @@
+import React, { useState, useEffect } from 'react';
+import { fetchLessonById, createLesson, updateLesson } from '../../services/pocketbase';
+import { Button } from '../UI/Button';
+import { Save, X, AlertCircle, FileJson, Info, Globe, Layers, Tag as TagIcon, Video, Check, Image as ImageIcon, Music } from 'lucide-react';
+
+const TAG_OPTIONS = ['science', 'video', 'general', 'fable', 'M1-2'];
+
+interface LessonEditorProps {
+    lessonId: string | null;
+    onSave: () => void;
+    onCancel: () => void;
+}
+
+export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, onCancel }) => {
+    const [loading, setLoading] = useState(false);
+    const [fetching, setFetching] = useState(!!lessonId);
+    const [error, setError] = useState<string | null>(null);
+
+    // Form fields
+    const [title, setTitle] = useState('');
+    const [language, setLanguage] = useState('English');
+    const [level, setLevel] = useState('A1');
+    const [selectedTags, setSelectedTags] = useState<string[]>([]);
+    const [videoUrl, setVideoUrl] = useState('');
+    const [isVideoLesson, setIsVideoLesson] = useState(false);
+    const [jsonContent, setJsonContent] = useState('');
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [audioFile, setAudioFile] = useState<File | null>(null);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (lessonId) {
+            const loadLesson = async () => {
+                try {
+                    const lesson = await fetchLessonById(lessonId);
+                    setTitle(lesson.title || '');
+                    setLanguage(lesson.language);
+                    setLevel(lesson.level);
+                    setSelectedTags(lesson.tags || []);
+                    setVideoUrl(lesson.videoUrl || '');
+                    setIsVideoLesson(lesson.isVideoLesson || false);
+                    setJsonContent(JSON.stringify(lesson.content, null, 2));
+                } catch (err) {
+                    setError('Failed to load lesson for editing');
+                } finally {
+                    setFetching(false);
+                }
+            };
+            loadLesson();
+        } else {
+            // Default template for new lesson
+            const template = {
+                title: "New Lesson",
+                readingText: "Insert reading text here...",
+                activities: {
+                    vocabulary: { items: [], definitions: [] },
+                    fillInTheBlanks: [],
+                    comprehension: { questions: [] },
+                    scrambled: [],
+                    writtenExpression: { questions: [], examples: "" }
+                }
+            };
+            setJsonContent(JSON.stringify(template, null, 2));
+        }
+    }, [lessonId]);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setError(null);
+
+        try {
+            // Validate JSON
+            let parsedContent;
+            try {
+                parsedContent = JSON.parse(jsonContent);
+                // Sync title from form to content if they differ
+                if (title && parsedContent.title !== title) {
+                    parsedContent.title = title;
+                }
+            } catch (err) {
+                throw new Error('Invalid JSON content. Please check for syntax errors.');
+            }
+
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('language', language);
+            formData.append('level', level);
+            selectedTags.forEach(tag => formData.append('tags', tag));
+            formData.append('videoUrl', videoUrl);
+            formData.append('isVideoLesson', String(isVideoLesson));
+            formData.append('content', JSON.stringify(parsedContent));
+            
+            if (imageFile) {
+                formData.append('image', imageFile);
+            }
+            if (audioFile) {
+                formData.append('audioFile', audioFile);
+            }
+
+            if (lessonId) {
+                await updateLesson(lessonId, formData);
+            } else {
+                await createLesson(formData);
+            }
+            onSave();
+        } catch (err: any) {
+            setError(err.message || 'Failed to save lesson');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (fetching) {
+        return (
+            <div className="flex flex-col items-center justify-center py-24 bg-white rounded-2xl border border-gray-100 shadow-sm animate-pulse">
+                <FileJson className="w-10 h-10 text-gray-300 mb-4" />
+                <p className="text-gray-400 font-medium">Preparing worksheet data...</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                <div className="flex items-center gap-3">
+                    <div className="bg-green-600 p-2 rounded-lg">
+                        <FileJson className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                        <h2 className="text-lg font-black text-gray-900">{lessonId ? 'Edit Worksheet' : 'Create New Worksheet'}</h2>
+                        <p className="text-xs text-gray-500 font-medium">{lessonId ? `Editing ID: ${lessonId}` : 'Define your worksheet properties and content'}</p>
+                    </div>
+                </div>
+                <Button variant="outline" size="sm" onClick={onCancel} className="gap-2">
+                    <X className="w-4 h-4" /> Cancel
+                </Button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="p-8">
+                {error && (
+                    <div className="mb-8 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3 text-red-700">
+                        <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                        <p className="text-sm font-bold">{error}</p>
+                    </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+                    <div className="space-y-6">
+                        <div>
+                            <label className="block text-sm font-black text-gray-700 mb-2 ml-1 uppercase tracking-wider">Lesson Title</label>
+                            <input
+                                type="text"
+                                required
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
+                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
+                                placeholder="Enter lesson title..."
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-black text-gray-700 mb-2 ml-1 uppercase tracking-wider">Language</label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                        <Globe className="h-4 w-4 text-gray-400" />
+                                    </div>
+                                    <select
+                                        value={language}
+                                        onChange={(e) => setLanguage(e.target.value)}
+                                        className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none appearance-none"
+                                    >
+                                        <option value="English">English</option>
+                                        <option value="Spanish">Spanish</option>
+                                        <option value="French">French</option>
+                                        <option value="German">German</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-black text-gray-700 mb-2 ml-1 uppercase tracking-wider">Level</label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                        <Layers className="h-4 w-4 text-gray-400" />
+                                    </div>
+                                    <select
+                                        value={level}
+                                        onChange={(e) => setLevel(e.target.value)}
+                                        className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none appearance-none"
+                                    >
+                                        <option value="A1">A1 (Beginner)</option>
+                                        <option value="A2">A2 (Elementary)</option>
+                                        <option value="B1">B1 (Intermediate)</option>
+                                        <option value="B2">B2 (Upper Int)</option>
+                                        <option value="C1">C1 (Advanced)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-black text-gray-700 mb-2 ml-1 uppercase tracking-wider">Tags</label>
+                            <div className="flex flex-wrap gap-2 p-3 bg-gray-50 border border-gray-200 rounded-xl min-h-[50px]">
+                                {TAG_OPTIONS.map(tag => (
+                                    <button
+                                        key={tag}
+                                        type="button"
+                                        onClick={() => {
+                                            setSelectedTags(prev => 
+                                                prev.includes(tag) 
+                                                    ? prev.filter(t => t !== tag) 
+                                                    : [...prev, tag]
+                                            );
+                                        }}
+                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
+                                            selectedTags.includes(tag)
+                                                ? 'bg-green-600 border-green-700 text-white shadow-sm'
+                                                : 'bg-white border-gray-200 text-gray-600 hover:border-green-300 hover:bg-green-50'
+                                        }`}
+                                    >
+                                        <TagIcon className="w-3 h-3" />
+                                        {tag}
+                                        {selectedTags.includes(tag) && <Check className="w-3 h-3" />}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="space-y-6">
+                        <div>
+                            <label className="block text-sm font-black text-gray-700 mb-2 ml-1 uppercase tracking-wider">YouTube URL</label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                    <Video className="h-4 w-4 text-gray-400" />
+                                </div>
+                                <input
+                                    type="text"
+                                    value={videoUrl}
+                                    onChange={(e) => setVideoUrl(e.target.value)}
+                                    className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none"
+                                    placeholder="https://www.youtube.com/watch?v=..."
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-black text-gray-700 mb-2 ml-1 uppercase tracking-wider">Worksheet Image</label>
+                            <div className="flex flex-col gap-3">
+                                {imagePreview && (
+                                    <div className="w-full aspect-video rounded-xl bg-gray-100 overflow-hidden border border-gray-200">
+                                        <img src={imagePreview} alt="Preview" className="w-full h-full object-contain" />
+                                    </div>
+                                )}
+                                <div className="relative">
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0] || null;
+                                            setImageFile(file);
+                                            if (file) {
+                                                const reader = new FileReader();
+                                                reader.onloadend = () => setImagePreview(reader.result as string);
+                                                reader.readAsDataURL(file);
+                                            } else {
+                                                setImagePreview(null);
+                                            }
+                                        }}
+                                        className="hidden"
+                                        id="image-upload"
+                                    />
+                                    <label
+                                        htmlFor="image-upload"
+                                        className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-white border-2 border-dashed border-gray-300 rounded-xl hover:border-green-500 hover:bg-green-50 cursor-pointer transition-all text-gray-600 font-bold text-sm"
+                                    >
+                                        <ImageIcon className="w-5 h-5" />
+                                        {imageFile ? imageFile.name : 'Upload Image (JPG/PNG)'}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-black text-gray-700 mb-2 ml-1 uppercase tracking-wider">Audio File (MP3)</label>
+                            <div className="relative">
+                                <input
+                                    type="file"
+                                    accept="audio/mpeg,audio/mp3"
+                                    onChange={(e) => setAudioFile(e.target.files?.[0] || null)}
+                                    className="hidden"
+                                    id="audio-upload"
+                                />
+                                <label
+                                    htmlFor="audio-upload"
+                                    className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-white border-2 border-dashed border-gray-300 rounded-xl hover:border-blue-500 hover:bg-blue-50 cursor-pointer transition-all text-gray-600 font-bold text-sm"
+                                >
+                                    <Music className="w-5 h-5" />
+                                    {audioFile ? audioFile.name : 'Upload Audio (MP3)'}
+                                </label>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                            <div className="flex items-center h-5">
+                                <input
+                                    type="checkbox"
+                                    id="isVideoLesson"
+                                    checked={isVideoLesson}
+                                    onChange={(e) => setIsVideoLesson(e.target.checked)}
+                                    className="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500 cursor-pointer"
+                                />
+                            </div>
+                            <label htmlFor="isVideoLesson" className="text-sm font-bold text-gray-700 cursor-pointer flex items-center gap-2">
+                                <Info className="w-4 h-4 text-blue-500" /> Mark as Video Lesson
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="mb-10">
+                    <div className="flex items-center justify-between mb-3 ml-1">
+                        <label className="block text-sm font-black text-gray-700 uppercase tracking-wider flex items-center gap-2">
+                            <FileJson className="w-4 h-4" /> Worksheet JSON Content
+                        </label>
+                        <a 
+                            href="https://gemini.google.com/gem/1a183ceHi_da5ac9scUQ3AXs0A5-TcOtn?usp=sharing" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-[10px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 bg-blue-50 px-2 py-1 rounded-md border border-blue-100 transition-colors"
+                        >
+                            <Info className="w-3 h-3" /> Get JSON from Gemini
+                        </a>
+                    </div>
+                    <textarea
+                        value={jsonContent}
+                        onChange={(e) => setJsonContent(e.target.value)}
+                        className="w-full h-[500px] p-6 bg-gray-900 text-green-400 font-mono text-sm leading-relaxed rounded-2xl focus:ring-2 focus:ring-green-500 outline-none border-none shadow-inner"
+                        spellCheck={false}
+                    />
+                </div>
+
+                <div className="flex justify-end gap-3 pt-6 border-t border-gray-100">
+                    <Button variant="outline" onClick={onCancel} type="button" className="px-8">
+                        Cancel
+                    </Button>
+                    <Button type="submit" isLoading={loading} className="px-12 py-3 rounded-xl shadow-lg shadow-green-200">
+                        <Save className="w-5 h-5 mr-2" /> {lessonId ? 'Update Worksheet' : 'Create Worksheet'}
+                    </Button>
+                </div>
+            </form>
+        </div>
+    );
+};

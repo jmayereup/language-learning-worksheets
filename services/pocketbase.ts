@@ -20,8 +20,25 @@ const createPB = () => {
 const pb = createPB();
 pb.autoCancellation(false);
 
-export const getFileUrl = (record: LessonRecord, filename: string) => {
-  return pb.files.getURL(record, filename);
+export const getFileUrl = (record: LessonRecord | { collectionId: string, id: string }, filename: string) => {
+  return pb.files.getURL(record as any, filename);
+};
+
+// Auth methods
+export const loginWithEmail = async (email: string, password: string) => {
+  return await pb.collection('users').authWithPassword(email, password);
+};
+
+export const logout = () => {
+  pb.authStore.clear();
+};
+
+export const getCurrentUser = () => {
+  return pb.authStore.record;
+};
+
+export const isAuthenticated = () => {
+  return pb.authStore.isValid;
 };
 
 const parseLessonContent = (content: string | LessonContent): LessonContent => {
@@ -122,4 +139,63 @@ export const fetchLessonById = async (id: string): Promise<ParsedLesson> => {
     console.error(`Error fetching lesson ${id}:`, error);
     throw error;
   }
+};
+
+export const fetchAllLessons = async () => {
+  try {
+    const records = await pb.collection('worksheets').getFullList<LessonRecord>({
+      sort: '-created',
+    });
+
+    return records.map(record => {
+      const content = typeof record.content === 'string' ? JSON.parse(record.content) : record.content;
+      const title = record.title || content.title || 'Untitled';
+      
+      let imageUrl = record.image ? getFileUrl(record, record.image) : undefined;
+      if (!imageUrl && record.videoUrl) {
+        const ytId = getYouTubeId(record.videoUrl);
+        if (ytId) imageUrl = `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`;
+      }
+
+      return {
+        id: record.id,
+        title,
+        level: record.level,
+        language: record.language,
+        tags: record.tags || [],
+        created: record.created,
+        imageUrl,
+        creatorId: record.creatorId
+      };
+    });
+  } catch (error) {
+    console.error("Error fetching all lessons:", error);
+    throw error;
+  }
+};
+
+// CRUD methods
+export const createLesson = async (data: any) => {
+  const user = getCurrentUser();
+  
+  if (data instanceof FormData) {
+    if (user?.id) {
+      data.append('creatorId', user.id);
+    }
+    return await pb.collection('worksheets').create(data);
+  }
+
+  const payload = {
+    ...data,
+    creatorId: user?.id
+  };
+  return await pb.collection('worksheets').create(payload);
+};
+
+export const updateLesson = async (id: string, data: any) => {
+  return await pb.collection('worksheets').update(id, data);
+};
+
+export const deleteLesson = async (id: string) => {
+  return await pb.collection('worksheets').delete(id);
 };

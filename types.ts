@@ -69,6 +69,7 @@ export interface LessonRecord {
   tags?: string[]; // Added field
   content: LessonContent | string; // PB returns JSON or string depending on parse
   audioFile?: string; // Added field
+  creatorId?: string; // Added field
 }
 
 export interface ParsedLesson extends Omit<LessonRecord, 'content'> {

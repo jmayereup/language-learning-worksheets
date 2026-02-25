@@ -5,9 +5,10 @@ import { LessonView } from './components/Lesson/LessonView';
 import { Button } from './components/UI/Button';
 import { BookOpen, Search, FlaskConical, Video, Feather, FileText } from 'lucide-react';
 import { BrowserSupportWarning } from './components/UI/BrowserSupportWarning';
+import { AdminDashboard } from './components/Admin/AdminDashboard';
 
 const App: React.FC = () => {
-    const [view, setView] = useState<'home' | 'lesson'>('home');
+    const [view, setView] = useState<'home' | 'lesson' | 'admin'>('home');
     const [currentLesson, setCurrentLesson] = useState<ParsedLesson | null>(null);
 
     // Filter States
@@ -23,6 +24,7 @@ const App: React.FC = () => {
     useEffect(() => {
         const syncParams = () => {
             const params = new URLSearchParams(window.location.search);
+            const viewParam = params.get('view');
             const lessonId = params.get('lesson');
 
             // Sync filters from URL if present
@@ -34,11 +36,15 @@ const App: React.FC = () => {
             if (urlLevel) setLevel(urlLevel);
             if (urlTag) setTag(urlTag);
 
-            if (lessonId && (!currentLesson || currentLesson.id !== lessonId)) {
+            if (viewParam === 'admin') {
+                setView('admin');
+            } else if (lessonId && (!currentLesson || currentLesson.id !== lessonId)) {
                 handleSelectLesson(lessonId);
             } else if (!lessonId && view === 'lesson') {
                 setView('home');
                 setCurrentLesson(null);
+            } else if (!viewParam && view === 'admin') {
+                setView('home');
             }
         };
 
@@ -105,10 +111,12 @@ const App: React.FC = () => {
         }
     };
 
-    const handleViewChange = (newView: 'home' | 'lesson') => {
+    const handleViewChange = (newView: 'home' | 'lesson' | 'admin') => {
         setView(newView);
         if (newView === 'home') {
-            updateURL({ lesson: '', language, level, category: tag });
+            updateURL({ lesson: '', view: '', language, level, category: tag });
+        } else if (newView === 'admin') {
+            updateURL({ lesson: '', view: 'admin' });
         }
     };
 
@@ -327,6 +335,8 @@ const App: React.FC = () => {
                             <BookOpen size={64} opacity={0.5} />
                         </div>
                     </div>
+                ) : view === 'admin' ? (
+                    <AdminDashboard onBack={() => handleViewChange('home')} />
                 ) : (
                     currentLesson && <LessonView lesson={currentLesson} />
                 )}

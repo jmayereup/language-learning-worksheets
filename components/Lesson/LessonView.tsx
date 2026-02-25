@@ -616,7 +616,7 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
 
         {/* Submission Section */}
         <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mt-4 mb-4">
-          <h3 className="font-bold text-gray-800 text-sm mb-2">Submit to Teacher</h3>
+          <h3 className="font-bold text-gray-800 text-sm mb-2">Submit to Teacher (Optional)</h3>
           
           {submissionStatus === 'success' ? (
             <div className="flex items-center gap-2 text-green-700 bg-green-50 p-3 rounded-lg border border-green-200">
