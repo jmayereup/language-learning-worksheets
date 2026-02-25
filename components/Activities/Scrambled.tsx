@@ -137,7 +137,7 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
       return normalizeString(savedAnswers[idx] || '') === normalizeString(item.answer) ? acc + 1 : acc;
     }, 0);
     return (
-      <section className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 mb-8 text-center">
+      <section className="bg-white p-2 rounded-xl shadow-sm border border-gray-100 mb-2 text-center">
         <h2 className="text-2xl font-bold text-green-800 mb-4">Activity 4: Sentences</h2>
         <div className={`text-3xl font-bold mb-4 ${totalCorrect === data.length ? 'text-green-600' : 'text-green-600'}`}>
           Activity Completed!
@@ -154,7 +154,7 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
   const isCorrect = normalizeString(userAnswer) === normalizeString(currentItem?.answer || '');
 
   return (
-    <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
+    <section className="bg-white p-2 rounded-xl shadow-sm border border-gray-100 mb-2">
       <div className="flex justify-between items-center mb-2">
         <h2 className="text-2xl font-bold text-green-800">Activity 4: Sentences</h2>
         {shouldShowAudioControls() && (

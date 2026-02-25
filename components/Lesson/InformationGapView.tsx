@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { InformationGapContent, ParsedLesson } from '../../types';
+import { InformationGapContent, ParsedLesson, UserAnswers } from '../../types';
 import { Button } from '../UI/Button';
-import { Users, CheckCircle, Mic, Turtle, Volume2, Pause, Play } from 'lucide-react';
+import { Users, CheckCircle, Mic, Turtle, Volume2, Pause, Play, RotateCcw } from 'lucide-react';
 import { InformationGapQuestions } from '../Activities/InformationGapQuestions';
 import { speakText, selectElementText } from '../../utils/textUtils';
 import { GenericLessonLayout } from './GenericLessonLayout';
 import { VoiceSelectorModal } from '../UI/VoiceSelectorModal';
+import { LessonFooter } from './LessonFooter';
 
 interface InformationGapViewProps {
   lesson: ParsedLesson & { content: InformationGapContent };
@@ -27,6 +28,8 @@ interface InformationGapViewProps {
   setIsVoiceModalOpen: (isOpen: boolean) => void;
   audioPreference: 'recorded' | 'tts';
   setAudioPreference: (pref: 'recorded' | 'tts') => void;
+  answers: UserAnswers;
+  setAnswers: React.Dispatch<React.SetStateAction<UserAnswers>>;
 }
 
 interface ActivityResult {
@@ -54,6 +57,8 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
   setIsVoiceModalOpen,
   audioPreference,
   setAudioPreference,
+  answers,
+  setAnswers,
 }) => {
   const [currentPlayer, setCurrentPlayer] = useState<number | null>(null);
   const [currentActivityIndex, setCurrentActivityIndex] = useState(0);
@@ -165,52 +170,6 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
 
   const currentActivity = activities[currentActivityIndex];
   
-  if (!currentActivity || isFinished) {
-    const totalScore = activityResults.reduce((sum, res) => sum + res.score, 0);
-    const totalQuestions = activityResults.reduce((sum, res) => sum + res.total, 0);
-
-    return (
-      <GenericLessonLayout
-        lesson={lesson}
-        displayTitle={lesson.title || "Lesson Complete"}
-        studentName={studentName}
-        setStudentName={setStudentName}
-        studentId={studentId}
-        setStudentId={setStudentId}
-        homeroom={homeroom}
-        setHomeroom={setHomeroom}
-        isNameLocked={isNameLocked}
-        onFinish={onFinish}
-        onBack={() => {
-            setIsFinished(false);
-            setCurrentActivityIndex(0);
-            setActivityResults([]);
-        }}
-        playerRole={currentPlayer}
-        variant="white"
-      >
-        <div className="bg-white p-12 rounded-3xl shadow-xl border-4 border-green-500 text-center animate-bounce-in max-w-2xl mx-auto my-12">
-          <CheckCircle className="w-20 h-20 text-green-500 mx-auto mb-6" />
-          <h2 className="text-4xl font-black text-green-900 mb-2">Lesson Complete!</h2>
-          <p className="text-gray-600 text-xl mb-8">You've finished all {activities.length} activities.</p>
-          
-          <div className="grid grid-cols-2 gap-8 mb-10">
-            <div className="bg-green-50 p-6 rounded-2xl">
-              <div className="text-4xl font-black text-green-600">{totalScore}/{totalQuestions}</div>
-              <div className="text-xs font-bold text-green-800 uppercase tracking-widest mt-1">Total Score</div>
-            </div>
-            <div className="bg-blue-50 p-6 rounded-2xl">
-              <div className="text-4xl font-black text-blue-600">{totalQuestions > 0 ? Math.round((totalScore / totalQuestions) * 100) : 100}%</div>
-              <div className="text-xs font-bold text-blue-800 uppercase tracking-widest mt-1">Final Accuracy</div>
-            </div>
-          </div>
-
-          <p className="text-gray-500 mb-8 italic">Enter your details below to submit your final report.</p>
-        </div>
-      </GenericLessonLayout>
-    );
-  }
-
   const myTextBlocks = currentActivity.blocks.filter(b => b.text_holder_id === currentPlayer);
   const myQuestions = currentActivity.blocks.flatMap(b => b.questions).filter(q => q.asker_id === currentPlayer);
 
@@ -219,11 +178,20 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
     newResults[currentActivityIndex] = { score, total };
     setActivityResults(newResults);
 
+    // Sync to answers state in LessonView
+    const infoGapResults: Record<number, { score: number, total: number }> = { ...answers.infoGap };
+    newResults.forEach((res, idx) => {
+      if (res) infoGapResults[idx] = res;
+    });
+    
+    setAnswers(prev => ({
+      ...prev,
+      infoGap: infoGapResults
+    }));
+
     if (currentActivityIndex < activities.length - 1) {
       setCurrentActivityIndex(prev => prev + 1);
       window.scrollTo(0, 0);
-    } else {
-      setIsFinished(true);
     }
   };
 
@@ -382,11 +350,17 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
         />
       </section>
 
-      <div className="flex justify-center mt-12 mb-8">
-        <Button onClick={onReset} variant="outline" className="text-red-500 border-red-100 hover:bg-red-50 font-bold rounded-xl">
-          Reset All Progress
-        </Button>
-      </div>
+      <LessonFooter
+        studentName={studentName}
+        setStudentName={setStudentName}
+        studentId={studentId}
+        setStudentId={setStudentId}
+        homeroom={homeroom}
+        setHomeroom={setHomeroom}
+        isNameLocked={isNameLocked}
+        onFinish={onFinish}
+        onReset={onReset}
+      />
     </GenericLessonLayout>
   );
 };

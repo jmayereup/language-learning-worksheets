@@ -88,7 +88,7 @@ export const InformationGapQuestions: React.FC<InformationGapQuestionsProps> = (
   };
 
   return (
-    <div className="bg-white p-8 md:p-12 rounded-3xl shadow-lg border border-gray-100 animate-fade-in">
+    <div className="bg-white p-2 md:p-4 rounded-3xl shadow-lg border border-gray-100 animate-fade-in">
       <div className="flex justify-between items-center mb-10">
         <div className="bg-gray-100 text-gray-500 px-4 py-1.5 rounded-full text-sm font-black">
           QUESTION {currentQuestionIndex + 1} OF {questions.length}

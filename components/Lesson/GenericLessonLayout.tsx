@@ -53,18 +53,6 @@ export const GenericLessonLayout: React.FC<GenericLessonLayoutProps> = ({
       <main>
         {children}
       </main>
-
-      <SubmissionSection 
-        studentName={studentName}
-        setStudentName={setStudentName}
-        studentId={studentId}
-        setStudentId={setStudentId}
-        homeroom={homeroom}
-        setHomeroom={setHomeroom}
-        isNameLocked={isNameLocked}
-        onFinish={onFinish}
-        variant={variant}
-      />
     </div>
   );
 };

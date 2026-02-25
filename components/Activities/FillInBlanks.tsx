@@ -53,7 +53,7 @@ export const FillInBlanks: React.FC<Props> = ({ data, vocabItems, level, languag
   }, 0);
 
   return (
-    <section className="bg-white p-6 md:p-8 rounded-xl shadow-sm border border-gray-100 mb-8">
+    <section className="bg-white p-2 md:p-8 rounded-xl shadow-sm border border-gray-100 mb-2">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-green-800">Activity 2: Fill in the blanks</h2>
         {isChecked && (

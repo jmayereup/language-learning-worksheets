@@ -116,4 +116,5 @@ export interface UserAnswers {
   comprehension: Record<number, string>; // index -> "true"/"false"
   scrambled: Record<number, string>; // index -> user formed sentence
   writing: Record<number, string>; // index -> user text
+  infoGap?: Record<number, { score: number, total: number }>; // activityIndex -> result
 }

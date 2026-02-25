@@ -24,24 +24,22 @@ export const LessonHeader: React.FC<LessonHeaderProps> = ({
 
   return (
     <div className="animate-fade-in">
-      {(showBack || playerRole) && (
-        <header className="mb-8 flex items-center justify-between">
+      {playerRole && (
+        <header className="mb-4 flex items-center justify-between animate-fade-in print:hidden">
           <button 
             onClick={onBack}
-            className="flex items-center text-gray-500 hover:text-green-600 font-bold transition-colors"
+            className="flex items-center text-gray-500 hover:text-green-600 font-bold transition-colors bg-gray-50 px-4 py-2 rounded-xl border border-gray-100 shadow-sm"
           >
-            <ArrowLeft className="w-5 h-5 mr-2" /> {playerRole ? 'Change Role' : 'Back'}
+            <ArrowLeft className="w-4 h-4 mr-2" /> Change Role
           </button>
-          {playerRole && (
-            <div className="bg-green-100 text-green-800 px-4 py-1.5 rounded-full text-sm font-black uppercase tracking-wider">
-              Player {playerRole}
-            </div>
-          )}
+          <div className="bg-green-100 text-green-800 px-4 py-1.5 rounded-full text-sm font-black uppercase tracking-wider">
+            Player {playerRole}
+          </div>
         </header>
       )}
 
-      <section className="text-center mb-12">
-        <h1 className="text-3xl md:text-5xl font-black text-green-900 mb-4 tracking-tight leading-tight">
+      <section className="text-center mb-8 md:mb-12">
+        <h1 className="text-2xl sm:text-3xl md:text-5xl font-black text-green-900 mb-4 tracking-tight leading-tight px-2">
           {title}
         </h1>
         {isInfoGap ? (

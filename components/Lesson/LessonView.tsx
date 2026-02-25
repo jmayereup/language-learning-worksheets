@@ -17,6 +17,7 @@ import { StandardLessonContent, InformationGapContent, LessonContent } from '../
 import { GenericLessonLayout } from './GenericLessonLayout';
 
 const InformationGapView = React.lazy(() => import('./InformationGapView').then(m => ({ default: m.InformationGapView })));
+const WorksheetView = React.lazy(() => import('./WorksheetView').then(m => ({ default: m.WorksheetView })));
 
 interface Props {
   lesson: ParsedLesson;
@@ -316,90 +317,12 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
     window.print();
   };
 
-  const handleTranslate = async () => {
-    const text = isStandard ? (lesson.content as StandardLessonContent).readingText : '';
-    const langMap: Record<string, string> = {
-      "English": "en",
-      "French": "fr",
-      "Spanish": "es",
-      "German": "de"
-    };
-    const sourceLang = langMap[lesson.language] || 'auto';
-
-    // Copy to clipboard as backup for mobile browsers
-    try {
-      await navigator.clipboard.writeText(text);
-    } catch (err) {
-      console.warn('Failed to copy to clipboard:', err);
-    }
-
-    // Check if Android and try intent first
-    const isAndroid = /android/i.test(navigator.userAgent);
-
-    if (isAndroid) {
-      // Try Android intent for Google Translate app
-      const intentUrl = `intent://translate.google.com/?sl=${sourceLang}&text=${encodeURIComponent(text)}&op=translate#Intent;scheme=https;package=com.google.android.apps.translate;end`;
-
-      // Try to open intent, fall back to web if it fails
-      const intentWindow = window.open(intentUrl, '_blank');
-
-      // Fallback to web version after a short delay if intent fails
-      setTimeout(() => {
-        if (!intentWindow || intentWindow.closed) {
-          window.open(`https://translate.google.com/?sl=${sourceLang}&text=${encodeURIComponent(text)}&op=translate`, '_blank');
-        }
-      }, 1000);
-    } else {
-      // Non-Android: just open web version
-      window.open(`https://translate.google.com/?sl=${sourceLang}&text=${encodeURIComponent(text)}&op=translate`, '_blank');
-    }
-  };
-
   const handleWordClick = (word: string) => {
     // Clean word of any surrounding punctuation for better TTS
     const cleanWord = word.replace(/^[.,!?;:"'()\[\]{}]+|[.,!?;:"'()\[\]{}]+$/g, '');
     if (cleanWord) {
       speakText(cleanWord, lesson.language, 0.7, selectedVoiceName);
     }
-  };
-
-  const renderReadingPassage = (text: string) => {
-    if (!text) return null;
-
-    // Split by whitespace but keep the whitespace segments
-    const segments = text.split(/(\s+)/);
-
-    return segments.map((segment, i) => {
-      // If it's just whitespace (including newlines), return as is
-      if (/^\s+$/.test(segment)) return segment;
-
-      // Split word from punctuation
-      // Matches punctuation at start or end of word
-      const subSegments = segment.split(/([.,!?;:"'()\[\]{}]+)/).filter(Boolean);
-
-      return (
-        <React.Fragment key={i}>
-          {subSegments.map((sub, j) => {
-            // If it's punctuation, render as plain span
-            if (/^[.,!?;:"'()\[\]{}]+$/.test(sub)) {
-              return <span key={j}>{sub}</span>;
-            }
-
-            // Otherwise it's a word, make it clickable
-            return (
-              <span
-                key={j}
-                onClick={() => handleWordClick(sub)}
-                className="cursor-pointer hover:text-green-600 hover:bg-green-100/50 rounded transition-colors"
-                title="Click to hear pronunciation"
-              >
-                {sub}
-              </span>
-            );
-          })}
-        </React.Fragment>
-      );
-    });
   };
 
   const renderVideoExploration = () => {
@@ -428,15 +351,24 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
 
   const calculateBreakdown = () => {
     if (!isStandard) {
-        // Simple scoring for Information Gap for now
-        // This might need more specific logic later
+        let infoGapScore = 0;
+        let infoGapTotal = 0;
+        
+        if (answers.infoGap) {
+            Object.values(answers.infoGap).forEach(res => {
+                infoGapScore += res.score;
+                infoGapTotal += res.total;
+            });
+        }
+
         return {
             vocab: { score: 0, total: 0 },
             fill: { score: 0, total: 0 },
             comp: { score: 0, total: 0 },
             scrambled: { score: 0, total: 0 },
-            totalScore: 0,
-            maxScore: 0
+            infoGap: { score: infoGapScore, total: infoGapTotal },
+            totalScore: infoGapScore,
+            maxScore: infoGapTotal
         };
     }
     
@@ -476,6 +408,7 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
       fill: { score: fillScore, total: fillTotal },
       comp: { score: compScore, total: compTotal },
       scrambled: { score: scrambledScore, total: scrambledTotal },
+      infoGap: { score: 0, total: 0 },
       totalScore: vocabScore + fillScore + compScore + scrambledScore,
       maxScore: vocabTotal + fillTotal + compTotal + scrambledTotal
     };
@@ -515,6 +448,45 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
         console.warn('Confetti failed:', e);
       }
     }, 200);
+  };
+
+  const handleTranslate = async () => {
+    const text = isStandard ? (lesson.content as StandardLessonContent).readingText : '';
+    const langMap: Record<string, string> = {
+      "English": "en",
+      "French": "fr",
+      "Spanish": "es",
+      "German": "de"
+    };
+    const sourceLang = langMap[lesson.language] || 'auto';
+
+    // Copy to clipboard as backup for mobile browsers
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (err) {
+      console.warn('Failed to copy to clipboard:', err);
+    }
+
+    // Check if Android and try intent first
+    const isAndroid = /android/i.test(navigator.userAgent);
+
+    if (isAndroid) {
+      // Try Android intent for Google Translate app
+      const intentUrl = `intent://translate.google.com/?sl=${sourceLang}&text=${encodeURIComponent(text)}&op=translate#Intent;scheme=https;package=com.google.android.apps.translate;end`;
+
+      // Try to open intent, fall back to web if it fails
+      const intentWindow = window.open(intentUrl, '_blank');
+
+      // Fallback to web version after a short delay if intent fails
+      setTimeout(() => {
+        if (!intentWindow || intentWindow.closed) {
+          window.open(`https://translate.google.com/?sl=${sourceLang}&text=${encodeURIComponent(text)}&op=translate`, '_blank');
+        }
+      }, 1000);
+    } else {
+      // Non-Android: just open web version
+      window.open(`https://translate.google.com/?sl=${sourceLang}&text=${encodeURIComponent(text)}&op=translate`, '_blank');
+    }
   };
 
   const handleSubmitScore = async () => {
@@ -611,10 +583,18 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
 
         {/* Scores Grid - Compact */}
         <div className="grid grid-cols-2 gap-2 mb-3">
-          <ScorePill label="Vocabulary" score={scores.vocab.score} total={scores.vocab.total} />
-          <ScorePill label="Fill Blanks" score={scores.fill.score} total={scores.fill.total} />
-          <ScorePill label="Comprehension" score={scores.comp.score} total={scores.comp.total} />
-          <ScorePill label="Scrambled" score={scores.scrambled.score} total={scores.scrambled.total} />
+          {isStandard ? (
+            <>
+              <ScorePill label="Vocabulary" score={scores.vocab.score} total={scores.vocab.total} />
+              <ScorePill label="Fill Blanks" score={scores.fill.score} total={scores.fill.total} />
+              <ScorePill label="Comprehension" score={scores.comp.score} total={scores.comp.total} />
+              <ScorePill label="Scrambled" score={scores.scrambled.score} total={scores.scrambled.total} />
+            </>
+          ) : (
+            <div className="col-span-2">
+              <ScorePill label="Speaking Activities" score={scores.infoGap?.score || 0} total={scores.infoGap?.total || 0} />
+            </div>
+          )}
         </div>
 
         {/* Written Responses - Compact */}
@@ -731,362 +711,49 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
             if (audioRef.current) audioRef.current.pause();
             setTtsState(prev => ({ ...prev, status: 'stopped' }));
           }}
+          answers={answers}
+          setAnswers={setAnswers}
         />
       </React.Suspense>
     );
   }
 
+  // Default to WorksheetView for 'worksheet' or undefined lessonType
   return (
-    <>
-      <GenericLessonLayout
-      lesson={lesson}
-      displayTitle={displayTitle}
-      studentName={studentName}
-      setStudentName={setStudentName}
-      studentId={studentId}
-      setStudentId={setStudentId}
-      homeroom={homeroom}
-      setHomeroom={setHomeroom}
-      isNameLocked={isNameLocked}
-      onFinish={handleFinish}
-      onBack={handleReset}
-      showBack={true}
-    >
-      {/* Media Section */}
-      <section className="bg-white p-6 rounded-xl shadow-sm border border-green-100 mb-8">
-        <div translate="no">
-          <h2 className="text-xl font-bold text-green-900 mb-4">{isStandard ? 'Reading Passage' : 'Information'}</h2>
-        </div>
-
-        {lesson.isVideoLesson && lesson.videoUrl && (
-          <div className="relative pt-[56.25%] mb-6 rounded-lg overflow-hidden bg-black shadow-md">
-            <iframe
-              className="absolute top-0 left-0 w-full h-full"
-              src={lesson.videoUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
-              allowFullScreen
-            />
-          </div>
-        )}
-
-        {/* Image now displays regardless of video status */}
-        {lesson.imageUrl && (
-          <div className="w-full flex justify-center mb-6">
-            <img
-              src={lesson.imageUrl}
-              alt="Lesson topic"
-              className="w-full h-auto max-h-[500px] object-contain rounded-lg shadow-sm"
-            />
-          </div>
-        )}
-
-        {/* Buttons moved above text */}
-        <div className="flex flex-wrap gap-3 mb-4 justify-end text-gray-700">
-          <button className="flex items-center px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg shadow-sm hover:border-green-300 hover:bg-green-50 hover:text-green-600 transition-all" onClick={handleTranslate} title="Translate via Google">
-            <Languages className="w-4 h-4 mr-1.5" /> Translate
-          </button>
-
-          {shouldShowAudioControls() ? (
-            <div className="flex flex-wrap items-center gap-3">
-              {availableVoices.length > 0 && (
-                <>
-                  <button
-                    className="flex items-center px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg shadow-sm hover:border-green-300 hover:bg-green-50 hover:text-green-600 transition-all"
-                    onClick={() => setIsVoiceModalOpen(true)}
-                    title="Select TTS Voice"
-                  >
-                    <Mic className="w-4 h-4 mr-1.5" />
-                    <span className="hidden sm:inline">Voice</span>
-                  </button>
-
-                  <VoiceSelectorModal
-                    isOpen={isVoiceModalOpen}
-                    onClose={() => setIsVoiceModalOpen(false)}
-                    voices={availableVoices}
-                    selectedVoiceName={selectedVoiceName}
-                    onSelectVoice={(name) => {
-                      userHasSelectedVoice.current = true;
-                      setSelectedVoiceName(name);
-                    }}
-                    language={lesson.language}
-                    hasRecordedAudio={!!lesson.audioFileUrl}
-                    audioPreference={audioPreference}
-                    onSelectPreference={(pref) => {
-                      userHasSelectedVoice.current = true;
-                      setAudioPreference(pref);
-                      // Stop current playback if switching
-                      window.speechSynthesis.cancel();
-                      if (audioRef.current) audioRef.current.pause();
-                      setTtsState(prev => ({ ...prev, status: 'stopped' }));
-                    }}
-                  />
-                </>
-              )}
-
-              <button className="flex items-center px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg shadow-sm hover:border-green-300 hover:bg-green-50 hover:text-green-600 transition-all" onClick={() => toggleTTS(0.6)}>
-                {ttsState.rate === 0.6 && ttsState.status === 'playing' ? (
-                  <><Pause className="w-4 h-4 mr-1.5" /> Pause</>
-                ) : ttsState.rate === 0.6 && ttsState.status === 'paused' ? (
-                  <><Play className="w-4 h-4 mr-1.5" /> Resume</>
-                ) : (
-                  <><Turtle className="w-4 h-4 mr-1.5" /> Slow</>
-                )}
-              </button>
-
-              <button className="flex items-center px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg shadow-sm hover:border-green-300 hover:bg-green-50 hover:text-green-600 transition-all" onClick={() => toggleTTS(1.0)}>
-                {ttsState.rate === 1.0 && ttsState.status === 'playing' ? (
-                  <><Pause className="w-4 h-4 mr-1.5" /> Pause</>
-                ) : ttsState.rate === 1.0 && ttsState.status === 'paused' ? (
-                  <><Play className="w-4 h-4 mr-1.5" /> Resume</>
-                ) : (
-                  <><Volume2 className="w-4 h-4 mr-1.5" /> Listen</>
-                )}
-              </button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 bg-yellow-50 p-2 rounded border border-yellow-200">
-              <span className="text-xs text-yellow-800">⚠️ Audio unavailable.</span>
-              {getAndroidIntentLink(lesson.id) ? (
-                <a href={getAndroidIntentLink(lesson.id)} className="text-xs font-bold text-green-600 underline">Open in Chrome</a>
-              ) : (
-                <span className="text-xs text-gray-500">Please use Chrome or Safari.</span>
-              )}
-            </div>
-          )}
-        </div>
-
-        <div
-          ref={passageRef}
-          className="prose max-w-none font-serif text-2xl md:text-2xl leading-relaxed text-gray-800 bg-gray-50/70 p-6 rounded-lg whitespace-pre-line border border-gray-200"
-          translate="no"
-        >
-          {isStandard && renderReadingPassage((lesson.content as StandardLessonContent).readingText)}
-        </div>
-      </section>
-
-      {/* Activity 1: Vocabulary */}
-      {isStandard && (
-        <Vocabulary
-          data={(lesson.content as StandardLessonContent).activities.vocabulary}
-          language={lesson.language}
-          savedAnswers={answers.vocabulary}
-          onChange={(a) => updateAnswers('vocabulary', a)}
-          voiceName={selectedVoiceName}
-          savedIsChecked={completionStates.vocabularyChecked}
-          onComplete={() => setCompletionStates(prev => ({ ...prev, vocabularyChecked: true }))}
-        />
-      )}
-
-      {/* Activity 2: Fill in Blanks */}
-      {isStandard && (
-        <FillInBlanks
-          data={(lesson.content as StandardLessonContent).activities.fillInTheBlanks}
-          vocabItems={(lesson.content as StandardLessonContent).activities.vocabulary.items}
-          level={lesson.level.replace('Level ', '')}
-          language={lesson.language}
-          savedAnswers={answers.fillBlanks}
-          onChange={(a) => updateAnswers('fillBlanks', a)}
-          voiceName={selectedVoiceName}
-          savedIsChecked={completionStates.fillBlanksChecked}
-          onComplete={() => setCompletionStates(prev => ({ ...prev, fillBlanksChecked: true }))}
-        />
-      )}
-
-      {/* Activity 3: Comprehension */}
-      {isStandard && (
-        <Comprehension
-          data={(lesson.content as StandardLessonContent).activities.comprehension}
-          readingText={(lesson.content as StandardLessonContent).readingText}
-          language={lesson.language}
-          savedAnswers={answers.comprehension}
-          onChange={(a) => updateAnswers('comprehension', a)}
-          voiceName={selectedVoiceName}
-          savedIsCompleted={completionStates.comprehensionCompleted}
-          onComplete={() => setCompletionStates(prev => ({ ...prev, comprehensionCompleted: true }))}
-        />
-      )}
-
-      {/* Activity 4: Scrambled */}
-      {isStandard && (
-        <Scrambled
-          data={(lesson.content as StandardLessonContent).activities.scrambled}
-          level={lesson.level.replace('Level ', '')}
-          language={lesson.language}
-          savedAnswers={answers.scrambled}
-          onChange={(a) => updateAnswers('scrambled', a)}
-          voiceName={selectedVoiceName}
-          savedIsCompleted={completionStates.scrambledCompleted}
-          onComplete={() => setCompletionStates(prev => ({ ...prev, scrambledCompleted: true }))}
-        />
-      )}
-
-      {/* Activity 5: Writing */}
-      {isStandard && (
-        <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold text-green-800">Activity 5: Written Expression</h2>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowExamples(!showExamples)}
-              className="flex items-center gap-2"
-            >
-              {showExamples ? <EyeOff size={16} /> : <Eye size={16} />}
-              {showExamples ? 'Hide Examples' : 'See Examples'}
-            </Button>
-          </div>
-
-          <p className="text-gray-600 mb-6 text-lg">Answer the questions with 1 or 2 complete sentences.</p>
-
-          {showExamples && (lesson.content as StandardLessonContent).activities.writtenExpression.examples && (
-            <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg animate-fade-in shadow-sm">
-              <div
-                className="prose prose-sm text-green-800"
-                dangerouslySetInnerHTML={{ __html: (lesson.content as StandardLessonContent).activities.writtenExpression.examples }}
-              />
-            </div>
-          )}
-
-          <div className="space-y-6">
-            {(lesson.content as StandardLessonContent).activities.writtenExpression.questions.map((q, i) => (
-              <div key={i}>
-                <div className="flex items-start gap-3 mb-2">
-                  <label className="block font-medium text-gray-800 text-lg flex-1">{i + 1}. {q.text}</label>
-                  <button
-                    onClick={() => {
-                      const studentAnswer = answers.writing[i];
-                      const textToSpeak = studentAnswer && studentAnswer.trim() ? studentAnswer : q.text;
-                      speakText(textToSpeak, lesson.language, 0.7, selectedVoiceName);
-                    }}
-                    className="text-gray-400 hover:text-green-600 transition-colors p-1 shrink-0"
-                    title={answers.writing[i]?.trim() ? "Hear your answer" : "Hear question"}
-                  >
-                    <Volume2 size={20} />
-                  </button>
-                </div>
-                <textarea
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-shadow text-lg"
-                  rows={3}
-                  placeholder="Your answer..."
-                  value={answers.writing[i] || ''}
-                  onChange={(e) => updateAnswers('writing', { ...answers.writing, [i]: e.target.value })}
-                />
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {isStandard && renderVideoExploration()}
-    </GenericLessonLayout>
-
-      {/* PRINT LAYOUT (Visible only on print) */}
-      <div className="hidden print:block font-serif text-black max-w-[210mm] mx-auto p-4">
-        <div className="flex justify-between items-end mb-4 border-b border-gray-400 pb-2">
-          <div>
-            <h1 className="text-xl font-bold leading-tight">{displayTitle}</h1>
-            <p className="text-xs text-gray-600">{lesson.level}</p>
-          </div>
-          <div className="text-right text-xs">
-            <p className="mb-2">Name: _______________________________</p>
-            <p>Date: _______________________________</p>
-          </div>
-        </div>
-
-        {/* Reading */}
-        <div className="mb-6">
-          {lesson.imageUrl && (
-            <img
-              src={lesson.imageUrl}
-              className="h-32 object-contain mx-auto mb-3"
-              alt="Lesson"
-            />
-          )}
-          <div className="text-xs text-justify leading-snug columns-2 gap-6 whitespace-pre-line">
-            {isStandard ? (lesson.content as StandardLessonContent).readingText : ''}
-          </div>
-        </div>
-
-        <div className="space-y-5">
-          {/* Vocab */}
-          <div className="break-inside-avoid">
-            <h2 className="font-bold text-sm mb-2 border-b border-gray-300 pb-1">1. Vocabulary</h2>
-            <div className="grid grid-cols-2 gap-4 text-xs">
-              <div>
-                <p className="font-bold mb-1 text-[10px] text-gray-500 uppercase">Definitions</p>
-                {isStandard && (lesson.content as StandardLessonContent).activities.vocabulary.definitions.map((def, i) => (
-                  <div key={def.id} className="mb-1">
-                    <span className="font-bold mr-1">{String.fromCharCode(97 + i)}.</span>
-                    {def.text}
-                  </div>
-                ))}
-              </div>
-              <div>
-                <p className="font-bold mb-1 text-[10px] text-gray-500 uppercase">Words</p>
-                {printVocabItems.map(item => (
-                  <div key={item.label} className="mb-1">
-                    <span className="inline-block w-8 border-b border-black mr-2"></span> {item.label}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Fill Blanks */}
-          <div className="break-inside-avoid">
-            <h2 className="font-bold text-sm mb-2 border-b border-gray-300 pb-1">2. Fill in the Blanks</h2>
-            <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-xs">
-              {isStandard && (lesson.content as StandardLessonContent).activities.fillInTheBlanks.map((item, i) => (
-                <div key={i}>
-                  {i + 1}. {item.before} <span className="inline-block w-16 border-b border-black"></span> {item.after}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Comprehension */}
-          <div className="break-inside-avoid">
-            <h2 className="font-bold text-sm mb-2 border-b border-gray-300 pb-1">3. Comprehension</h2>
-            <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-xs">
-              {isStandard && (lesson.content as StandardLessonContent).activities.comprehension.questions.map((q, i) => (
-                <div key={i}>
-                  {i + 1}. {q.text} <span className="ml-2 whitespace-nowrap">[ ] True [ ] False</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Scrambled */}
-          <div className="break-inside-avoid">
-            <h2 className="font-bold text-sm mb-2 border-b border-gray-300 pb-1">4. Scrambled Sentences</h2>
-            <div className="text-xs space-y-3">
-              {printScrambledItems.map((item, i) => (
-                <div key={i}>
-                  <p className="italic mb-1">{i + 1}. {item.scrambledText}</p>
-                  <div className="border-b border-gray-300 h-4 w-full"></div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Writing */}
-          <div className="break-inside-avoid">
-            <h2 className="font-bold text-sm mb-2 border-b border-gray-300 pb-1">5. Written Expression</h2>
-            <div className="text-xs space-y-4">
-              {isStandard && (lesson.content as StandardLessonContent).activities.writtenExpression.questions.map((q, i) => (
-                <div key={i}>
-                  <p className="font-semibold mb-1">{i + 1}. {q.text}</p>
-                  <div className="border-b border-gray-300 h-4 w-full mb-2"></div>
-                  <div className="border-b border-gray-300 h-4 w-full"></div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-8 text-center text-[10px] text-gray-400">
-          worksheets.teacherjake.com
-        </div>
-      </div>
-    </>
+    <React.Suspense fallback={<div className="flex items-center justify-center p-20"><Loader className="w-8 h-8 animate-spin text-green-600" /></div>}>
+      <WorksheetView
+        lesson={{...lesson, content: lesson.content as StandardLessonContent}}
+        studentName={studentName}
+        setStudentName={setStudentName}
+        studentId={studentId}
+        setStudentId={setStudentId}
+        homeroom={homeroom}
+        setHomeroom={setHomeroom}
+        isNameLocked={isNameLocked}
+        onFinish={handleFinish}
+        onReset={handleReset}
+        answers={answers}
+        setAnswers={setAnswers}
+        toggleTTS={toggleTTS}
+        ttsState={ttsState}
+        availableVoices={availableVoices}
+        selectedVoiceName={selectedVoiceName}
+        setSelectedVoiceName={(name) => {
+          userHasSelectedVoice.current = true;
+          setSelectedVoiceName(name);
+        }}
+        isVoiceModalOpen={isVoiceModalOpen}
+        setIsVoiceModalOpen={setIsVoiceModalOpen}
+        audioPreference={audioPreference}
+        setAudioPreference={(pref) => {
+          userHasSelectedVoice.current = true;
+          setAudioPreference(pref);
+          window.speechSynthesis.cancel();
+          if (audioRef.current) audioRef.current.pause();
+          setTtsState(prev => ({ ...prev, status: 'stopped' }));
+        }}
+        passageRef={passageRef}
+      />
+    </React.Suspense>
   );
 };
