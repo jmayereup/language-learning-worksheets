@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TJ Information-Gap Test</title>
+    <link rel="stylesheet" href="./dist/wc/language-learning-worksheets.css">
+    <style>
+        body { background-color: #f3f4f6; padding: 2rem; font-family: system-ui, -apple-system, sans-serif; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Information-Gap Test</h2>
+        <tj-pocketbase-worksheet>
+            <script type="application/json">
+{
+  "id": "test-info-gap-1",
+  "title": "A Day at the Market",
+  "language": "English",
+  "level": "A2",
+  "lessonType": "information-gap",
+  "content": {
+    "activities": [
+      {
+        "topic": "Shopping for Groceries",
+        "scenario_description": "Player 1 has the price list. Player 2 needs to find out how much things cost.",
+        "blocks": [
+          {
+            "text_holder_id": 1,
+            "text": "Apples are $2 per kilo. Bananas are $1 per kilo. Milk is $1.50 per liter.",
+            "questions": []
+          },
+          {
+            "text_holder_id": 2,
+            "text": "You need to buy 2kg of apples, 1kg of bananas, and 2 liters of milk.",
+            "questions": [
+              {
+                "asker_id": 2,
+                "question": "How much are the apples?",
+                "options": ["$1 per kilo", "$2 per kilo", "$3 per kilo"],
+                "correct_answer": "$2 per kilo"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
+            </script>
+        </tj-pocketbase-worksheet>
+    </div>
+    <script src="./dist/wc/tj-pocketbase-worksheet.umd.js"></script>
+</body>
+</html>
