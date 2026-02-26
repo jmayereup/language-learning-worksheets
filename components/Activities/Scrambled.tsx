@@ -22,15 +22,18 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
   const [isChecked, setIsChecked] = useState(false);
   const [isCorrectState, setIsCorrectState] = useState(false);
   const [isCompleted, setIsCompleted] = useState(savedIsCompleted);
+  const [activityMode, setActivityMode] = useState<'scramble' | 'dictation'>(() => {
+    if (!shouldShowAudioControls()) return 'scramble';
+    return (level === 'A1' || level === 'A2') ? 'scramble' : 'dictation';
+  });
 
   if (!data || data.length === 0) return null;
 
-  const isBeginner = level === 'A1' || level === 'A2';
   const currentItem = data[currentIndex];
 
   useEffect(() => {
     // Reset local state when question changes
-    if (currentItem && isBeginner) {
+    if (currentItem && activityMode === 'scramble') {
       // Create fresh word tokens
       const words = currentItem.answer
         .replace(/[.!?]+$/, '')
@@ -51,11 +54,11 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
       setIsChecked(false);
       setIsCorrectState(false);
     }
-  }, [currentIndex, currentItem, isBeginner]);
+  }, [currentIndex, currentItem, activityMode]);
 
   // Sync formed sentence to parent state
   useEffect(() => {
-    if (isBeginner) {
+    if (activityMode === 'scramble') {
       const currentSentence = formedSentence.map(w => w.text).join(' ');
       const savedSentence = savedAnswers[currentIndex] || '';
 
@@ -64,7 +67,7 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
         onChange({ ...savedAnswers, [currentIndex]: currentSentence });
       }
     }
-  }, [formedSentence, currentIndex, isBeginner, savedAnswers, onChange]);
+  }, [formedSentence, currentIndex, activityMode, savedAnswers, onChange]);
 
   const moveWordToSentence = (wordId: number) => {
     if (isCorrectState) return;
@@ -96,7 +99,7 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
     setIsChecked(true);
 
     // Use local state for validation to ensure what user sees is what is checked
-    const currentAnswer = isBeginner
+    const currentAnswer = activityMode === 'scramble'
       ? formedSentence.map(w => w.text).join(' ')
       : (savedAnswers[currentIndex] || '');
 
@@ -155,37 +158,65 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
 
   return (
     <section className="bg-white p-2 rounded-xl sm:shadow-sm sm:border sm:border-gray-100 mb-2">
-      <div className="flex justify-between items-center mb-2">
-        <h2 className="text-2xl font-bold text-green-800">Activity 4: Sentences</h2>
-        {shouldShowAudioControls() && (
-          <div className="flex gap-3 text-gray-700">
-            <button
-              className="flex items-center px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg shadow-sm hover:border-green-300 hover:bg-green-50 hover:text-green-600 transition-all"
-              onClick={(e) => {
-                speakText(currentItem.answer, language, 0.7, voiceName);
-              }}
-              title="Slow"
-            >
-              <Turtle className="w-4 h-4 mr-1.5" /> Slow
-            </button>
-            <button
-              className="flex items-center px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg shadow-sm hover:border-green-300 hover:bg-green-50 hover:text-green-600 transition-all"
-              onClick={(e) => {
-                speakText(currentItem.answer, language, 1.0, voiceName);
-              }}
-              title="Normal"
-            >
-              <Volume2 className="w-4 h-4 mr-1.5" /> Normal
-            </button>
+      <div className="space-y-4 mb-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <h2 className="text-2xl font-bold text-green-800 leading-tight">Activity 4: Sentences</h2>
           </div>
-        )}
-      </div>
+          
+          <div className="flex justify-between gap-3">
+            {shouldShowAudioControls() && (
+              <>
+                <div className="flex bg-gray-100 p-1 rounded-lg">
+                  <button
+                    onClick={() => setActivityMode('scramble')}
+                    className={`px-3 py-1 text-sm font-medium rounded-md transition-all ${
+                      activityMode === 'scramble'
+                        ? 'bg-white text-green-700 shadow-sm'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    Scramble
+                  </button>
+                  <button
+                    onClick={() => setActivityMode('dictation')}
+                    className={`px-3 py-1 text-sm font-medium rounded-md transition-all ${
+                      activityMode === 'dictation'
+                        ? 'bg-white text-green-700 shadow-sm'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    Dictation
+                  </button>
+                </div>
 
-      <p className="text-gray-600 mb-6 text-lg">
-        {level === 'B1' 
-          ? 'Listen to the audio and type the sentence.' 
-          : 'Unscramble the words to form a correct sentence.'}
-      </p>
+                <div className="flex gap-2  text-gray-700">
+                  <button
+                    className="flex items-center px-2 py-1.5 border border-gray-200 rounded-lg shadow-sm hover:border-green-300 hover:bg-green-50 hover:text-green-600 transition-all"
+                    onClick={() => speakText(currentItem.answer, language, 0.7, voiceName)}
+                    title="Slow"
+                  >
+                    <Turtle className="w-4 h-4" />
+                  </button>
+                  <button
+                    className="flex items-center px-2 py-1.5 border border-gray-200 rounded-lg shadow-sm hover:border-green-300 hover:bg-green-50 hover:text-green-600 transition-all"
+                    onClick={() => speakText(currentItem.answer, language, 1.0, voiceName)}
+                    title="Normal"
+                  >
+                    <Volume2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        <p className="text-gray-600 text-lg">
+          {activityMode === 'dictation' 
+            ? 'Listen to the audio and type the sentence.' 
+            : 'Unscramble the words to form a correct sentence.'}
+        </p>
+      </div>
 
       <div className="min-h-[200px] py-4">
         {/* Answer Area */}
@@ -196,7 +227,7 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
             : 'border-dashed border-green-300 bg-green-50/30'
           }
         `}>
-          {isBeginner ? (
+          {activityMode === 'scramble' ? (
             formedSentence.length === 0 && !isChecked ? (
               <span className="text-gray-400 italic pointer-events-none text-lg">Click words below to form the sentence...</span>
             ) : (
@@ -238,8 +269,8 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
           </div>
         )}
 
-        {/* Word Bank (Beginner Only) */}
-        {isBeginner && (
+        {/* Word Bank (Scramble Mode Only) */}
+        {activityMode === 'scramble' && (
           <div className="flex flex-wrap gap-3 justify-center" translate="no">
             {wordBank.map(word => (
               <button
@@ -273,7 +304,7 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
           <Button
             variant={isChecked && !isCorrectState ? "secondary" : "primary"}
             onClick={checkAnswer}
-            disabled={(!userAnswer && !isBeginner && !isCorrectState) || (isBeginner && formedSentence.length === 0 && !isCorrectState) || isCorrectState}
+            disabled={(!userAnswer && activityMode === 'dictation' && !isCorrectState) || (activityMode === 'scramble' && formedSentence.length === 0 && !isCorrectState) || isCorrectState}
             className="min-w-[120px]"
           >
             {isCorrectState ? 'Correct!' : (isChecked ? 'Try Again' : 'Check')}
