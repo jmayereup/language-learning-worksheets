@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ScrambledItem } from '../../types';
-import { normalizeString, speakText, shouldShowAudioControls, selectElementText } from '../../utils/textUtils';
+import { normalizeString, speakText, shouldShowAudioControls, selectElementText, seededShuffle } from '../../utils/textUtils';
 import { Button } from '../UI/Button';
 import { ChevronLeft, RefreshCw, Volume2, Turtle, SkipForward, Settings2 } from 'lucide-react';
 import { AudioControls } from '../UI/AudioControls';
@@ -16,6 +16,7 @@ interface Props {
   onComplete?: (isCompleted: boolean) => void;
   toggleTTS: (rate: number, overrideText?: string) => void;
   ttsState: { status: 'playing' | 'paused' | 'stopped', rate: number };
+  lessonId: string;
 }
 
 export const Scrambled: React.FC<Props> = ({
@@ -28,7 +29,8 @@ export const Scrambled: React.FC<Props> = ({
   savedIsChecked = false,
   onComplete,
   toggleTTS,
-  ttsState
+  ttsState,
+  lessonId
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [wordBank, setWordBank] = useState<{ id: number, text: string }[]>([]);
@@ -55,13 +57,10 @@ export const Scrambled: React.FC<Props> = ({
         .split(/\s+/)
         .map((text, i) => ({ id: i, text }));
 
-      // Shuffle
-      for (let i = words.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [words[i], words[j]] = [words[j], words[i]];
-      }
+      // Shuffle deterministically
+      const shuffled = seededShuffle(words, `${lessonId}-scramble-${currentIndex}`);
 
-      setWordBank(words);
+      setWordBank(shuffled);
       setFormedSentence([]);
       setIsChecked(false);
       setIsCorrectState(false);
@@ -69,7 +68,7 @@ export const Scrambled: React.FC<Props> = ({
       setIsChecked(false);
       setIsCorrectState(false);
     }
-  }, [currentIndex, currentItem, activityMode]);
+  }, [currentIndex, currentItem, activityMode, lessonId]);
 
   // Sync formed sentence to parent state
   useEffect(() => {

@@ -118,6 +118,37 @@ export interface UserAnswers {
   scrambled: Record<number, string>; // index -> user formed sentence
   writing: Record<number, string>; // index -> user text
   infoGap?: Record<number, { score: number, total: number }>; // activityIndex -> result
+  completionStates?: Record<string, boolean>; // sectionKey -> boolean
+}
+
+export interface CompletionStates {
+  vocabularyChecked: boolean;
+  fillBlanksChecked: boolean;
+  comprehensionCompleted: boolean;
+  scrambledCompleted: boolean;
+}
+
+export interface ReportScorePill {
+  label: string;
+  score: number;
+  total: number;
+}
+
+export interface ReportWrittenResponse {
+  question: string;
+  answer: string;
+}
+
+export interface ReportData {
+  title: string;
+  nickname: string;
+  studentId: string;
+  homeroom: string;
+  finishTime: string;
+  totalScore: number;
+  maxScore: number;
+  pills: ReportScorePill[];
+  writtenResponses?: ReportWrittenResponse[];
 }
 
 declare global {

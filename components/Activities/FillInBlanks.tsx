@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { FillInBlankItem, VocabularyItem } from '../../types';
-import { normalizeString, shuffleArray, speakText, shouldShowAudioControls, selectElementText } from '../../utils/textUtils';
+import { normalizeString, seededShuffle, speakText, shouldShowAudioControls, selectElementText } from '../../utils/textUtils';
 import { Button } from '../UI/Button';
 import { Check, Volume2, Settings2 } from 'lucide-react';
 import { AudioControls } from '../UI/AudioControls';
@@ -17,6 +17,7 @@ interface Props {
   onComplete?: (isChecked: boolean) => void;
   toggleTTS: (rate: number, overrideText?: string) => void;
   ttsState: { status: 'playing' | 'paused' | 'stopped', rate: number };
+  lessonId: string;
 }
 
 export const FillInBlanks: React.FC<Props> = ({ 
@@ -30,7 +31,8 @@ export const FillInBlanks: React.FC<Props> = ({
   savedIsChecked = false, 
   onComplete,
   toggleTTS,
-  ttsState
+  ttsState,
+  lessonId
 }) => {
   const [isChecked, setIsChecked] = useState(savedIsChecked);
   const [activeSpeechIdx, setActiveSpeechIdx] = useState<number | null>(null);
@@ -38,14 +40,14 @@ export const FillInBlanks: React.FC<Props> = ({
   // Randomize question order once on mount/data change
   const shuffledIndices = useMemo(() => {
     const indices = data.map((_, i) => i);
-    return shuffleArray(indices);
-  }, [data]);
+    return seededShuffle(indices, `${lessonId}-fill-indices`);
+  }, [data, lessonId]);
 
   // Create word bank from answers
   const wordBank = useMemo(() => {
     const answers = data.map(item => item.answer);
-    return shuffleArray(answers);
-  }, [data]);
+    return seededShuffle(answers, `${lessonId}-fill-bank`);
+  }, [data, lessonId]);
 
   if (!data || data.length === 0) return null;
 

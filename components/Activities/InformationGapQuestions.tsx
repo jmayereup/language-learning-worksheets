@@ -8,19 +8,23 @@ import { AudioControls } from '../UI/AudioControls';
 interface InformationGapQuestionsProps {
   questions: InformationGapQuestion[];
   onFinish: (score: number, total: number) => void;
+  onProgress?: (score: number, total: number) => void;
   language: string;
   selectedVoiceName: string | null;
   toggleTTS: (rate: number, overrideText?: string) => void;
   ttsState: { status: 'playing' | 'paused' | 'stopped', rate: number };
+  isLastActivity: boolean;
 }
 
 export const InformationGapQuestions: React.FC<InformationGapQuestionsProps> = ({ 
   questions, 
   onFinish,
+  onProgress,
   language,
   selectedVoiceName,
   toggleTTS,
-  ttsState
+  ttsState,
+  isLastActivity
 }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -65,7 +69,7 @@ export const InformationGapQuestions: React.FC<InformationGapQuestionsProps> = (
           onClick={() => onFinish(score, questions.length)} 
           className="w-full max-w-sm h-16 text-xl font-black bg-green-600 hover:bg-green-700 hover:scale-105 transition-all shadow-xl rounded-2xl"
         >
-          {percentage === 100 ? 'Continue' : 'View Results Report'}
+          {isLastActivity ? 'Finish Lesson' : 'Proceed to Next Activity'}
         </Button>
       </div>
     );
@@ -77,8 +81,15 @@ export const InformationGapQuestions: React.FC<InformationGapQuestionsProps> = (
     if (showFeedback) return;
     setSelectedOption(option);
     setShowFeedback(true);
+    
+    let newScore = score;
     if (option === currentQuestion.correct_answer) {
-      setScore(prev => prev + 1);
+      newScore = score + 1;
+      setScore(newScore);
+    }
+    
+    if (onProgress) {
+      onProgress(newScore, questions.length);
     }
   };
 

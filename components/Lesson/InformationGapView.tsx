@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
-import { InformationGapContent, ParsedLesson, UserAnswers } from '../../types';
-import { Button } from '../UI/Button';
-import { Users, CheckCircle, RotateCcw } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ParsedLesson, InformationGapContent, UserAnswers, ReportData, ReportScorePill } from '../../types';
+import { Mic, CheckCircle } from 'lucide-react';
 import { InformationGapQuestions } from '../Activities/InformationGapQuestions';
-import { speakText, selectElementText } from '../../utils/textUtils';
+import { speakText } from '../../utils/textUtils';
 import { GenericLessonLayout } from './GenericLessonLayout';
 import { VoiceSelectorModal } from '../UI/VoiceSelectorModal';
 import { AudioControls } from '../UI/AudioControls';
@@ -11,8 +10,6 @@ import { LessonFooter } from './LessonFooter';
 
 interface InformationGapViewProps {
   lesson: ParsedLesson & { content: InformationGapContent };
-  onReset: () => void;
-  onFinish: () => void;
   studentName: string;
   setStudentName: (name: string) => void;
   studentId: string;
@@ -20,6 +17,8 @@ interface InformationGapViewProps {
   homeroom: string;
   setHomeroom: (homeroom: string) => void;
   isNameLocked: boolean;
+  onFinish: (data: ReportData) => void;
+  onReset: () => void;
   toggleTTS: (rate: number, overrideText?: string) => void;
   ttsState: { status: 'playing' | 'paused' | 'stopped', rate: number };
   availableVoices: SpeechSynthesisVoice[];
@@ -40,8 +39,6 @@ interface ActivityResult {
 
 export const InformationGapView: React.FC<InformationGapViewProps> = ({ 
   lesson, 
-  onReset, 
-  onFinish,
   studentName,
   setStudentName,
   studentId,
@@ -49,6 +46,8 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
   homeroom,
   setHomeroom,
   isNameLocked,
+  onFinish,
+  onReset,
   toggleTTS,
   ttsState,
   availableVoices,
@@ -114,6 +113,78 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
         blocks: content.blocks || []
       }] : []));
 
+  // Helper to update activity results and answers state
+  const handleActivityProgress = (score: number, total: number) => {
+    const newResults = [...activityResults];
+    newResults[currentActivityIndex] = { score, total };
+    setActivityResults(newResults);
+
+    // Sync to answers state in LessonView
+    const infoGapResults: Record<number, { score: number, total: number }> = { ...answers.infoGap };
+    newResults.forEach((res, idx) => {
+      if (res) infoGapResults[idx] = res;
+    });
+    
+    setAnswers(prev => ({
+      ...prev,
+      infoGap: infoGapResults
+    }));
+  };
+
+  const handleActivityFinish = (score: number, total: number) => {
+    // 1. Final sync of current activity
+    handleActivityProgress(score, total);
+
+    // 2. Compute total score across all activities
+    let totalScore = 0;
+    let maxScore = 0;
+    const pills: ReportScorePill[] = [];
+
+    // Combine all infoGap results
+    const results = [...activityResults];
+    results[currentActivityIndex] = { score, total }; // Ensure current is included
+    
+    results.forEach((res) => {
+      if (res) {
+        totalScore += res.score;
+        maxScore += res.total;
+      }
+    });
+
+    pills.push({ label: 'Speaking Activities', score: totalScore, total: maxScore });
+
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+
+    onFinish({
+      title: lesson.title || lesson.content.topic || 'Speaking Lesson',
+      nickname: studentName,
+      studentId: studentId,
+      homeroom: homeroom,
+      finishTime: `${dateStr}, ${timeStr}`,
+      totalScore,
+      maxScore,
+      pills
+    });
+  };
+
+  const handleNextActivity = (score: number, total: number) => {
+    handleActivityProgress(score, total); // Update results for current activity
+    if (currentActivityIndex < activities.length - 1) {
+      setCurrentActivityIndex(prev => prev + 1);
+      window.scrollTo(0, 0);
+    } else {
+      setIsFinished(true); // Mark lesson as finished
+    }
+  };
+
+  useEffect(() => {
+    if (isFinished) {
+      handleActivityFinish(0, 0); // Call the final finish handler when all activities are done
+    }
+  }, [isFinished]);
+
   if (currentPlayer === null) {
     const firstActivity = activities[0] || {};
     const mainTitle = lesson.title || (Array.isArray(content) ? firstActivity.topic : content.topic) || "Information-Gap Activity";
@@ -158,7 +229,7 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
               className="group bg-white p-10 rounded-4xl shadow-lg border-2 border-transparent hover:border-green-500 hover:shadow-2xl transition-all duration-300 flex flex-col items-center text-center"
             >
               <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                <Users className="w-10 h-10 text-green-600" />
+                <Mic className="w-10 h-10 text-green-600" />
               </div>
               <h2 className="text-2xl font-black text-gray-800 mb-2">Player {playerNum}</h2>
               <p className="text-gray-500 font-medium tracking-wide">Click to select this role</p>
@@ -174,27 +245,6 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
   const myTextBlocks = currentActivity.blocks.filter(b => b.text_holder_id === currentPlayer);
   const myQuestions = currentActivity.blocks.flatMap(b => b.questions).filter(q => q.asker_id === currentPlayer);
 
-  const handleActivityFinish = (score: number, total: number) => {
-    const newResults = [...activityResults];
-    newResults[currentActivityIndex] = { score, total };
-    setActivityResults(newResults);
-
-    // Sync to answers state in LessonView
-    const infoGapResults: Record<number, { score: number, total: number }> = { ...answers.infoGap };
-    newResults.forEach((res, idx) => {
-      if (res) infoGapResults[idx] = res;
-    });
-    
-    setAnswers(prev => ({
-      ...prev,
-      infoGap: infoGapResults
-    }));
-
-    if (currentActivityIndex < activities.length - 1) {
-      setCurrentActivityIndex(prev => prev + 1);
-      window.scrollTo(0, 0);
-    }
-  };
 
   return (
     <GenericLessonLayout
@@ -207,7 +257,6 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
       homeroom={homeroom}
       setHomeroom={setHomeroom}
       isNameLocked={isNameLocked}
-      onFinish={onFinish}
       onBack={() => {
         if (currentActivityIndex > 0) {
             setCurrentActivityIndex(prev => prev - 1);
@@ -313,11 +362,13 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
         <InformationGapQuestions 
           key={currentActivityIndex}
           questions={myQuestions} 
-          onFinish={handleActivityFinish}
+          onFinish={handleNextActivity}
+          onProgress={handleActivityProgress}
           language={lesson.language}
           selectedVoiceName={selectedVoiceName}
           toggleTTS={toggleTTS}
           ttsState={ttsState}
+          isLastActivity={currentActivityIndex === activities.length - 1}
         />
       </section>
 
@@ -329,7 +380,35 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
         homeroom={homeroom}
         setHomeroom={setHomeroom}
         isNameLocked={isNameLocked}
-        onFinish={onFinish}
+        onFinish={() => {
+          let totalScore = 0;
+          let maxScore = 0;
+          const pills: ReportScorePill[] = [];
+          
+          activityResults.forEach((res) => {
+            if (res) {
+              totalScore += res.score;
+              maxScore += res.total;
+            }
+          });
+
+          pills.push({ label: 'Speaking Activities', score: totalScore, total: maxScore });
+          
+          const now = new Date();
+          const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+          const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+
+          onFinish({
+            title: lesson.title || lesson.content.topic || 'Speaking Lesson',
+            nickname: studentName,
+            studentId: studentId,
+            homeroom: homeroom,
+            finishTime: `${dateStr}, ${timeStr}`,
+            totalScore,
+            maxScore,
+            pills
+          });
+        }}
         onReset={onReset}
       />
     </GenericLessonLayout>

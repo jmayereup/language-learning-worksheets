@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { ParsedLesson, StandardLessonContent, UserAnswers } from '../../types';
-import { Languages, Video, Eye, EyeOff } from 'lucide-react';
-import { shuffleArray, getLangCode, shouldShowAudioControls, normalizeString, selectElementText } from '../../utils/textUtils';
+import { Video, Eye, EyeOff } from 'lucide-react';
+import { ParsedLesson, StandardLessonContent, UserAnswers, ReportData, ReportScorePill, ReportWrittenResponse, CompletionStates } from '../../types';
+import { normalizeString, seededShuffle } from '../../utils/textUtils';
 import { speakText } from '../../utils/textUtils';
 import { GenericLessonLayout } from './GenericLessonLayout';
 import { Vocabulary } from '../Activities/Vocabulary';
@@ -11,9 +11,7 @@ import { Scrambled } from '../Activities/Scrambled';
 import { VoiceSelectorModal } from '../UI/VoiceSelectorModal';
 import { AudioControls } from '../UI/AudioControls';
 import { TranslateButton } from '../UI/TranslateButton';
-import { Button } from '../UI/Button';
 import { LessonFooter } from './LessonFooter';
-import { RotateCcw } from 'lucide-react';
 
 interface WorksheetViewProps {
   lesson: ParsedLesson & { content: StandardLessonContent };
@@ -24,10 +22,12 @@ interface WorksheetViewProps {
   homeroom: string;
   setHomeroom: (homeroom: string) => void;
   isNameLocked: boolean;
-  onFinish: () => void;
+  onFinish: (data: ReportData) => void;
   onReset: () => void;
   answers: UserAnswers;
   setAnswers: React.Dispatch<React.SetStateAction<UserAnswers>>;
+  completionStates: CompletionStates;
+  setCompletionStates: React.Dispatch<React.SetStateAction<CompletionStates>>;
   toggleTTS: (rate: number, overrideText?: string) => void;
   ttsState: { status: 'playing' | 'paused' | 'stopped', rate: number };
   availableVoices: SpeechSynthesisVoice[];
@@ -53,6 +53,8 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
   onReset,
   answers,
   setAnswers,
+  completionStates,
+  setCompletionStates,
   toggleTTS,
   ttsState,
   availableVoices,
@@ -111,6 +113,105 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
     }
   };
 
+  const calculateReportData = (): ReportData => {
+    const pills: ReportScorePill[] = [];
+    let totalScore = 0;
+    let maxScore = 0;
+
+    // 1. Vocabulary
+    let vocabScore = 0;
+    const vocabData = standardContent.activities.vocabulary;
+    vocabData.items.forEach((item, idx) => {
+      const userAnswer = answers.vocabulary[`vocab_${idx}`] || '';
+      const correctDefIndex = vocabData.definitions.findIndex(d => d.id === item.answer);
+      const correctChar = String.fromCharCode(97 + correctDefIndex);
+      if (userAnswer.toLowerCase() === correctChar) vocabScore++;
+    });
+    pills.push({ label: 'Vocabulary', score: vocabScore, total: vocabData.items.length });
+    totalScore += vocabScore;
+    maxScore += vocabData.items.length;
+
+    // 2. Fill in Blanks
+    let fillScore = 0;
+    const fillData = standardContent.activities.fillInTheBlanks;
+    fillData.forEach((item, idx) => {
+      if (normalizeString(answers.fillBlanks[idx] || '') === normalizeString(item.answer)) fillScore++;
+    });
+    pills.push({ label: 'Fill Blanks', score: fillScore, total: fillData.length });
+    totalScore += fillScore;
+    maxScore += fillData.length;
+
+    // 3. Comprehension
+    let compScore = 0;
+    const compData = standardContent.activities.comprehension;
+    compData.questions.forEach((q, idx) => {
+      if ((answers.comprehension[idx] || '').toLowerCase() === q.answer.toLowerCase()) compScore++;
+    });
+    pills.push({ label: 'Comprehension', score: compScore, total: compData.questions.length });
+    totalScore += compScore;
+    maxScore += compData.questions.length;
+
+    // 4. Scrambled
+    let scrambledScore = 0;
+    const scrambledData = standardContent.activities.scrambled;
+    scrambledData.forEach((item, idx) => {
+      if (normalizeString(answers.scrambled[idx] || '') === normalizeString(item.answer)) scrambledScore++;
+    });
+    pills.push({ label: 'Scrambled', score: scrambledScore, total: scrambledData.length });
+    totalScore += scrambledScore;
+    maxScore += scrambledData.length;
+
+    // Written Expressions
+    const writtenResponses: ReportWrittenResponse[] = standardContent.activities.writtenExpression.questions.map((q, i) => ({
+      question: q.text,
+      answer: answers.writing[i] || ''
+    }));
+
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+
+    return {
+      title: displayTitle,
+      nickname: studentName,
+      studentId: studentId,
+      homeroom: homeroom,
+      finishTime: `${dateStr}, ${timeStr}`,
+      totalScore,
+      maxScore,
+      pills,
+      writtenResponses
+    };
+  };
+
+  const handleFinishClick = () => {
+    onFinish(calculateReportData());
+  };
+
+  const renderVideoExploration = () => {
+    if (lesson.isVideoLesson || !lesson.videoUrl) return null;
+
+    return (
+      <section className="bg-white p-6 rounded-xl shadow-sm border border-green-100 mb-8 max-w-4xl mx-auto text-center animate-fade-in print:hidden">
+        <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-4">
+          <Video className="w-6 h-6 text-green-600" />
+        </div>
+        <h2 className="text-2xl font-bold text-green-900 mb-2">Explore Further</h2>
+        <p className="text-gray-600 mb-6 text-lg">
+          Want to learn more about this topic? Watch this video to dive deeper!
+        </p>
+        <a
+          href={lesson.videoUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 bg-green-600 text-white px-8 py-3 rounded-full font-bold hover:bg-green-700 transform hover:scale-105 transition-all shadow-md"
+        >
+          Watch Video on YouTube
+        </a>
+      </section>
+    );
+  };
+
   const renderReadingPassage = (text: string) => {
     if (!text) return null;
     const segments = text.split(/(\s+)/);
@@ -139,44 +240,22 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
     });
   };
 
-  const renderVideoExploration = () => {
-    if (lesson.isVideoLesson || !lesson.videoUrl) return null;
-    return (
-      <section className="bg-white p-2 rounded-xl shadow-sm border border-green-100 mb-8 text-center animate-fade-in print:hidden">
-        <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-4">
-          <Video className="w-6 h-6 text-green-600" />
-        </div>
-        <h2 className="text-2xl font-bold text-green-900 mb-2">Explore Further</h2>
-        <p className="text-gray-600 mb-6 text-lg">
-          Want to learn more about this topic? Watch this video to dive deeper!
-        </p>
-        <a
-          href={lesson.videoUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 bg-green-600 text-white px-8 py-3 rounded-full font-bold hover:bg-green-700 transform hover:scale-105 transition-all shadow-md"
-        >
-          Watch Video on YouTube
-        </a>
-      </section>
-    );
-  };
 
   const printVocabItems = useMemo(() =>
-    shuffleArray([...standardContent.activities.vocabulary.items]),
-    [standardContent]
+    seededShuffle([...standardContent.activities.vocabulary.items], `${lesson.id}-print-vocab`),
+    [standardContent, lesson.id]
   );
 
   const printScrambledItems = useMemo(() => {
-    return standardContent.activities.scrambled.map(item => {
+    return standardContent.activities.scrambled.map((item, idx) => {
       const words = item.answer.replace(/[.!?]+$/, '').split(/\s+/).filter(w => w);
-      const shuffled = shuffleArray([...words]);
+      const shuffled = seededShuffle([...words], `${lesson.id}-print-scramble-${idx}`);
       return {
         ...item,
         scrambledText: shuffled.join(' / ')
       };
     });
-  }, [standardContent]);
+  }, [standardContent, lesson.id]);
 
   return (
     <GenericLessonLayout
@@ -189,7 +268,6 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
       homeroom={homeroom}
       setHomeroom={setHomeroom}
       isNameLocked={isNameLocked}
-      onFinish={onFinish}
       onBack={onReset}
       showBack={false}
     >
@@ -258,19 +336,22 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
       {/* Activities Section */}
       <div className="space-y-8 pb-4">
         <section id="vocabulary">
-          <Vocabulary
+          <Vocabulary 
             data={standardContent.activities.vocabulary}
             language={lesson.language}
             onChange={(data) => updateAnswers('vocabulary', data)}
             savedAnswers={answers.vocabulary}
             voiceName={selectedVoiceName}
+            savedIsChecked={completionStates.vocabularyChecked}
+            onComplete={(isChecked) => setCompletionStates(prev => ({ ...prev, vocabularyChecked: isChecked }))}
             toggleTTS={toggleTTS}
             ttsState={ttsState}
+            lessonId={lesson.id}
           />
         </section>
 
         <section id="fill-blanks">
-          <FillInBlanks
+          <FillInBlanks 
             data={standardContent.activities.fillInTheBlanks}
             vocabItems={standardContent.activities.vocabulary.items}
             level={lesson.level.replace('Level ', '')}
@@ -278,8 +359,11 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
             onChange={(data) => updateAnswers('fillBlanks', data)}
             savedAnswers={answers.fillBlanks}
             voiceName={selectedVoiceName}
+            savedIsChecked={completionStates.fillBlanksChecked}
+            onComplete={(isChecked) => setCompletionStates(prev => ({ ...prev, fillBlanksChecked: isChecked }))}
             toggleTTS={toggleTTS}
             ttsState={ttsState}
+            lessonId={lesson.id}
           />
         </section>
 
@@ -291,21 +375,27 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
             onChange={(data) => updateAnswers('comprehension', data)}
             savedAnswers={answers.comprehension}
             voiceName={selectedVoiceName}
+            savedIsCompleted={completionStates.comprehensionCompleted}
+            onComplete={(isChecked) => setCompletionStates(prev => ({ ...prev, comprehensionCompleted: isChecked }))}
             toggleTTS={toggleTTS}
             ttsState={ttsState}
+            lessonId={lesson.id}
           />
         </section>
 
         <section id="scrambled">
-          <Scrambled
+          <Scrambled 
             data={standardContent.activities.scrambled}
             level={lesson.level.replace('Level ', '')}
             language={lesson.language}
             onChange={(data) => updateAnswers('scrambled', data)}
             savedAnswers={answers.scrambled}
             voiceName={selectedVoiceName}
+            savedIsChecked={completionStates.scrambledCompleted}
+            onComplete={(isChecked) => setCompletionStates(prev => ({ ...prev, scrambledCompleted: isChecked }))}
             toggleTTS={toggleTTS}
             ttsState={ttsState}
+            lessonId={lesson.id}
           />
         </section>
 
@@ -361,9 +451,13 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
           homeroom={homeroom}
           setHomeroom={setHomeroom}
           isNameLocked={isNameLocked}
-          onFinish={onFinish}
+          onFinish={handleFinishClick}
           onReset={onReset}
         />
+
+        <div className="mt-8">
+          {renderVideoExploration()}
+        </div>
       </div>
 
       {/* Print-only Layout */}

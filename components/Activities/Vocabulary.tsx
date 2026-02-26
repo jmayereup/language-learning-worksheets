@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { VocabularyActivity } from '../../types';
 import { Button } from '../UI/Button';
 import { Volume2, Settings2 } from 'lucide-react';
-import { speakText, shouldShowAudioControls, selectElementText } from '../../utils/textUtils';
+import { speakText, shouldShowAudioControls, selectElementText, seededShuffle } from '../../utils/textUtils';
 import { AudioControls } from '../UI/AudioControls';
 
 interface Props {
@@ -15,6 +15,7 @@ interface Props {
   onComplete?: (isChecked: boolean) => void;
   toggleTTS: (rate: number, overrideText?: string) => void;
   ttsState: { status: 'playing' | 'paused' | 'stopped', rate: number };
+  lessonId: string;
 }
 
 export const Vocabulary: React.FC<Props> = ({ 
@@ -26,7 +27,8 @@ export const Vocabulary: React.FC<Props> = ({
   savedIsChecked = false, 
   onComplete,
   toggleTTS,
-  ttsState
+  ttsState,
+  lessonId
 }) => {
   const [shuffledIndices, setShuffledIndices] = useState<number[]>([]);
   const [isChecked, setIsChecked] = useState(savedIsChecked);
@@ -35,10 +37,9 @@ export const Vocabulary: React.FC<Props> = ({
 
   useEffect(() => {
     // Shuffle only once on mount or data change
-    setShuffledIndices(
-      data.items.map((_, i) => i).sort(() => Math.random() - 0.5)
-    );
-  }, [data]);
+    const indices = data.items.map((_, i) => i);
+    setShuffledIndices(seededShuffle(indices, `${lessonId}-vocab`));
+  }, [data, lessonId]);
 
   const handleInputChange = (itemIndex: number, value: string) => {
     // Only allow 1 char

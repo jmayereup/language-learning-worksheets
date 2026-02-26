@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { ComprehensionActivity } from '../../types';
 import { Button } from '../UI/Button';
 import { Check, ChevronRight, RefreshCw, Volume2, Settings2 } from 'lucide-react';
-import { speakText, shouldShowAudioControls, selectElementText } from '../../utils/textUtils';
+import { speakText, shouldShowAudioControls, selectElementText, seededShuffle } from '../../utils/textUtils';
 import { AudioControls } from '../UI/AudioControls';
 
 interface Props {
@@ -16,6 +16,7 @@ interface Props {
   onComplete?: (isCompleted: boolean) => void;
   toggleTTS: (rate: number, overrideText?: string) => void;
   ttsState: { status: 'playing' | 'paused' | 'stopped', rate: number };
+  lessonId: string;
 }
 
 export const Comprehension: React.FC<Props> = ({
@@ -28,20 +29,28 @@ export const Comprehension: React.FC<Props> = ({
   savedIsCompleted = false,
   onComplete,
   toggleTTS,
-  ttsState
+  ttsState,
+  lessonId
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isChecked, setIsChecked] = useState(false);
   const [isCompleted, setIsCompleted] = useState(savedIsCompleted);
 
+  // Randomize question order once on mount/data change
+  const shuffledIndices = useMemo(() => {
+    const indices = data.questions.map((_, i) => i);
+    return seededShuffle(indices, `${lessonId}-comprehension`);
+  }, [data.questions, lessonId]);
+
   if (!data || !data.questions || data.questions.length === 0) return null;
 
-  const currentQuestion = data.questions[currentIndex];
-  const userAnswer = savedAnswers[currentIndex];
+  const actualIndex = shuffledIndices[currentIndex];
+  const currentQuestion = data.questions[actualIndex];
+  const userAnswer = savedAnswers[actualIndex];
 
   const handleOptionChange = (value: string) => {
     if (isChecked) return; // Prevent changing after check
-    onChange({ ...savedAnswers, [currentIndex]: value });
+    onChange({ ...savedAnswers, [shuffledIndices[currentIndex]]: value });
   };
 
   const handleNext = () => {
