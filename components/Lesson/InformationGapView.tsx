@@ -113,29 +113,10 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
         blocks: content.blocks || []
       }] : []));
 
-  // Helper to update activity results and answers state
-  const handleActivityProgress = (score: number, total: number) => {
-    const newResults = [...activityResults];
-    newResults[currentActivityIndex] = { score, total };
-    setActivityResults(newResults);
-
-    // Sync to answers state in LessonView
-    const infoGapResults: Record<number, { score: number, total: number }> = { ...answers.infoGap };
-    newResults.forEach((res, idx) => {
-      if (res) infoGapResults[idx] = res;
-    });
-    
-    setAnswers(prev => ({
-      ...prev,
-      infoGap: infoGapResults
-    }));
-  };
+  // Normalize activities ...
 
   const handleActivityFinish = (score: number, total: number) => {
-    // 1. Final sync of current activity
-    handleActivityProgress(score, total);
-
-    // 2. Compute total score across all activities
+    // 1. Compute total score across all activities
     let totalScore = 0;
     let maxScore = 0;
     const pills: ReportScorePill[] = [];
@@ -170,7 +151,10 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
   };
 
   const handleNextActivity = (score: number, total: number) => {
-    handleActivityProgress(score, total); // Update results for current activity
+    const newResults = [...activityResults];
+    newResults[currentActivityIndex] = { score, total };
+    setActivityResults(newResults);
+
     if (currentActivityIndex < activities.length - 1) {
       setCurrentActivityIndex(prev => prev + 1);
       window.scrollTo(0, 0);
@@ -295,11 +279,6 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
             <div className="text-xs font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">
                 Activity {currentActivityIndex + 1} of {activities.length}
             </div>
-            {activityResults.length > 0 && (
-                <div className="text-sm font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-100">
-                    Running Score: {activityResults.reduce((sum, r) => sum + (r?.score || 0), 0)}
-                </div>
-            )}
         </div>
       </div>
 
@@ -363,7 +342,6 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
           key={currentActivityIndex}
           questions={myQuestions} 
           onFinish={handleNextActivity}
-          onProgress={handleActivityProgress}
           language={lesson.language}
           selectedVoiceName={selectedVoiceName}
           toggleTTS={toggleTTS}

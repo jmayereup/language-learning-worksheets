@@ -8,7 +8,6 @@ import { AudioControls } from '../UI/AudioControls';
 interface InformationGapQuestionsProps {
   questions: InformationGapQuestion[];
   onFinish: (score: number, total: number) => void;
-  onProgress?: (score: number, total: number) => void;
   language: string;
   selectedVoiceName: string | null;
   toggleTTS: (rate: number, overrideText?: string) => void;
@@ -19,7 +18,6 @@ interface InformationGapQuestionsProps {
 export const InformationGapQuestions: React.FC<InformationGapQuestionsProps> = ({ 
   questions, 
   onFinish,
-  onProgress,
   language,
   selectedVoiceName,
   toggleTTS,
@@ -82,14 +80,8 @@ export const InformationGapQuestions: React.FC<InformationGapQuestionsProps> = (
     setSelectedOption(option);
     setShowFeedback(true);
     
-    let newScore = score;
     if (option === currentQuestion.correct_answer) {
-      newScore = score + 1;
-      setScore(newScore);
-    }
-    
-    if (onProgress) {
-      onProgress(newScore, questions.length);
+      setScore(prev => prev + 1);
     }
   };
 
