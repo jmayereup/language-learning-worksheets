@@ -29,6 +29,7 @@ export const useTTS = ({
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const userHasSelectedVoice = useRef(false);
+  const activeContentRef = useRef<string | null>(null);
 
   // Initialize and update voices
   useEffect(() => {
@@ -67,8 +68,8 @@ export const useTTS = ({
   const playTTS = useCallback((rate: number, text: string) => {
     const synth = window.speechSynthesis;
 
-    // If clicking the active button
-    if (ttsState.rate === rate && ttsState.status !== 'stopped') {
+    // If clicking the active button (same text and same rate)
+    if (ttsState.rate === rate && ttsState.status !== 'stopped' && activeContentRef.current === text) {
       if (ttsState.status === 'playing') {
         synth.pause();
         setTtsState(prev => ({ ...prev, status: 'paused' }));
@@ -79,7 +80,8 @@ export const useTTS = ({
       return;
     }
 
-    // New start or changing rate
+    // New start or changing rate/content
+    activeContentRef.current = text;
     synth.cancel();
     if (audioRef.current) {
       audioRef.current.pause();
@@ -120,8 +122,8 @@ export const useTTS = ({
 
       const audio = audioRef.current;
 
-      // If clicking the active button
-      if (ttsState.rate === rate && ttsState.status !== 'stopped') {
+      // If clicking the active button (same source and same rate)
+      if (ttsState.rate === rate && ttsState.status !== 'stopped' && activeContentRef.current === audioFileUrl) {
         if (ttsState.status === 'playing') {
           audio.pause();
           setTtsState(prev => ({ ...prev, status: 'paused' }));
@@ -132,7 +134,8 @@ export const useTTS = ({
         return;
       }
 
-      // New start or changing rate
+      // New start or changing rate/content
+      activeContentRef.current = audioFileUrl;
       synth.cancel(); 
       audio.pause();
       audio.currentTime = 0;
