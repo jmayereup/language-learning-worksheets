@@ -39,7 +39,7 @@ export const GenericLessonLayout: React.FC<GenericLessonLayoutProps> = ({
   variant
 }) => {
   return (
-    <div className="max-w-4xl mx-auto pb-20 px-1 sm:px-6">
+    <div className="bg-white max-w-4xl mx-auto pb-8 px-1 py-4 sm:px-6">
       <LessonHeader 
         title={displayTitle}
         level={lesson.level}

@@ -290,40 +290,11 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
   };
 
   // Memoize shuffled vocab for print layout to ensure consistency
-  const printVocabItems = useMemo(() =>
-    isStandard ? shuffleArray([...(lesson.content as StandardLessonContent).activities.vocabulary.items]) : [],
-    [isStandard, lesson.content]
-  );
 
   // Memoize scrambled sentences for print layout
-  const printScrambledItems = useMemo(() => {
-    if (!isStandard) return [];
-    return (lesson.content as StandardLessonContent).activities.scrambled.map(item => {
-      // Create scrambled version of the answer
-      const words = item.answer.replace(/[.!?]+$/, '').split(/\s+/).filter(w => w);
-      const shuffled = shuffleArray([...words]);
-      return {
-        ...item,
-        scrambledText: shuffled.join(' / ')
-      };
-    });
-  }, [isStandard, lesson.content]);
 
-  const updateAnswers = (section: keyof UserAnswers, data: any) => {
-    setAnswers(prev => ({ ...prev, [section]: data }));
-  };
 
-  const handlePrint = () => {
-    window.print();
-  };
 
-  const handleWordClick = (word: string) => {
-    // Clean word of any surrounding punctuation for better TTS
-    const cleanWord = word.replace(/^[.,!?;:"'()\[\]{}]+|[.,!?;:"'()\[\]{}]+$/g, '');
-    if (cleanWord) {
-      speakText(cleanWord, lesson.language, 0.7, selectedVoiceName);
-    }
-  };
 
   const renderVideoExploration = () => {
     if (lesson.isVideoLesson || !lesson.videoUrl) return null;
@@ -450,44 +421,6 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
     }, 200);
   };
 
-  const handleTranslate = async () => {
-    const text = isStandard ? (lesson.content as StandardLessonContent).readingText : '';
-    const langMap: Record<string, string> = {
-      "English": "en",
-      "French": "fr",
-      "Spanish": "es",
-      "German": "de"
-    };
-    const sourceLang = langMap[lesson.language] || 'auto';
-
-    // Copy to clipboard as backup for mobile browsers
-    try {
-      await navigator.clipboard.writeText(text);
-    } catch (err) {
-      console.warn('Failed to copy to clipboard:', err);
-    }
-
-    // Check if Android and try intent first
-    const isAndroid = /android/i.test(navigator.userAgent);
-
-    if (isAndroid) {
-      // Try Android intent for Google Translate app
-      const intentUrl = `intent://translate.google.com/?sl=${sourceLang}&text=${encodeURIComponent(text)}&op=translate#Intent;scheme=https;package=com.google.android.apps.translate;end`;
-
-      // Try to open intent, fall back to web if it fails
-      const intentWindow = window.open(intentUrl, '_blank');
-
-      // Fallback to web version after a short delay if intent fails
-      setTimeout(() => {
-        if (!intentWindow || intentWindow.closed) {
-          window.open(`https://translate.google.com/?sl=${sourceLang}&text=${encodeURIComponent(text)}&op=translate`, '_blank');
-        }
-      }, 1000);
-    } else {
-      // Non-Android: just open web version
-      window.open(`https://translate.google.com/?sl=${sourceLang}&text=${encodeURIComponent(text)}&op=translate`, '_blank');
-    }
-  };
 
   const handleSubmitScore = async () => {
     if (teacherCode.trim() !== '6767') {
