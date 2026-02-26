@@ -10,21 +10,23 @@ interface InformationGapQuestionsProps {
   onFinish: (score: number, total: number) => void;
   language: string;
   selectedVoiceName: string | null;
+  toggleTTS: (rate: number, overrideText?: string) => void;
+  ttsState: { status: 'playing' | 'paused' | 'stopped', rate: number };
 }
 
 export const InformationGapQuestions: React.FC<InformationGapQuestionsProps> = ({ 
   questions, 
   onFinish,
   language,
-  selectedVoiceName
+  selectedVoiceName,
+  toggleTTS,
+  ttsState
 }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
   const [score, setScore] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
-  const [ttsStatus, setTtsStatus] = useState<'playing' | 'paused' | 'stopped'>('stopped');
-  const [currentRate, setCurrentRate] = useState(1.0);
 
   if (questions.length === 0) {
     return (
@@ -104,21 +106,13 @@ export const InformationGapQuestions: React.FC<InformationGapQuestionsProps> = (
       <div className="mb-10 flex flex-col items-center">
         <AudioControls
           onSlowToggle={() => {
-            const newRate = 0.6;
-            setCurrentRate(newRate);
-            setTtsStatus('playing');
-            speakText(currentQuestion.question, language, newRate, selectedVoiceName);
-            setTimeout(() => setTtsStatus('stopped'), 3000);
+            toggleTTS(0.6, currentQuestion.question);
           }}
           onListenToggle={() => {
-            const newRate = 1.0;
-            setCurrentRate(newRate);
-            setTtsStatus('playing');
-            speakText(currentQuestion.question, language, newRate, selectedVoiceName);
-            setTimeout(() => setTtsStatus('stopped'), 3000);
+            toggleTTS(1.0, currentQuestion.question);
           }}
-          ttsStatus={ttsStatus}
-          currentRate={currentRate}
+          ttsStatus={ttsState.status}
+          currentRate={ttsState.rate}
           hasVoices={false}
           className="mb-4"
         />

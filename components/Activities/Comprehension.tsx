@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { ComprehensionActivity } from '../../types';
 import { Button } from '../UI/Button';
-import { Check, ChevronRight, RefreshCw, Volume2 } from 'lucide-react';
+import { Check, ChevronRight, RefreshCw, Volume2, Settings2 } from 'lucide-react';
 import { speakText, shouldShowAudioControls, selectElementText } from '../../utils/textUtils';
+import { AudioControls } from '../UI/AudioControls';
 
 interface Props {
   data: ComprehensionActivity;
@@ -13,9 +14,22 @@ interface Props {
   voiceName?: string | null;
   savedIsCompleted?: boolean;
   onComplete?: (isCompleted: boolean) => void;
+  toggleTTS: (rate: number, overrideText?: string) => void;
+  ttsState: { status: 'playing' | 'paused' | 'stopped', rate: number };
 }
 
-export const Comprehension: React.FC<Props> = ({ data, readingText, language, onChange, savedAnswers, voiceName, savedIsCompleted = false, onComplete }) => {
+export const Comprehension: React.FC<Props> = ({
+  data,
+  readingText,
+  language,
+  onChange,
+  savedAnswers,
+  voiceName,
+  savedIsCompleted = false,
+  onComplete,
+  toggleTTS,
+  ttsState
+}) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isChecked, setIsChecked] = useState(false);
   const [isCompleted, setIsCompleted] = useState(savedIsCompleted);
@@ -117,19 +131,17 @@ export const Comprehension: React.FC<Props> = ({ data, readingText, language, on
             <div className="flex items-start gap-3 mb-6">
               <p className="text-lg md:text-xl font-medium text-gray-800 flex-1 selectable-text" translate="no">{currentQuestion.text}</p>
               {shouldShowAudioControls() && (
-                <button
-                  onClick={() => {
-                    try {
-                      setTimeout(() => speakText(currentQuestion.text, language, 0.7, voiceName), 1);
-                    } catch (e) {
-                      console.warn('TTS failed:', e);
-                    }
+                <AudioControls
+                  onSlowToggle={() => {
+                    toggleTTS(0.6, currentQuestion.text);
                   }}
-                  className="text-gray-400 hover:text-green-600 transition-colors p-1 shrink-0"
-                  title="Hear question"
-                >
-                  <Volume2 size={24} />
-                </button>
+                  onListenToggle={() => {
+                    toggleTTS(1.0, currentQuestion.text);
+                  }}
+                  ttsStatus={ttsState.status}
+                  currentRate={ttsState.rate}
+                  hasVoices={false}
+                />
               )}
             </div>
 

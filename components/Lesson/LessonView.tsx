@@ -1,19 +1,16 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { ParsedLesson, UserAnswers } from '../../types';
-import { speakText, shuffleArray, getLangCode, shouldShowAudioControls, getAndroidIntentLink, normalizeString } from '../../utils/textUtils';
+import { ParsedLesson, UserAnswers, StandardLessonContent, InformationGapContent, LessonContent } from '../../types';
+import { speakText, shuffleArray, getLangCode, shouldShowAudioControls, getAndroidIntentLink, normalizeString, selectElementText } from '../../utils/textUtils';
 import { Button } from '../UI/Button';
 import { Vocabulary } from '../Activities/Vocabulary';
 import { FillInBlanks } from '../Activities/FillInBlanks';
 import { Comprehension } from '../Activities/Comprehension';
 import { Scrambled } from '../Activities/Scrambled';
-import { Volume2, Turtle, Printer, RotateCcw, Eye, EyeOff, Languages, Pause, Play, ChevronDown, Video } from 'lucide-react';
-import confetti from 'canvas-confetti';
-import { getVoicesForLang, getBestVoice } from '../../utils/tts';
-import { selectElementText } from '../../utils/textUtils';
 import { VoiceSelectorModal } from '../UI/VoiceSelectorModal';
-import { Mic, CheckCircle, AlertCircle, Loader } from 'lucide-react';
+import { Mic, CheckCircle, AlertCircle, Loader, Volume2, Turtle, Printer, RotateCcw, Eye, EyeOff, Languages, Pause, Play, ChevronDown, Video } from 'lucide-react';
+import confetti from 'canvas-confetti';
+import { useTTS } from '../../hooks/useTTS';
 import { config } from '../../config';
-import { StandardLessonContent, InformationGapContent, LessonContent } from '../../types';
 import { GenericLessonLayout } from './GenericLessonLayout';
 
 const InformationGapView = React.lazy(() => import('./InformationGapView').then(m => ({ default: m.InformationGapView })));
@@ -108,16 +105,30 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
   const [showExamples, setShowExamples] = useState(false);
   const [finishTime, setFinishTime] = useState<string>('');
   const passageRef = React.useRef<HTMLDivElement>(null);
-  const audioRef = React.useRef<HTMLAudioElement | null>(null);
-  const userHasSelectedVoice = React.useRef(false);
-
-  // TTS State
-  const [ttsState, setTtsState] = useState<{ status: 'playing' | 'paused' | 'stopped', rate: number }>({ status: 'stopped', rate: 1.0 });
-  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
-  const [selectedVoiceName, setSelectedVoiceName] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
-  const [audioPreference, setAudioPreference] = useState<'recorded' | 'tts'>(lesson.audioFileUrl ? 'recorded' : 'tts');
+
+  const isStandard = isStandardLesson(lesson.content);
+
+  // TTS Hook
+  const {
+    ttsState,
+    availableVoices,
+    selectedVoiceName,
+    setSelectedVoiceName,
+    audioPreference,
+    setAudioPreference,
+    toggleTTS
+  } = useTTS({
+    language: lesson.language,
+    audioFileUrl: lesson.audioFileUrl,
+    defaultReadingText: isStandard ? (lesson.content as StandardLessonContent).readingText : '',
+    onStartCallback: () => {
+      if (passageRef.current) {
+        selectElementText(passageRef.current);
+      }
+    }
+  });
 
   // Submission State
   const [teacherCode, setTeacherCode] = useState('');
@@ -125,42 +136,13 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
   const [submissionStatus, setSubmissionStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [submissionMessage, setSubmissionMessage] = useState('');
 
-  const isStandard = isStandardLesson(lesson.content);
   const displayTitle = lesson.title || (isStandard ? (lesson.content as StandardLessonContent).title : (lesson.content as InformationGapContent).topic);
 
-  // Setup voices
+  // Simple Effect for Mobile styling/logic
   useEffect(() => {
-    const updateVoices = () => {
-      const langCode = getLangCode(lesson.language);
-      const voices = getVoicesForLang(langCode);
-      setAvailableVoices(voices);
-
-      const mobile = /android|iphone|ipad|ipod/i.test(navigator.userAgent.toLowerCase());
-      setIsMobile(mobile);
-
-      // Set initial best voice only if user hasn't explicitly chosen one
-      if (!userHasSelectedVoice.current) {
-        const best = getBestVoice(langCode);
-        if (best) setSelectedVoiceName(best.name);
-      }
-    };
-
-    updateVoices();
-    if (window.speechSynthesis.onvoiceschanged !== undefined) {
-      window.speechSynthesis.onvoiceschanged = updateVoices;
-    }
-
-    return () => {
-      window.speechSynthesis.cancel();
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
-      if (window.speechSynthesis.onvoiceschanged !== undefined) {
-        window.speechSynthesis.onvoiceschanged = null;
-      }
-    };
-  }, [lesson.language]);
+    const mobile = /android|iphone|ipad|ipod/i.test(navigator.userAgent.toLowerCase());
+    setIsMobile(mobile);
+  }, []);
 
   // Persist answers, student info, and completion states to localStorage whenever they change
   useEffect(() => {
@@ -190,111 +172,6 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
       }
     }
   };
-
-  const toggleTTS = (rate: number, overrideText?: string) => {
-    const synth = window.speechSynthesis;
-
-    // Use audio file if available and preferred, but ONLY if no override text is provided
-    if (!overrideText && lesson.audioFileUrl && audioPreference === 'recorded') {
-      if (!audioRef.current) {
-        audioRef.current = new Audio(lesson.audioFileUrl);
-        audioRef.current.onended = () => {
-          setTtsState(prev => ({ ...prev, status: 'stopped' }));
-        };
-      }
-
-      const audio = audioRef.current;
-
-      // If clicking the active button
-      if (ttsState.rate === rate && ttsState.status !== 'stopped') {
-        if (ttsState.status === 'playing') {
-          audio.pause();
-          setTtsState(prev => ({ ...prev, status: 'paused' }));
-        } else {
-          audio.play();
-          setTtsState(prev => ({ ...prev, status: 'playing' }));
-        }
-        return;
-      }
-
-      // New start or changing rate
-      synth.cancel(); // Stop any TTS that might be playing
-      audio.pause();
-      audio.currentTime = 0;
-      audio.playbackRate = rate;
-
-      audio.play()
-        .then(() => {
-          setTtsState({ status: 'playing', rate });
-        })
-        .catch(e => {
-          console.error("Audio playback failed, falling back to TTS:", e);
-          setAudioPreference('tts');
-          playTTS(rate);
-        });
-
-      // Highlight the reading passage
-      if (passageRef.current) {
-        selectElementText(passageRef.current);
-      }
-      return;
-    }
-
-    playTTS(rate, overrideText);
-  };
-
-  const playTTS = (rate: number, overrideText?: string) => {
-    const synth = window.speechSynthesis;
-
-    // If clicking the active button
-    if (ttsState.rate === rate && ttsState.status !== 'stopped') {
-      if (ttsState.status === 'playing') {
-        synth.pause();
-        setTtsState(prev => ({ ...prev, status: 'paused' }));
-      } else {
-        synth.resume();
-        setTtsState(prev => ({ ...prev, status: 'playing' }));
-      }
-      return;
-    }
-
-    // New start or changing rate
-    synth.cancel();
-    if (audioRef.current) {
-      audioRef.current.pause();
-    }
-
-    const readingText = overrideText || (isStandard ? (lesson.content as StandardLessonContent).readingText : '');
-    const utterance = new SpeechSynthesisUtterance(readingText);
-    const langCode = getLangCode(lesson.language);
-    utterance.lang = langCode;
-    utterance.rate = rate;
-
-    if (selectedVoiceName) {
-      const voices = synth.getVoices();
-      const voice = voices.find(v => v.name === selectedVoiceName);
-      if (voice) utterance.voice = voice;
-    }
-
-    utterance.onend = () => {
-      setTtsState(prev => ({ ...prev, status: 'stopped' }));
-    };
-
-    synth.speak(utterance);
-    setTtsState({ status: 'playing', rate });
-
-    // Highlight the reading passage when audio starts
-    if (passageRef.current && !overrideText) {
-      selectElementText(passageRef.current);
-    }
-  };
-
-  // Memoize shuffled vocab for print layout to ensure consistency
-
-  // Memoize scrambled sentences for print layout
-
-
-
 
   const renderVideoExploration = () => {
     if (lesson.isVideoLesson || !lesson.videoUrl) return null;
@@ -391,23 +268,19 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
       return;
     }
 
-    // Explicitly dismiss keyboard before major DOM change to prevent iOS hang
     if (typeof document !== 'undefined' && document.activeElement instanceof HTMLElement) {
       document.activeElement.blur();
     }
 
-    // Lock the name once submitted
     setIsNameLocked(true);
 
     const now = new Date();
-    // Simplified date formatting for better device compatibility
     const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
     const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
     setFinishTime(`${dateStr}, ${timeStr}`);
 
     setShowResults(true);
 
-    // Decouple heavy confetti animation from state update to prevent UI thread blocking
     setTimeout(() => {
       try {
         confetti({
@@ -420,7 +293,6 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
       }
     }, 200);
   };
-
 
   const handleSubmitScore = async () => {
     if (teacherCode.trim() !== '6767') {
@@ -460,8 +332,6 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
         body: JSON.stringify(payload)
       });
       
-      // With 'no-cors', the response is opaque and we cannot read its content
-      // We assume success if the fetch promise doesn't reject (network error)
       setSubmissionStatus('success');
       setSubmissionMessage('Score sent to teacher! (Please take a screenshot as backup.)');
     } catch (error) {
@@ -478,7 +348,6 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
 
     return (
       <div className="max-w-md mx-auto p-4 bg-white rounded-lg shadow-lg border-t-4 border-green-600 animate-fade-in my-4 print:hidden">
-        {/* Compact Header */}
         <div className="flex justify-between items-start mb-3 pb-2 border-b border-gray-100">
           <div className="pr-4">
             <h2 className="text-xl font-bold text-green-900 leading-tight">Report Card</h2>
@@ -492,7 +361,6 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
           </div>
         </div>
 
-        {/* Student Info Bar */}
         <div className="bg-gray-50 rounded-lg p-2.5 mb-3 flex flex-col sm:flex-row justify-between sm:items-center text-sm border border-gray-100 gap-2">
           <div className="flex gap-4 flex-wrap">
             <div>
@@ -514,7 +382,6 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
           </div>
         </div>
 
-        {/* Scores Grid - Compact */}
         <div className="grid grid-cols-2 gap-2 mb-3">
           {isStandard ? (
             <>
@@ -530,7 +397,6 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
           )}
         </div>
 
-        {/* Written Responses - Compact */}
         {isStandard && (lesson.content as StandardLessonContent).activities.writtenExpression.questions.length > 0 && (
           <div className="border-t border-gray-100 pt-2 mb-2">
             <h3 className="font-bold text-gray-700 text-[10px] uppercase mb-2 tracking-wider">Written Responses</h3>
@@ -547,12 +413,10 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
           </div>
         )}
 
-        {/* Footer Message */}
         <div className="mt-3 text-center">
           <p className="text-[12px] text-gray-600 italic mb-4">Take a screenshot to send to your teacher.</p>
         </div>
 
-        {/* Submission Section */}
         <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mt-4 mb-4">
           <h3 className="font-bold text-gray-800 text-sm mb-2">Submit to Teacher (Optional)</h3>
           
@@ -602,7 +466,6 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
         </div>
 
         <div className="mt-4 flex justify-center gap-2 print:hidden">
-          {/* Back button now returns to the lesson for revisions instead of exiting */}
           <Button onClick={() => setShowResults(false)} size="sm">Back to Lesson</Button>
         </div>
         <div className="mt-8">
@@ -630,20 +493,11 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
           ttsState={ttsState}
           availableVoices={availableVoices}
           selectedVoiceName={selectedVoiceName}
-          setSelectedVoiceName={(name) => {
-            userHasSelectedVoice.current = true;
-            setSelectedVoiceName(name);
-          }}
+          setSelectedVoiceName={setSelectedVoiceName}
           isVoiceModalOpen={isVoiceModalOpen}
           setIsVoiceModalOpen={setIsVoiceModalOpen}
           audioPreference={audioPreference}
-          setAudioPreference={(pref) => {
-            userHasSelectedVoice.current = true;
-            setAudioPreference(pref);
-            window.speechSynthesis.cancel();
-            if (audioRef.current) audioRef.current.pause();
-            setTtsState(prev => ({ ...prev, status: 'stopped' }));
-          }}
+          setAudioPreference={setAudioPreference}
           answers={answers}
           setAnswers={setAnswers}
         />
@@ -651,7 +505,6 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
     );
   }
 
-  // Default to WorksheetView for 'worksheet' or undefined lessonType
   return (
     <React.Suspense fallback={<div className="flex items-center justify-center p-20"><Loader className="w-8 h-8 animate-spin text-green-600" /></div>}>
       <WorksheetView
@@ -671,20 +524,11 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
         ttsState={ttsState}
         availableVoices={availableVoices}
         selectedVoiceName={selectedVoiceName}
-        setSelectedVoiceName={(name) => {
-          userHasSelectedVoice.current = true;
-          setSelectedVoiceName(name);
-        }}
+        setSelectedVoiceName={setSelectedVoiceName}
         isVoiceModalOpen={isVoiceModalOpen}
         setIsVoiceModalOpen={setIsVoiceModalOpen}
         audioPreference={audioPreference}
-        setAudioPreference={(pref) => {
-          userHasSelectedVoice.current = true;
-          setAudioPreference(pref);
-          window.speechSynthesis.cancel();
-          if (audioRef.current) audioRef.current.pause();
-          setTtsState(prev => ({ ...prev, status: 'stopped' }));
-        }}
+        setAudioPreference={setAudioPreference}
         passageRef={passageRef}
       />
     </React.Suspense>

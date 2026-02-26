@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { VocabularyActivity } from '../../types';
 import { Button } from '../UI/Button';
-import { Volume2 } from 'lucide-react';
+import { Volume2, Settings2 } from 'lucide-react';
 import { speakText, shouldShowAudioControls, selectElementText } from '../../utils/textUtils';
+import { AudioControls } from '../UI/AudioControls';
 
 interface Props {
   data: VocabularyActivity;
@@ -12,12 +13,25 @@ interface Props {
   voiceName?: string | null;
   savedIsChecked?: boolean;
   onComplete?: (isChecked: boolean) => void;
+  toggleTTS: (rate: number, overrideText?: string) => void;
+  ttsState: { status: 'playing' | 'paused' | 'stopped', rate: number };
 }
 
-export const Vocabulary: React.FC<Props> = ({ data, language, onChange, savedAnswers, voiceName, savedIsChecked = false, onComplete }) => {
+export const Vocabulary: React.FC<Props> = ({ 
+  data, 
+  language, 
+  onChange, 
+  savedAnswers, 
+  voiceName, 
+  savedIsChecked = false, 
+  onComplete,
+  toggleTTS,
+  ttsState
+}) => {
   const [shuffledIndices, setShuffledIndices] = useState<number[]>([]);
   const [isChecked, setIsChecked] = useState(savedIsChecked);
   const [score, setScore] = useState(0);
+  const [activeSpeechId, setActiveSpeechId] = useState<string | null>(null);
 
   useEffect(() => {
     // Shuffle only once on mount or data change
@@ -95,15 +109,27 @@ export const Vocabulary: React.FC<Props> = ({ data, language, onChange, savedAns
                   placeholder="?"
                 />
                 {shouldShowAudioControls() && (
-                  <button
-                    onClick={(e) => {
-                      speakText(item.label, language, 0.7, voiceName);
+                  <AudioControls
+                    onSlowToggle={() => {
+                      const id = `word-${originalIndex}`;
+                      setActiveSpeechId(id);
+                      toggleTTS(0.6, item.label);
+                      if (ttsState.status === 'stopped') {
+                        setTimeout(() => setActiveSpeechId(null), 2000);
+                      }
                     }}
-                    className="text-gray-400 hover:text-green-600 transition-colors p-1"
-                    title="Hear word"
-                  >
-                    <Volume2 size={18} />
-                  </button>
+                    onListenToggle={() => {
+                      const id = `word-${originalIndex}`;
+                      setActiveSpeechId(id);
+                      toggleTTS(1.0, item.label);
+                      if (ttsState.status === 'stopped') {
+                        setTimeout(() => setActiveSpeechId(null), 2000);
+                      }
+                    }}
+                    ttsStatus={activeSpeechId === `word-${originalIndex}` ? ttsState.status : 'stopped'}
+                    currentRate={activeSpeechId === `word-${originalIndex}` ? ttsState.rate : 1.0}
+                    hasVoices={false}
+                  />
                 )}
                 <span className="font-medium text-gray-700 text-lg selectable-text" translate="no">{displayIndex + 1}. {item.label}</span>
               </div>
@@ -116,19 +142,31 @@ export const Vocabulary: React.FC<Props> = ({ data, language, onChange, savedAns
           <h3 className="font-semibold text-xl text-gray-800 mb-4">Definitions:</h3>
           {data.definitions.map((def, idx) => (
             <div key={def.id} className="flex gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200 items-start">
-              <span className="font-bold text-gray-500 text-lg min-w-[1.5rem]">{String.fromCharCode(97 + idx)}.</span>
+              <span className="font-bold text-gray-500 text-lg min-w-6">{String.fromCharCode(97 + idx)}.</span>
               <div className="flex-1 flex justify-between items-start gap-2">
                 <span className="text-gray-700 leading-snug text-lg selectable-text" translate="no">{def.text}</span>
                 {shouldShowAudioControls() && (
-                  <button
-                    onClick={(e) => {
-                      speakText(def.text, language, 0.7, voiceName);
+                  <AudioControls
+                    onSlowToggle={() => {
+                      const id = `def-${idx}`;
+                      setActiveSpeechId(id);
+                      toggleTTS(0.6, def.text);
+                      if (ttsState.status === 'stopped') {
+                        setTimeout(() => setActiveSpeechId(null), 3000);
+                      }
                     }}
-                    className="text-gray-400 hover:text-green-600 transition-colors p-1 shrink-0"
-                    title="Hear definition"
-                  >
-                    <Volume2 size={18} />
-                  </button>
+                    onListenToggle={() => {
+                      const id = `def-${idx}`;
+                      setActiveSpeechId(id);
+                      toggleTTS(1.0, def.text);
+                      if (ttsState.status === 'stopped') {
+                        setTimeout(() => setActiveSpeechId(null), 3000);
+                      }
+                    }}
+                    ttsStatus={activeSpeechId === `def-${idx}` ? ttsState.status : 'stopped'}
+                    currentRate={activeSpeechId === `def-${idx}` ? ttsState.rate : 1.0}
+                    hasVoices={false}
+                  />
                 )}
               </div>
             </div>

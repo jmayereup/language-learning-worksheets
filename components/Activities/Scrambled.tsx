@@ -12,23 +12,35 @@ interface Props {
   onChange: (answers: Record<number, string>) => void;
   savedAnswers: Record<number, string>;
   voiceName?: string | null;
-  savedIsCompleted?: boolean;
+  savedIsChecked?: boolean;
   onComplete?: (isCompleted: boolean) => void;
+  toggleTTS: (rate: number, overrideText?: string) => void;
+  ttsState: { status: 'playing' | 'paused' | 'stopped', rate: number };
 }
 
-export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, savedAnswers, voiceName, savedIsCompleted = false, onComplete }) => {
+export const Scrambled: React.FC<Props> = ({
+  data,
+  level,
+  language,
+  onChange,
+  savedAnswers,
+  voiceName,
+  savedIsChecked = false,
+  onComplete,
+  toggleTTS,
+  ttsState
+}) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [wordBank, setWordBank] = useState<{ id: number, text: string }[]>([]);
   const [formedSentence, setFormedSentence] = useState<{ id: number, text: string }[]>([]);
-  const [isChecked, setIsChecked] = useState(false);
+  const [isChecked, setIsChecked] = useState(savedIsChecked);
   const [isCorrectState, setIsCorrectState] = useState(false);
-  const [isCompleted, setIsCompleted] = useState(savedIsCompleted);
+  const [isCompleted, setIsCompleted] = useState(false); // isCompleted is not saved via props
   const [activityMode, setActivityMode] = useState<'scramble' | 'dictation'>(() => {
     if (!shouldShowAudioControls()) return 'scramble';
     return (level === 'A1' || level === 'A2') ? 'scramble' : 'dictation';
   });
-  const [ttsStatus, setTtsStatus] = useState<'playing' | 'paused' | 'stopped'>('stopped');
-  const [currentRate, setCurrentRate] = useState(1.0);
+  const [activeSpeechIdx, setActiveSpeechIdx] = useState<number | null>(null);
 
   if (!data || data.length === 0) return null;
 
@@ -79,7 +91,7 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
     if (word) {
       setWordBank(prev => prev.filter(w => w.id !== wordId));
       setFormedSentence(prev => [...prev, word]);
-      speakText(word.text, language, 1.0, voiceName);
+      toggleTTS(1.0, word.text);
     }
   };
 
@@ -166,7 +178,7 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
           <div className="flex items-center gap-3">
             <h2 className="text-2xl font-bold text-green-800 leading-tight">Activity 4: Sentences</h2>
           </div>
-          
+
           <div className="flex justify-between gap-3">
             {shouldShowAudioControls() && (
               <>
@@ -195,22 +207,21 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
 
                 <AudioControls
                   onSlowToggle={() => {
-                    const newRate = 0.6;
-                    setCurrentRate(newRate);
-                    setTtsStatus('playing');
-                    speakText(currentItem.answer, language, newRate, voiceName);
-                    // Reset status after a while since speakText doesn't provide feedback
-                    setTimeout(() => setTtsStatus('stopped'), 3000); 
+                    setActiveSpeechIdx(currentIndex);
+                    toggleTTS(0.6, currentItem.answer);
+                    if (ttsState.status === 'stopped') {
+                      setTimeout(() => setActiveSpeechIdx(null), 3000);
+                    }
                   }}
                   onListenToggle={() => {
-                    const newRate = 1.0;
-                    setCurrentRate(newRate);
-                    setTtsStatus('playing');
-                    speakText(currentItem.answer, language, newRate, voiceName);
-                    setTimeout(() => setTtsStatus('stopped'), 3000);
+                    setActiveSpeechIdx(currentIndex);
+                    toggleTTS(1.0, currentItem.answer);
+                    if (ttsState.status === 'stopped') {
+                      setTimeout(() => setActiveSpeechIdx(null), 3000);
+                    }
                   }}
-                  ttsStatus={ttsStatus}
-                  currentRate={currentRate}
+                  ttsStatus={activeSpeechIdx === currentIndex ? ttsState.status : 'stopped'}
+                  currentRate={activeSpeechIdx === currentIndex ? ttsState.rate : 1.0}
                   hasVoices={false} // Vocabulary usually doesn't show voice settings here, but we could pass it if we want
                 />
               </>

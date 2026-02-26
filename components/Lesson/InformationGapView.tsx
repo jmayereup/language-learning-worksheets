@@ -316,6 +316,8 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
           onFinish={handleActivityFinish}
           language={lesson.language}
           selectedVoiceName={selectedVoiceName}
+          toggleTTS={toggleTTS}
+          ttsState={ttsState}
         />
       </section>
 

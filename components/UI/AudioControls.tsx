@@ -40,7 +40,7 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
       <div className="flex bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <button
           onClick={onSlowToggle}
-          className={`flex items-center px-4 py-1.5 text-sm font-bold transition-all border-r border-gray-100 ${
+          className={`flex items-center px-1 py-1.5 text-sm font-bold transition-all border-r border-gray-100 ${
             isSlowActive 
               ? 'bg-green-50 text-green-700' 
               : 'hover:bg-gray-50 text-gray-700'
@@ -52,14 +52,14 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
           ) : isSlowActive && ttsStatus === 'paused' ? (
             <Play className="w-4 h-4 mr-1.5" />
           ) : (
-            <Turtle className="w-4 h-4 mr-1.5 text-gray-500" />
+            <Turtle className="w-4 h-4 mr-0 text-gray-500" />
           )}
 
         </button>
 
         <button
           onClick={onListenToggle}
-          className={`flex items-center px-4 py-1.5 text-sm font-bold transition-all ${
+          className={`flex items-center px-1 py-1.5 text-sm font-bold transition-all ${
             isListenActive 
               ? 'bg-green-50 text-green-700' 
               : 'hover:bg-gray-50 text-gray-700'
@@ -71,7 +71,7 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
           ) : isListenActive && ttsStatus === 'paused' ? (
             <Play className="w-4 h-4 mr-1.5" />
           ) : (
-            <Volume2 className="w-4 h-4 mr-1.5 text-gray-500" />
+            <Volume2 className="w-4 h-4 mr-1 text-gray-500" />
           )}
         </button>
       </div>

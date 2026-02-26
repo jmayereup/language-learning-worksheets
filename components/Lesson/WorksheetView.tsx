@@ -264,6 +264,8 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
             onChange={(data) => updateAnswers('vocabulary', data)}
             savedAnswers={answers.vocabulary}
             voiceName={selectedVoiceName}
+            toggleTTS={toggleTTS}
+            ttsState={ttsState}
           />
         </section>
 
@@ -276,6 +278,8 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
             onChange={(data) => updateAnswers('fillBlanks', data)}
             savedAnswers={answers.fillBlanks}
             voiceName={selectedVoiceName}
+            toggleTTS={toggleTTS}
+            ttsState={ttsState}
           />
         </section>
 
@@ -287,6 +291,8 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
             onChange={(data) => updateAnswers('comprehension', data)}
             savedAnswers={answers.comprehension}
             voiceName={selectedVoiceName}
+            toggleTTS={toggleTTS}
+            ttsState={ttsState}
           />
         </section>
 
@@ -298,6 +304,8 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
             onChange={(data) => updateAnswers('scrambled', data)}
             savedAnswers={answers.scrambled}
             voiceName={selectedVoiceName}
+            toggleTTS={toggleTTS}
+            ttsState={ttsState}
           />
         </section>
 
