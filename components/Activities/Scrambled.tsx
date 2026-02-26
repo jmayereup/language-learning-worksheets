@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { ScrambledItem } from '../../types';
-import { normalizeString, speakText, shouldShowAudioControls, selectElementText } from '../../utils/textUtils';
+import { normalizeString, speakText, shouldShowAudioControls, selectElementText, seededShuffle } from '../../utils/textUtils';
 import { Button } from '../UI/Button';
-import { ChevronLeft, RefreshCw, Volume2, Turtle, SkipForward } from 'lucide-react';
+import { ChevronLeft, RefreshCw, Volume2, Turtle, SkipForward, Settings2 } from 'lucide-react';
+import { AudioControls } from '../UI/AudioControls';
 
 interface Props {
   data: ScrambledItem[];
@@ -11,21 +12,37 @@ interface Props {
   onChange: (answers: Record<number, string>) => void;
   savedAnswers: Record<number, string>;
   voiceName?: string | null;
-  savedIsCompleted?: boolean;
+  savedIsChecked?: boolean;
   onComplete?: (isCompleted: boolean) => void;
+  toggleTTS: (rate: number, overrideText?: string) => void;
+  ttsState: { status: 'playing' | 'paused' | 'stopped', rate: number };
+  lessonId: string;
 }
 
-export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, savedAnswers, voiceName, savedIsCompleted = false, onComplete }) => {
+export const Scrambled: React.FC<Props> = ({
+  data,
+  level,
+  language,
+  onChange,
+  savedAnswers,
+  voiceName,
+  savedIsChecked = false,
+  onComplete,
+  toggleTTS,
+  ttsState,
+  lessonId
+}) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [wordBank, setWordBank] = useState<{ id: number, text: string }[]>([]);
   const [formedSentence, setFormedSentence] = useState<{ id: number, text: string }[]>([]);
-  const [isChecked, setIsChecked] = useState(false);
+  const [isChecked, setIsChecked] = useState(savedIsChecked);
   const [isCorrectState, setIsCorrectState] = useState(false);
-  const [isCompleted, setIsCompleted] = useState(savedIsCompleted);
+  const [isCompleted, setIsCompleted] = useState(false); // isCompleted is not saved via props
   const [activityMode, setActivityMode] = useState<'scramble' | 'dictation'>(() => {
     if (!shouldShowAudioControls()) return 'scramble';
     return (level === 'A1' || level === 'A2') ? 'scramble' : 'dictation';
   });
+  const [activeSpeechIdx, setActiveSpeechIdx] = useState<number | null>(null);
 
   if (!data || data.length === 0) return null;
 
@@ -40,13 +57,10 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
         .split(/\s+/)
         .map((text, i) => ({ id: i, text }));
 
-      // Shuffle
-      for (let i = words.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [words[i], words[j]] = [words[j], words[i]];
-      }
+      // Shuffle deterministically
+      const shuffled = seededShuffle(words, `${lessonId}-scramble-${currentIndex}`);
 
-      setWordBank(words);
+      setWordBank(shuffled);
       setFormedSentence([]);
       setIsChecked(false);
       setIsCorrectState(false);
@@ -54,7 +68,7 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
       setIsChecked(false);
       setIsCorrectState(false);
     }
-  }, [currentIndex, currentItem, activityMode]);
+  }, [currentIndex, currentItem, activityMode, lessonId]);
 
   // Sync formed sentence to parent state
   useEffect(() => {
@@ -76,7 +90,7 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
     if (word) {
       setWordBank(prev => prev.filter(w => w.id !== wordId));
       setFormedSentence(prev => [...prev, word]);
-      speakText(word.text, language, 1.0, voiceName);
+      toggleTTS(1.0, word.text);
     }
   };
 
@@ -163,7 +177,7 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
           <div className="flex items-center gap-3">
             <h2 className="text-2xl font-bold text-green-800 leading-tight">Activity 4: Sentences</h2>
           </div>
-          
+
           <div className="flex justify-between gap-3">
             {shouldShowAudioControls() && (
               <>
@@ -190,22 +204,25 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
                   </button>
                 </div>
 
-                <div className="flex gap-2  text-gray-700">
-                  <button
-                    className="flex items-center px-2 py-1.5 border border-gray-200 rounded-lg shadow-sm hover:border-green-300 hover:bg-green-50 hover:text-green-600 transition-all"
-                    onClick={() => speakText(currentItem.answer, language, 0.7, voiceName)}
-                    title="Slow"
-                  >
-                    <Turtle className="w-4 h-4" />
-                  </button>
-                  <button
-                    className="flex items-center px-2 py-1.5 border border-gray-200 rounded-lg shadow-sm hover:border-green-300 hover:bg-green-50 hover:text-green-600 transition-all"
-                    onClick={() => speakText(currentItem.answer, language, 1.0, voiceName)}
-                    title="Normal"
-                  >
-                    <Volume2 className="w-4 h-4" />
-                  </button>
-                </div>
+                <AudioControls
+                  onSlowToggle={() => {
+                    setActiveSpeechIdx(currentIndex);
+                    toggleTTS(0.6, currentItem.answer);
+                    if (ttsState.status === 'stopped') {
+                      setTimeout(() => setActiveSpeechIdx(null), 3000);
+                    }
+                  }}
+                  onListenToggle={() => {
+                    setActiveSpeechIdx(currentIndex);
+                    toggleTTS(1.0, currentItem.answer);
+                    if (ttsState.status === 'stopped') {
+                      setTimeout(() => setActiveSpeechIdx(null), 3000);
+                    }
+                  }}
+                  ttsStatus={activeSpeechIdx === currentIndex ? ttsState.status : 'stopped'}
+                  currentRate={activeSpeechIdx === currentIndex ? ttsState.rate : 1.0}
+                  hasVoices={false} // Vocabulary usually doesn't show voice settings here, but we could pass it if we want
+                />
               </>
             )}
           </div>

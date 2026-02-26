@@ -3,19 +3,26 @@ import { InformationGapQuestion } from '../../types';
 import { CheckCircle2, XCircle, Volume2, Trophy, ArrowRight } from 'lucide-react';
 import { Button } from '../UI/Button';
 import { speakText } from '../../utils/textUtils';
+import { AudioControls } from '../UI/AudioControls';
 
 interface InformationGapQuestionsProps {
   questions: InformationGapQuestion[];
   onFinish: (score: number, total: number) => void;
   language: string;
   selectedVoiceName: string | null;
+  toggleTTS: (rate: number, overrideText?: string) => void;
+  ttsState: { status: 'playing' | 'paused' | 'stopped', rate: number };
+  isLastActivity: boolean;
 }
 
 export const InformationGapQuestions: React.FC<InformationGapQuestionsProps> = ({ 
   questions, 
   onFinish,
   language,
-  selectedVoiceName
+  selectedVoiceName,
+  toggleTTS,
+  ttsState,
+  isLastActivity
 }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -60,7 +67,7 @@ export const InformationGapQuestions: React.FC<InformationGapQuestionsProps> = (
           onClick={() => onFinish(score, questions.length)} 
           className="w-full max-w-sm h-16 text-xl font-black bg-green-600 hover:bg-green-700 hover:scale-105 transition-all shadow-xl rounded-2xl"
         >
-          {percentage === 100 ? 'Continue' : 'View Results Report'}
+          {isLastActivity ? 'Finish Lesson' : 'Proceed to Next Activity'}
         </Button>
       </div>
     );
@@ -72,6 +79,7 @@ export const InformationGapQuestions: React.FC<InformationGapQuestionsProps> = (
     if (showFeedback) return;
     setSelectedOption(option);
     setShowFeedback(true);
+    
     if (option === currentQuestion.correct_answer) {
       setScore(prev => prev + 1);
     }
@@ -98,15 +106,19 @@ export const InformationGapQuestions: React.FC<InformationGapQuestionsProps> = (
         </div>
       </div>
 
-      <div className="mb-10 text-center">
-        <div className="flex justify-center mb-4">
-            <button 
-                onClick={() => speakText(currentQuestion.question, language, 0.7, selectedVoiceName)}
-                className="w-12 h-12 bg-green-50 text-green-600 rounded-full flex items-center justify-center hover:bg-green-100 transition-colors"
-            >
-                <Volume2 className="w-6 h-6" />
-            </button>
-        </div>
+      <div className="mb-10 flex flex-col items-center">
+        <AudioControls
+          onSlowToggle={() => {
+            toggleTTS(0.6, currentQuestion.question);
+          }}
+          onListenToggle={() => {
+            toggleTTS(1.0, currentQuestion.question);
+          }}
+          ttsStatus={ttsState.status}
+          currentRate={ttsState.rate}
+          hasVoices={false}
+          className="mb-4"
+        />
         <h3 className="text-xl md:text-2xl font-black text-gray-900 leading-tight">
           {currentQuestion.question}
         </h3>

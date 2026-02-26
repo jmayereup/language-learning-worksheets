@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { FillInBlankItem, VocabularyItem } from '../../types';
-import { normalizeString, shuffleArray, speakText, shouldShowAudioControls, selectElementText } from '../../utils/textUtils';
+import { normalizeString, seededShuffle, speakText, shouldShowAudioControls, selectElementText } from '../../utils/textUtils';
 import { Button } from '../UI/Button';
-import { Check, Volume2 } from 'lucide-react';
+import { Check, Volume2, Settings2 } from 'lucide-react';
+import { AudioControls } from '../UI/AudioControls';
 
 interface Props {
   data: FillInBlankItem[];
@@ -14,22 +15,39 @@ interface Props {
   voiceName?: string | null;
   savedIsChecked?: boolean;
   onComplete?: (isChecked: boolean) => void;
+  toggleTTS: (rate: number, overrideText?: string) => void;
+  ttsState: { status: 'playing' | 'paused' | 'stopped', rate: number };
+  lessonId: string;
 }
 
-export const FillInBlanks: React.FC<Props> = ({ data, vocabItems, level, language, onChange, savedAnswers, voiceName, savedIsChecked = false, onComplete }) => {
+export const FillInBlanks: React.FC<Props> = ({ 
+  data, 
+  vocabItems, 
+  level, 
+  language, 
+  onChange, 
+  savedAnswers, 
+  voiceName, 
+  savedIsChecked = false, 
+  onComplete,
+  toggleTTS,
+  ttsState,
+  lessonId
+}) => {
   const [isChecked, setIsChecked] = useState(savedIsChecked);
+  const [activeSpeechIdx, setActiveSpeechIdx] = useState<number | null>(null);
 
   // Randomize question order once on mount/data change
   const shuffledIndices = useMemo(() => {
     const indices = data.map((_, i) => i);
-    return shuffleArray(indices);
-  }, [data]);
+    return seededShuffle(indices, `${lessonId}-fill-indices`);
+  }, [data, lessonId]);
 
   // Create word bank from answers
   const wordBank = useMemo(() => {
     const answers = data.map(item => item.answer);
-    return shuffleArray(answers);
-  }, [data]);
+    return seededShuffle(answers, `${lessonId}-fill-bank`);
+  }, [data, lessonId]);
 
   if (!data || data.length === 0) return null;
 
@@ -96,15 +114,26 @@ export const FillInBlanks: React.FC<Props> = ({ data, vocabItems, level, languag
           return (
             <div key={originalIndex} className="leading-loose text-lg text-gray-700 flex flex-wrap items-center">
               {shouldShowAudioControls() && (
-                <button
-                  onClick={(e) => {
-                    speakText(`${item.before} ${item.answer} ${item.after}`, language, 0.7, voiceName);
+                <AudioControls
+                  onSlowToggle={() => {
+                    setActiveSpeechIdx(originalIndex);
+                    toggleTTS(0.6, `${item.before} ${item.answer} ${item.after}`);
+                    if (ttsState.status === 'stopped') {
+                      setTimeout(() => setActiveSpeechIdx(null), 3000);
+                    }
                   }}
-                  className="mr-1 text-gray-400 hover:text-green-600 hover:bg-green-50 p-2 rounded-full transition-colors"
-                  title="Hear sentence"
-                >
-                  <Volume2 size={24} />
-                </button>
+                  onListenToggle={() => {
+                    setActiveSpeechIdx(originalIndex);
+                    toggleTTS(1.0, `${item.before} ${item.answer} ${item.after}`);
+                    if (ttsState.status === 'stopped') {
+                      setTimeout(() => setActiveSpeechIdx(null), 3000);
+                    }
+                  }}
+                  ttsStatus={activeSpeechIdx === originalIndex ? ttsState.status : 'stopped'}
+                  currentRate={activeSpeechIdx === originalIndex ? ttsState.rate : 1.0}
+                  hasVoices={false}
+                  className="mr-2"
+                />
               )}
               <div className="selectable-text flex flex-wrap items-center" translate="no">
                 <span>{item.before}</span>

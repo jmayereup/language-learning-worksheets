@@ -1,11 +1,10 @@
 import React from 'react';
-import { Settings2, Turtle, Volume2, Pause, Play, Languages } from 'lucide-react';
+import { Settings2, Turtle, Volume2, Pause, Play } from 'lucide-react';
 
 interface AudioControlsProps {
   onVoiceOpen?: () => void;
   onSlowToggle: () => void;
   onListenToggle: () => void;
-  onTranslate?: () => void;
   ttsStatus: 'playing' | 'paused' | 'stopped';
   currentRate: number;
   hasVoices?: boolean;
@@ -16,7 +15,6 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
   onVoiceOpen,
   onSlowToggle,
   onListenToggle,
-  onTranslate,
   ttsStatus,
   currentRate,
   hasVoices = false,
@@ -27,15 +25,7 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
 
   return (
     <div className={`flex flex-wrap items-center justify-center sm:justify-start gap-2 ${className}`}>
-      {onTranslate && (
-        <button 
-          onClick={onTranslate}
-          className="flex items-center px-3 py-1.5 text-sm font-bold border border-gray-200 rounded-xl shadow-sm hover:border-green-300 hover:bg-green-50 hover:text-green-600 transition-all bg-white text-gray-700"
-          title="Translate"
-        >
-          <Languages className="w-4 h-4 mr-1.5 text-gray-500" /> 
-        </button>
-      )}
+
 
       {hasVoices && onVoiceOpen && (
         <button
@@ -50,7 +40,7 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
       <div className="flex bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <button
           onClick={onSlowToggle}
-          className={`flex items-center px-4 py-1.5 text-sm font-bold transition-all border-r border-gray-100 ${
+          className={`flex items-center px-1 py-1.5 text-sm font-bold transition-all border-r border-gray-100 ${
             isSlowActive 
               ? 'bg-green-50 text-green-700' 
               : 'hover:bg-gray-50 text-gray-700'
@@ -62,14 +52,14 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
           ) : isSlowActive && ttsStatus === 'paused' ? (
             <Play className="w-4 h-4 mr-1.5" />
           ) : (
-            <Turtle className="w-4 h-4 mr-1.5 text-gray-500" />
+            <Turtle className="w-4 h-4 mr-0 text-gray-500" />
           )}
 
         </button>
 
         <button
           onClick={onListenToggle}
-          className={`flex items-center px-4 py-1.5 text-sm font-bold transition-all ${
+          className={`flex items-center px-1 py-1.5 text-sm font-bold transition-all ${
             isListenActive 
               ? 'bg-green-50 text-green-700' 
               : 'hover:bg-gray-50 text-gray-700'
@@ -81,7 +71,7 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
           ) : isListenActive && ttsStatus === 'paused' ? (
             <Play className="w-4 h-4 mr-1.5" />
           ) : (
-            <Volume2 className="w-4 h-4 mr-1.5 text-gray-500" />
+            <Volume2 className="w-4 h-4 mr-1 text-gray-500" />
           )}
         </button>
       </div>

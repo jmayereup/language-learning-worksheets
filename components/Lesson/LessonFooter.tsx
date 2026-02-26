@@ -48,9 +48,9 @@ export const LessonFooter: React.FC<LessonFooterProps> = ({
         onClick={onReset}
         variant="danger"
         size="sm"
-        className="flex items-center gap-2"
+        className="flex items-center gap-2 h-10"
       >
-        <RotateCcw className="w-4 h-4" /> Clear everything and start over
+        <RotateCcw className="w-4 h-4" /> Reset
       </Button>
     </div>
   );

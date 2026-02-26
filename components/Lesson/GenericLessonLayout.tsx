@@ -1,7 +1,5 @@
 import React from 'react';
 import { ParsedLesson } from '../../types';
-import { LessonHeader } from './LessonHeader';
-import { SubmissionSection } from './SubmissionSection';
 
 interface GenericLessonLayoutProps {
   lesson: ParsedLesson;
@@ -13,7 +11,6 @@ interface GenericLessonLayoutProps {
   homeroom: string;
   setHomeroom: (homeroom: string) => void;
   isNameLocked: boolean;
-  onFinish: () => void;
   onBack?: () => void;
   showBack?: boolean;
   playerRole?: number | null;
@@ -22,33 +19,22 @@ interface GenericLessonLayoutProps {
 }
 
 export const GenericLessonLayout: React.FC<GenericLessonLayoutProps> = ({
-  lesson,
   displayTitle,
-  studentName,
-  setStudentName,
-  studentId,
-  setStudentId,
-  homeroom,
-  setHomeroom,
-  isNameLocked,
-  onFinish,
-  onBack,
-  showBack,
   playerRole,
-  children,
-  variant
-}) => {
+  children}) => {
   return (
     <div className="bg-white max-w-4xl mx-auto pb-8 px-1 py-4 sm:px-6">
-      <LessonHeader 
-        title={displayTitle}
-        level={lesson.level}
-        language={lesson.language}
-        lessonType={lesson.lessonType}
-        onBack={onBack}
-        showBack={showBack}
-        playerRole={playerRole}
-      />
+      {/* Page Title - Unified with the design of other views */}
+      <div className="mb-8 text-center">
+        <h1 className="text-3xl md:text-4xl font-black text-green-900 mb-2 tracking-tight">
+          {displayTitle}
+        </h1>
+        {playerRole && (
+          <div className="inline-block bg-green-100 text-green-800 px-4 py-1 rounded-full text-sm font-black uppercase tracking-wider border border-green-200">
+            Player {playerRole}
+          </div>
+        )}
+      </div>
 
       <main>
         {children}
