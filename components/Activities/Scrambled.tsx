@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { ScrambledItem } from '../../types';
 import { normalizeString, speakText, shouldShowAudioControls, selectElementText } from '../../utils/textUtils';
 import { Button } from '../UI/Button';
-import { ChevronLeft, RefreshCw, Volume2, Turtle, SkipForward } from 'lucide-react';
+import { ChevronLeft, RefreshCw, Volume2, Turtle, SkipForward, Settings2 } from 'lucide-react';
+import { AudioControls } from '../UI/AudioControls';
 
 interface Props {
   data: ScrambledItem[];
@@ -26,6 +27,8 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
     if (!shouldShowAudioControls()) return 'scramble';
     return (level === 'A1' || level === 'A2') ? 'scramble' : 'dictation';
   });
+  const [ttsStatus, setTtsStatus] = useState<'playing' | 'paused' | 'stopped'>('stopped');
+  const [currentRate, setCurrentRate] = useState(1.0);
 
   if (!data || data.length === 0) return null;
 
@@ -190,22 +193,26 @@ export const Scrambled: React.FC<Props> = ({ data, level, language, onChange, sa
                   </button>
                 </div>
 
-                <div className="flex gap-2  text-gray-700">
-                  <button
-                    className="flex items-center px-2 py-1.5 border border-gray-200 rounded-lg shadow-sm hover:border-green-300 hover:bg-green-50 hover:text-green-600 transition-all"
-                    onClick={() => speakText(currentItem.answer, language, 0.7, voiceName)}
-                    title="Slow"
-                  >
-                    <Turtle className="w-4 h-4" />
-                  </button>
-                  <button
-                    className="flex items-center px-2 py-1.5 border border-gray-200 rounded-lg shadow-sm hover:border-green-300 hover:bg-green-50 hover:text-green-600 transition-all"
-                    onClick={() => speakText(currentItem.answer, language, 1.0, voiceName)}
-                    title="Normal"
-                  >
-                    <Volume2 className="w-4 h-4" />
-                  </button>
-                </div>
+                <AudioControls
+                  onSlowToggle={() => {
+                    const newRate = 0.6;
+                    setCurrentRate(newRate);
+                    setTtsStatus('playing');
+                    speakText(currentItem.answer, language, newRate, voiceName);
+                    // Reset status after a while since speakText doesn't provide feedback
+                    setTimeout(() => setTtsStatus('stopped'), 3000); 
+                  }}
+                  onListenToggle={() => {
+                    const newRate = 1.0;
+                    setCurrentRate(newRate);
+                    setTtsStatus('playing');
+                    speakText(currentItem.answer, language, newRate, voiceName);
+                    setTimeout(() => setTtsStatus('stopped'), 3000);
+                  }}
+                  ttsStatus={ttsStatus}
+                  currentRate={currentRate}
+                  hasVoices={false} // Vocabulary usually doesn't show voice settings here, but we could pass it if we want
+                />
               </>
             )}
           </div>

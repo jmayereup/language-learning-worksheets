@@ -10,6 +10,7 @@ import { Comprehension } from '../Activities/Comprehension';
 import { Scrambled } from '../Activities/Scrambled';
 import { VoiceSelectorModal } from '../UI/VoiceSelectorModal';
 import { AudioControls } from '../UI/AudioControls';
+import { TranslateButton } from '../UI/TranslateButton';
 import { Button } from '../UI/Button';
 import { LessonFooter } from './LessonFooter';
 import { RotateCcw } from 'lucide-react';
@@ -219,9 +220,9 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
         )}
 
         {/* Unified Audio Controls */}
-        <div className="flex justify-center sm:justify-end mb-4">
+        <div className="flex justify-center sm:justify-end mb-4 gap-2">
+          <TranslateButton onClick={handleTranslate} />
           <AudioControls 
-            onTranslate={handleTranslate}
             onVoiceOpen={availableVoices.length > 0 ? () => setIsVoiceModalOpen(true) : undefined}
             onSlowToggle={() => toggleTTS(0.6)}
             onListenToggle={() => toggleTTS(1.0)}

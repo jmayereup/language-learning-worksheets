@@ -3,6 +3,7 @@ import { InformationGapQuestion } from '../../types';
 import { CheckCircle2, XCircle, Volume2, Trophy, ArrowRight } from 'lucide-react';
 import { Button } from '../UI/Button';
 import { speakText } from '../../utils/textUtils';
+import { AudioControls } from '../UI/AudioControls';
 
 interface InformationGapQuestionsProps {
   questions: InformationGapQuestion[];
@@ -22,6 +23,8 @@ export const InformationGapQuestions: React.FC<InformationGapQuestionsProps> = (
   const [showFeedback, setShowFeedback] = useState(false);
   const [score, setScore] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [ttsStatus, setTtsStatus] = useState<'playing' | 'paused' | 'stopped'>('stopped');
+  const [currentRate, setCurrentRate] = useState(1.0);
 
   if (questions.length === 0) {
     return (
@@ -98,15 +101,27 @@ export const InformationGapQuestions: React.FC<InformationGapQuestionsProps> = (
         </div>
       </div>
 
-      <div className="mb-10 text-center">
-        <div className="flex justify-center mb-4">
-            <button 
-                onClick={() => speakText(currentQuestion.question, language, 0.7, selectedVoiceName)}
-                className="w-12 h-12 bg-green-50 text-green-600 rounded-full flex items-center justify-center hover:bg-green-100 transition-colors"
-            >
-                <Volume2 className="w-6 h-6" />
-            </button>
-        </div>
+      <div className="mb-10 flex flex-col items-center">
+        <AudioControls
+          onSlowToggle={() => {
+            const newRate = 0.6;
+            setCurrentRate(newRate);
+            setTtsStatus('playing');
+            speakText(currentQuestion.question, language, newRate, selectedVoiceName);
+            setTimeout(() => setTtsStatus('stopped'), 3000);
+          }}
+          onListenToggle={() => {
+            const newRate = 1.0;
+            setCurrentRate(newRate);
+            setTtsStatus('playing');
+            speakText(currentQuestion.question, language, newRate, selectedVoiceName);
+            setTimeout(() => setTtsStatus('stopped'), 3000);
+          }}
+          ttsStatus={ttsStatus}
+          currentRate={currentRate}
+          hasVoices={false}
+          className="mb-4"
+        />
         <h3 className="text-xl md:text-2xl font-black text-gray-900 leading-tight">
           {currentQuestion.question}
         </h3>
