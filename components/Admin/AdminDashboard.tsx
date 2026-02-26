@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { LoginForm } from './LoginForm';
 import { LessonList } from './LessonList';
 import { LessonEditor } from './LessonEditor';
 import { isAuthenticated, logout } from '../../services/pocketbase';
 import { Button } from '../UI/Button';
 import { LayoutDashboard, LogOut, ArrowLeft, Plus } from 'lucide-react';
-import { ParsedLesson } from '../../types';
 
 interface AdminDashboardProps {
     onBack: () => void;

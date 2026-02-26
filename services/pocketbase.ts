@@ -140,11 +140,17 @@ export const fetchLessonById = async (id: string): Promise<ParsedLesson> => {
   }
 };
 
-export const fetchAllLessons = async () => {
+export const fetchAllLessons = async (creatorId?: string) => {
   try {
-    const records = await pb.collection('worksheets').getFullList<LessonRecord>({
+    const options: any = {
       sort: '-created',
-    });
+    };
+
+    if (creatorId) {
+      options.filter = `creatorId = "${creatorId}"`;
+    }
+
+    const records = await pb.collection('worksheets').getFullList<LessonRecord>(options);
 
     return records.map(record => {
       const content = typeof record.content === 'string' ? JSON.parse(record.content) : record.content;

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { fetchLessonById, createLesson, updateLesson } from '../../services/pocketbase';
 import { triggerRebuild } from '../../services/deploy';
 import { Button } from '../UI/Button';
-import { Save, X, AlertCircle, FileJson, Info, Globe, Layers, Tag as TagIcon, Video, Check, Image as ImageIcon, Music, Layout } from 'lucide-react';
+import { Save, X, AlertCircle, FileJson, Info, Globe, Layers, Tag as TagIcon, Video, Check, Image as ImageIcon, Music, Layout, ClipboardPaste } from 'lucide-react';
 import { Modal } from '../UI/Modal';
 import { JSONKeyValueEditor } from './JSONKeyValueEditor';
 
@@ -21,17 +21,18 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
 
     // Form fields
     const [title, setTitle] = useState('');
-    const [language, setLanguage] = useState('English');
-    const [level, setLevel] = useState('A1');
+    const [language, setLanguage] = useState('');
+    const [level, setLevel] = useState('');
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
     const [videoUrl, setVideoUrl] = useState('');
     const [isVideoLesson, setIsVideoLesson] = useState(false);
     const [jsonContent, setJsonContent] = useState('');
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [audioFile, setAudioFile] = useState<File | null>(null);
-    const [lessonType, setLessonType] = useState('worksheet');
+    const [lessonType, setLessonType] = useState('');
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [showVisualEditor, setShowVisualEditor] = useState(false);
+    const [seo, setSeo] = useState('');
 
     useEffect(() => {
         if (lessonId) {
@@ -46,6 +47,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                     setIsVideoLesson(lesson.isVideoLesson || false);
                     setLessonType(lesson.lessonType || 'worksheet');
                     setJsonContent(JSON.stringify(lesson.content, null, 2));
+                    setSeo(lesson.seo || '');
                 } catch (err) {
                     setError('Failed to load lesson for editing');
                 } finally {
@@ -54,24 +56,20 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
             };
             loadLesson();
         } else {
-            // Default template for new lesson
-            const template = {
-                title: "New Lesson",
-                readingText: "Insert reading text here...",
-                activities: {
-                    vocabulary: { items: [], definitions: [] },
-                    fillInTheBlanks: [],
-                    comprehension: { questions: [] },
-                    scrambled: [],
-                    writtenExpression: { questions: [], examples: "" }
-                }
-            };
-            setJsonContent(JSON.stringify(template, null, 2));
+            // New lesson starts with empty JSON content
+            setJsonContent('');
         }
     }, [lessonId]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        // Ensure at least one tag is selected
+        if (selectedTags.length === 0) {
+            setError('Please select at least one tag.');
+            return;
+        }
+
         setLoading(true);
         setError(null);
 
@@ -96,6 +94,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
             formData.append('videoUrl', videoUrl);
             formData.append('isVideoLesson', String(isVideoLesson));
             formData.append('lessonType', lessonType);
+            formData.append('seo', seo);
             formData.append('content', JSON.stringify(parsedContent));
             
             if (imageFile) {
@@ -125,6 +124,26 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
     const handleVisualEditorApply = (updatedData: any) => {
         setJsonContent(JSON.stringify(updatedData, null, 2));
         setShowVisualEditor(false);
+    };
+
+    const handlePasteFromClipboard = async () => {
+        try {
+            const text = await navigator.clipboard.readText();
+            if (text) {
+                setJsonContent(text);
+                // Attempt to sync title if valid JSON
+                try {
+                    const parsed = JSON.parse(text);
+                    if (parsed.title) {
+                        setTitle(parsed.title);
+                    }
+                } catch (e) {
+                    // Not valid JSON yet, that's fine
+                }
+            }
+        } catch (err) {
+            setError('Failed to read from clipboard. Please ensure you have granted permission.');
+        }
     };
 
     if (fetching) {
@@ -185,8 +204,10 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                                     <select
                                         value={language}
                                         onChange={(e) => setLanguage(e.target.value)}
+                                        required
                                         className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none appearance-none"
                                     >
+                                        <option value="" disabled>Select language...</option>
                                         <option value="English">English</option>
                                         <option value="Spanish">Spanish</option>
                                         <option value="French">French</option>
@@ -203,8 +224,10 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                                     <select
                                         value={level}
                                         onChange={(e) => setLevel(e.target.value)}
+                                        required
                                         className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none appearance-none"
                                     >
+                                        <option value="" disabled>Select level...</option>
                                         <option value="A1">A1 (Beginner)</option>
                                         <option value="A2">A2 (Elementary)</option>
                                         <option value="B1">B1 (Intermediate)</option>
@@ -223,8 +246,10 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                                 <select
                                     value={lessonType}
                                     onChange={(e) => setLessonType(e.target.value)}
+                                    required
                                     className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none appearance-none"
                                 >
+                                    <option value="" disabled>Select lesson type...</option>
                                     <option value="worksheet">Worksheet (Standard)</option>
                                     <option value="information-gap">Information-Gap</option>
                                 </select>
@@ -351,6 +376,21 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                     </div>
                 </div>
 
+                <div className="mb-8 p-6 bg-blue-50/30 border border-blue-100 rounded-2xl">
+                    <label className="block text-sm font-black text-blue-900 mb-2 ml-1 uppercase tracking-wider flex items-center gap-2">
+                        <Info className="w-4 h-4 text-blue-500" /> SEO Description / Snippet
+                    </label>
+                    <textarea
+                        value={seo}
+                        onChange={(e) => setSeo(e.target.value)}
+                        className="w-full h-24 px-4 py-3 bg-white border border-blue-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-sm leading-relaxed"
+                        placeholder="Enter a brief, engaging description for search results and social sharing..."
+                    />
+                    <p className="mt-2 text-[10px] text-blue-400 font-medium ml-1 italic">
+                        This summary appears on the lesson list page and helps with search engine visibility.
+                    </p>
+                </div>
+
                 <div className="mb-10">
                     <div className="flex items-center justify-between mb-3 ml-1">
                         <label className="text-sm font-black text-gray-700 uppercase tracking-wider flex items-center gap-2">
@@ -365,6 +405,15 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                                 className="text-[10px] font-bold flex items-center gap-1.5"
                             >
                                 <Layout className="w-3 h-3" /> Visual Editor
+                            </Button>
+                            <Button 
+                                type="button" 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={handlePasteFromClipboard}
+                                className="text-[10px] font-bold flex items-center gap-1.5 border-blue-200 text-blue-700 hover:bg-blue-50"
+                            >
+                                <ClipboardPaste className="w-3 h-3" /> Paste from Clipboard
                             </Button>
                             <a 
                                 href={lessonType === 'information-gap' 
@@ -382,6 +431,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                     <textarea
                         value={jsonContent}
                         onChange={(e) => setJsonContent(e.target.value)}
+                        required
                         className="w-full h-[500px] p-6 bg-gray-900 text-green-400 font-mono text-sm leading-relaxed rounded-2xl focus:ring-2 focus:ring-green-500 outline-none border-none shadow-inner"
                         spellCheck={false}
                     />

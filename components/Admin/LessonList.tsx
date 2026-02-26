@@ -17,7 +17,7 @@ export const LessonList: React.FC<LessonListProps> = ({ onEdit }) => {
     const loadLessons = async () => {
         setLoading(true);
         try {
-            const data = await fetchAllLessons();
+            const data = await fetchAllLessons(currentUser?.id);
             setLessons(data);
         } catch (err) {
             setError('Failed to load lessons');
