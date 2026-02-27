@@ -88,3 +88,21 @@ For circular buttons containing SVGs (like Play, Stop, Voice selection).
 2. **Use Variables for Exceptions**: If a component needs a slightly different shade of blue for a very specific reason, use a local CSS variable derived from the master palette rather than hardcoding a hex value.
 3. **Keep Host Clean**: The `:host` styling in the master CSS sets `background-color`, `font-family`, and `max-width`. Only override these in a specific component if absolutely necessary.
 4. **Dark Mode Friendly**: Never hardcode colors like `white` or `#000` or `#fff` in any of your component CSS (`styles.css`). Always use the CSS variables defined in `tj-shared.css` (e.g. `var(--tj-bg-card)`, `var(--tj-text-main)`). The master stylesheet includes a `@media (prefers-color-scheme: dark)` block that automatically re-maps these variables to dark equivalents. If you hardcode colors, they will not flip in Dark Mode, breaking the UI.
+
+## Mobile Layout Preferences
+
+To maximize usable space on mobile devices (screens smaller than `sm` / 640px), follow the "edge-to-edge" pattern for main content containers:
+
+1. **Remove Cards**: Switch `bg-white` to `bg-transparent` and remove `shadow` and `border`.
+2. **Square Corners**: Set `rounded-none` to let content touch the screen edges.
+3. **Tighten Padding**: Reduce horizontal padding (e.g., from `p-8` to `p-4`) so text remains readable without excessive whitespace.
+4. **Maintain Headers**: Sticky bars or section headers can retain their background and bottom border to provide structural anchors.
+
+Example using Tailwind:
+```tsx
+<section className="bg-transparent sm:bg-white rounded-none sm:rounded-xl shadow-none sm:shadow-sm border-none sm:border">
+  <div className="p-4 sm:p-8">
+    {/* Content */}
+  </div>
+</section>
+```

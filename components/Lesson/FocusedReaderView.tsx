@@ -256,8 +256,8 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
         </div>
 
         {/* Reading Section */}
-        <section className="bg-white rounded-xl shadow-sm border border-green-100 animate-slide-up">
-          <div className="bg-white border-b border-green-100 p-4 flex justify-between items-center text-green-900">
+        <section className="bg-transparent sm:bg-white rounded-none sm:rounded-xl shadow-none sm:shadow-sm border-none sm:border sm:border-green-100 animate-slide-up">
+          <div className="bg-white border-b border-green-100 p-4 flex justify-between items-center text-green-900 sm:rounded-t-xl">
             <h2 className="text-xl font-black uppercase tracking-widest">Part {currentPart.part_number}</h2>
             
             <div className="flex gap-2">
@@ -272,12 +272,12 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
             </div>
           </div>
 
-          <div className="p-8 sm:p-12">
+          <div className="p-1 mx-1 sm:p-4">
             <div className="prose max-w-none text-lg leading-relaxed text-gray-800 select-none">
               {renderTextWithVocabulary(currentPart.text, currentPart.vocabulary_explanations)}
             </div>
             
-            <div className="mt-8 pt-8 border-t border-gray-100 flex items-center gap-2 text-green-600 font-bold italic">
+            <div className="mt-2 pt-2 border-t border-gray-100 flex items-center gap-2 text-green-600 font-bold italic">
               <HelpCircle className="w-5 h-5" />
               <span>Hover over bold green words for explanations!</span>
             </div>
@@ -295,12 +295,12 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
             {currentPart.questions.map((q, qIdx) => {
               const userAnswer = answers.focusedReader?.[currentPartIndex]?.[qIdx];
               return (
-                <div key={qIdx} className="bg-white p-6 sm:p-8 rounded-xl shadow-sm border border-green-100 hover:border-green-300 transition-all">
+                <div key={qIdx} className="bg-transparent sm:bg-white p-4 sm:p-8 rounded-none sm:rounded-xl shadow-none sm:shadow-sm border-none sm:border sm:border-green-100 hover:border-green-300 transition-all">
                   <p className="text-lg sm:text-xl font-bold text-gray-800 mb-6">
                     {qIdx + 1}. {q.question}
                   </p>
                   
-                  <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="grid sm:grid-cols-2 gap-2">
                     {q.options.map((option, oIdx) => {
                       const isCorrect = option === q.answer;
                       const isSelected = userAnswer === option;

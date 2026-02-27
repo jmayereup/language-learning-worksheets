@@ -1,0 +1,1 @@
+Please refer to the style guide when making new components, and ask me if I want the style guide updated if you think it should be.
