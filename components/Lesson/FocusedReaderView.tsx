@@ -58,6 +58,26 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
   const content = lesson.content;
   const [currentPartIndex, setCurrentPartIndex] = useState(0);
   const currentPart = content.parts[currentPartIndex];
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].pageX);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStart) return;
+    const touchEnd = e.changedTouches[0].pageX;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe && currentPartIndex < content.parts.length - 1) {
+      setCurrentPartIndex(currentPartIndex + 1);
+    } else if (isRightSwipe && currentPartIndex > 0) {
+      setCurrentPartIndex(currentPartIndex - 1);
+    }
+    setTouchStart(null);
+  };
 
   const updateAnswers = (partIdx: number, questionIdx: number, answer: string) => {
     // Prevent changing answer if already set
@@ -256,7 +276,11 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
         </div>
 
         {/* Reading Section */}
-        <section className="bg-transparent sm:bg-white rounded-none sm:rounded-xl shadow-none sm:shadow-sm border-none sm:border sm:border-green-100 animate-slide-up">
+        <section 
+          className="bg-transparent sm:bg-white rounded-none sm:rounded-xl shadow-none sm:shadow-sm border-none sm:border sm:border-green-100 animate-slide-up"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
           <div className="bg-white border-b border-green-100 p-4 flex justify-between items-center text-green-900 sm:rounded-t-xl">
             <h2 className="text-xl font-black uppercase tracking-widest">Part {currentPart.part_number}</h2>
             
