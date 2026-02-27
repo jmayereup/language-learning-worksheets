@@ -120,52 +120,25 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
   const renderTextWithVocabulary = (text: string, explanations: Record<string, string>) => {
     if (!text) return null;
 
-    // Sort keys by length (descending) to match longer phrases first
-    const sortedKeys = Object.keys(explanations).sort((a, b) => b.length - a.length);
-    if (sortedKeys.length === 0) return text;
+    // Normalize to NFC to ensure consistent character representation
+    const normalizedText = text.normalize('NFC');
+    const normalizedExplanations: Record<string, string> = {};
+    Object.entries(explanations).forEach(([key, value]) => {
+      normalizedExplanations[key.normalize('NFC').toLowerCase()] = value;
+    });
 
-    // Create a regex to match any of the vocabulary keys as whole words/phrases
-    // Using word boundaries \b for phrases is tricky with symbols, 
-    // but for simple text language it usually works.
-    const escapedKeys = sortedKeys.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
-    const regex = new RegExp(`(\\b(?:${escapedKeys})\\b)`, 'gi');
-
-    // Split text by the regex, keeping the matches
-    const parts = text.split(regex);
-
-    return parts.map((part, i) => {
-      const lowerPart = part.toLowerCase();
-      const explanation = explanations[lowerPart];
-
-      if (explanation) {
-        return (
-          <span key={i} className="relative group inline-block">
-            <span 
-              onClick={() => handleWordClick(part)}
-              className="cursor-pointer font-bold text-green-700 border-b-2 border-dotted border-green-400 hover:bg-green-50 px-0.5 rounded transition-all"
-            >
-              {part}
-            </span>
-            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-64 p-3 bg-white border border-green-100 text-gray-800 text-sm rounded-lg shadow-xl z-50 animate-fade-in pointer-events-none">
-              <p className="font-bold border-b border-green-100 pb-1 mb-1 text-green-700">{part}</p>
-              {explanation}
-              <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-white" />
-              <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-green-100 mt-px -z-10" />
-            </div>
-          </span>
-        );
-      }
-
-      // If it's not a matched vocab word, handle individual word clicks for pronunciation
-      // similar to how we did before, but simpler since we are already in segments.
-      const wordsAndSpaces = part.split(/(\s+)/);
+    const sortedKeys = Object.keys(normalizedExplanations).sort((a, b) => b.length - a.length);
+    
+    // Function to render clickable segments for regular text
+    const renderClickableSegments = (textSegment: string, segmentKeyPrefix: string) => {
+      const wordsAndSpaces = textSegment.split(/(\s+)/);
       return wordsAndSpaces.map((subPart, j) => {
         if (/^\s+$/.test(subPart)) return subPart;
         
         // Split by punctuation for sub-segments
         const subSegments = subPart.split(/([.,!?;:"'()\[\]{}]+)/).filter(Boolean);
         return (
-          <React.Fragment key={`${i}-${j}`}>
+          <React.Fragment key={`${segmentKeyPrefix}-${j}`}>
             {subSegments.map((sub, k) => {
               if (/^[.,!?;:"'()\[\]{}]+$/.test(sub)) {
                 return <span key={k}>{sub}</span>;
@@ -183,7 +156,65 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
           </React.Fragment>
         );
       });
-    });
+    };
+
+    if (sortedKeys.length === 0) return renderClickableSegments(normalizedText, "plain");
+
+    // Create regex for vocabulary words
+    const escapedKeys = sortedKeys.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+    const regex = new RegExp(`(${escapedKeys})`, 'gui');
+
+    const result: (string | React.ReactNode | (string | React.ReactNode | React.ReactNode[])[])[] = [];
+    let lastIndex = 0;
+    
+    // Manual iteration with exec to handle boundaries and duplicates correctly
+    let match;
+    while ((match = regex.exec(normalizedText)) !== null) {
+      const start = match.index;
+      const word = match[0];
+      const end = start + word.length;
+
+      // Verify word boundaries
+      const charBefore = start > 0 ? normalizedText[start - 1] : '';
+      const charAfter = end < normalizedText.length ? normalizedText[end] : '';
+      
+      const isWordBoundaryBefore = !charBefore || !/[\p{L}\p{N}]/u.test(charBefore);
+      const isWordBoundaryAfter = !charAfter || !/[\p{L}\p{N}]/u.test(charAfter);
+
+      if (isWordBoundaryBefore && isWordBoundaryAfter) {
+        // Add preceding text as clickable segments
+        if (start > lastIndex) {
+          result.push(renderClickableSegments(normalizedText.substring(lastIndex, start), `text-${start}`));
+        }
+
+        // Add highlighted vocabulary word
+        const explanation = normalizedExplanations[word.toLowerCase()];
+        result.push(
+          <span key={`vocab-${start}`} className="relative group inline-block">
+            <span 
+              onClick={() => handleWordClick(word)}
+              className="cursor-pointer font-bold text-green-700 border-b-2 border-dotted border-green-400 hover:bg-green-50 px-0.5 rounded transition-all"
+            >
+              {word}
+            </span>
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-64 p-3 bg-white border border-green-100 text-gray-800 text-sm rounded-lg shadow-xl z-50 animate-fade-in pointer-events-none">
+              <p className="font-bold border-b border-green-100 pb-1 mb-1 text-green-700">{word}</p>
+              {explanation}
+              <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-white" />
+              <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-green-100 mt-px -z-10" />
+            </div>
+          </span>
+        );
+        lastIndex = end;
+      }
+    }
+
+    // Add remaining text as clickable segments
+    if (lastIndex < normalizedText.length) {
+      result.push(renderClickableSegments(normalizedText.substring(lastIndex), `final`));
+    }
+
+    return result;
   };
 
   return (
@@ -215,7 +246,7 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
         </div>
 
         {/* Reading Section */}
-        <section className="bg-white rounded-xl shadow-sm border border-green-100 overflow-hidden animate-slide-up">
+        <section className="bg-white rounded-xl shadow-sm border border-green-100 animate-slide-up">
           <div className="bg-white border-b border-green-100 p-4 flex justify-between items-center text-green-900">
             <h2 className="text-xl font-black uppercase tracking-widest">Part {currentPart.part_number}</h2>
             
