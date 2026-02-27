@@ -230,6 +230,16 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
       isNameLocked={isNameLocked}
     >
       <div className="max-w-4xl mx-auto space-y-8">
+        {lesson.imageUrl && (
+          <div className="w-full flex justify-center mb-6">
+            <img
+              src={lesson.imageUrl}
+              alt="Lesson topic"
+              className="w-full h-auto max-h-[400px] object-contain rounded-2xl shadow-lg bg-white p-4 border border-green-100 animate-fade-in"
+            />
+          </div>
+        )}
+
 
         {/* Navigation Dots */}
         <div className="flex justify-center gap-2 mb-4">
