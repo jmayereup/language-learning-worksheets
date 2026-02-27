@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { VocabularyActivity } from '../../types';
 import { Button } from '../UI/Button';
-import { Volume2, Settings2 } from 'lucide-react';
+import { Volume2, RefreshCw, XCircle } from 'lucide-react';
 import { speakText, shouldShowAudioControls, selectElementText, seededShuffle } from '../../utils/textUtils';
 import { AudioControls } from '../UI/AudioControls';
 
@@ -30,37 +30,64 @@ export const Vocabulary: React.FC<Props> = ({
   ttsState,
   lessonId
 }) => {
-  const [shuffledIndices, setShuffledIndices] = useState<number[]>([]);
+  const [shuffledWordIndices, setShuffledWordIndices] = useState<number[]>([]);
+  const [shuffledDefIndices, setShuffledDefIndices] = useState<number[]>([]);
   const [isChecked, setIsChecked] = useState(savedIsChecked);
   const [score, setScore] = useState(0);
   const [activeSpeechId, setActiveSpeechId] = useState<string | null>(null);
+  const [selectedWordIndex, setSelectedWordIndex] = useState<number | null>(null);
 
   useEffect(() => {
-    // Shuffle only once on mount or data change
-    const indices = data.items.map((_, i) => i);
-    setShuffledIndices(seededShuffle(indices, `${lessonId}-vocab`));
+    setIsChecked(savedIsChecked);
+  }, [savedIsChecked]);
+
+  useEffect(() => {
+    // Shuffle words and definitions once on mount
+    const wordIndices = data.items.map((_, i) => i);
+    const defIndices = data.definitions.map((_, i) => i);
+    setShuffledWordIndices(seededShuffle(wordIndices, `${lessonId}-vocab-words`));
+    setShuffledDefIndices(seededShuffle(defIndices, `${lessonId}-vocab-defs`));
   }, [data, lessonId]);
 
-  const handleInputChange = (itemIndex: number, value: string) => {
-    // Only allow 1 char
-    const char = value.slice(-1).toLowerCase();
-
-    const newAnswers = { ...savedAnswers, [`vocab_${itemIndex}`]: char };
-    onChange(newAnswers);
-
-    // Optional: If you want to clear validation visual when they type, uncomment below
-    // setIsChecked(false); 
+  const handleWordSelect = (wordIndex: number) => {
+    if (isChecked) return;
+    setSelectedWordIndex(selectedWordIndex === wordIndex ? null : wordIndex);
   };
 
-  const checkAnswers = () => {
-    let correctCount = 0;
+  const handleDefSelect = (defIndex: number) => {
+    if (selectedWordIndex === null || isChecked) return;
 
-    shuffledIndices.forEach(idx => {
-      const item = data.items[idx];
-      const userAnswer = savedAnswers[`vocab_${idx}`] || '';
-      // Find which definition letter corresponds to the correct answer ID
+    // Map definition index to letter (a, b, c...)
+    const char = String.fromCharCode(97 + defIndex);
+    
+    // Check if this word was already matched elsewhere and remove that old match
+    const newAnswers = { ...savedAnswers };
+    Object.keys(newAnswers).forEach(key => {
+      if (key.startsWith('vocab_') && newAnswers[key] === char) {
+        delete newAnswers[key];
+      }
+    });
+
+    // Set new match
+    newAnswers[`vocab_${selectedWordIndex}`] = char;
+    onChange(newAnswers);
+    setSelectedWordIndex(null); // Clear selection after matching
+
+    // Auto-check if all words are matched
+    const matchedCount = Object.keys(newAnswers).filter(k => k.startsWith('vocab_')).length;
+    if (matchedCount === data.items.length) {
+      setTimeout(() => {
+        checkAnswers(newAnswers);
+      }, 500); // Small delay for visual consistency
+    }
+  };
+
+  const checkAnswers = (currentAnswers = savedAnswers) => {
+    let correctCount = 0;
+    data.items.forEach((item, idx) => {
+      const userAnswer = currentAnswers[`vocab_${idx}`] || '';
       const correctDefIndex = data.definitions.findIndex(d => d.id === item.answer);
-      const correctChar = String.fromCharCode(97 + correctDefIndex); // a, b, c...
+      const correctChar = String.fromCharCode(97 + correctDefIndex);
 
       if (userAnswer.toLowerCase() === correctChar) {
         correctCount++;
@@ -72,118 +99,201 @@ export const Vocabulary: React.FC<Props> = ({
     onComplete?.(true);
   };
 
+  const handleRetry = () => {
+    // Keep only correct matches
+    const newAnswers: Record<string, string> = {};
+    data.items.forEach((item, idx) => {
+      const userAnswer = savedAnswers[`vocab_${idx}`] || '';
+      const correctDefIndex = data.definitions.findIndex(d => d.id === item.answer);
+      const correctChar = String.fromCharCode(97 + correctDefIndex);
+
+      if (userAnswer.toLowerCase() === correctChar) {
+        newAnswers[`vocab_${idx}`] = userAnswer;
+      }
+    });
+
+    setIsChecked(false);
+    setScore(0);
+    onChange(newAnswers);
+    setSelectedWordIndex(null);
+    onComplete?.(false);
+  };
+
+  const handleFullReset = () => {
+    setIsChecked(false);
+    setScore(0);
+    onChange({});
+    setSelectedWordIndex(null);
+    onComplete?.(false);
+  };
+
+  // Find which word is matched to which definition for display
+  const getMatchedWordLabel = (defIndex: number) => {
+    const char = String.fromCharCode(97 + defIndex);
+    const itemKey = Object.keys(savedAnswers).find(key => key.startsWith('vocab_') && savedAnswers[key] === char);
+    if (!itemKey) return null;
+    const itemIndex = parseInt(itemKey.split('_')[1]);
+    return { label: data.items[itemIndex].label, index: itemIndex };
+  };
+
   return (
-    <section className="bg-white p-2 rounded-xl sm:shadow-sm sm:border sm:border-gray-100 mb-2">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-green-800">Activity 1: Vocabulary</h2>
+    <section className="bg-white p-4 rounded-xl sm:shadow-sm sm:border sm:border-gray-100 mb-2 relative">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-black text-green-900 uppercase tracking-tight">Vocabulary Matching</h2>
+        {isChecked && (
+          <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full font-bold text-sm">
+            Score: {score} / {data.items.length}
+          </div>
+        )}
       </div>
 
-      <p className="text-gray-600 mb-6 text-lg">Select the correct letter for each word. You can check your answers as many times as you like.</p>
+      <p className="text-gray-500 mb-6 text-sm font-medium">Tap a word and then tap its definition to match. Click "Check" when finished.</p>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Words Column */}
-        <div className="space-y-4">
-          <h3 className="font-semibold text-xl text-gray-800 mb-4">Match the words:</h3>
-          {shuffledIndices.map((originalIndex, displayIndex) => {
-            const item = data.items[originalIndex];
-            const inputId = `vocab_${originalIndex}`;
-            const val = savedAnswers[inputId] || '';
-
-            // Determine styling based on check state
-            let borderClass = "border-gray-300 focus:ring-green-500 focus:border-green-500";
-            if (isChecked && val) {
+      {/* Words Grid - Compact */}
+      <div className="mb-8">
+        <h3 className="font-bold text-gray-400 text-xs uppercase tracking-widest mb-3">1. Select a Word</h3>
+        <div className="flex flex-wrap gap-2">
+          {shuffledWordIndices.map((idx) => {
+            const item = data.items[idx];
+            const isSelected = selectedWordIndex === idx;
+            const isMatched = Object.keys(savedAnswers).some(key => key === `vocab_${idx}`);
+            
+            // Validation colors if checked
+            let colorClass = isSelected 
+              ? "bg-green-600 text-white border-green-600 shadow-lg ring-4 ring-green-100 scale-105" 
+              : (isMatched ? "bg-gray-100 text-gray-400 border-gray-200" : "bg-white text-gray-700 border-gray-200 hover:border-green-300 hover:bg-green-50");
+            
+            if (isChecked && isMatched) {
+              const userAnswer = savedAnswers[`vocab_${idx}`];
               const correctDefIndex = data.definitions.findIndex(d => d.id === item.answer);
               const correctChar = String.fromCharCode(97 + correctDefIndex);
-              borderClass = val.toLowerCase() === correctChar
-                ? "border-green-500 bg-green-50 text-green-700"
-                : "border-red-500 bg-red-50 text-red-700";
+              colorClass = userAnswer === correctChar 
+                ? "bg-green-50 text-green-700 border-green-200" 
+                : "bg-red-50 text-red-700 border-red-200";
             }
 
             return (
-              <div key={`word-${originalIndex}`} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
-                <input
-                  type="text"
-                  maxLength={1}
-                  value={val}
-                  onChange={(e) => handleInputChange(originalIndex, e.target.value)}
-                  className={`w-12 h-12 text-center text-xl font-bold rounded-md border-2 outline-none transition-colors uppercase ${borderClass}`}
-                  placeholder="?"
-                />
-                {shouldShowAudioControls() && (
-                  <AudioControls
-                    onSlowToggle={() => {
-                      const id = `word-${originalIndex}`;
-                      setActiveSpeechId(id);
-                      toggleTTS(0.6, item.label);
-                      if (ttsState.status === 'stopped') {
-                        setTimeout(() => setActiveSpeechId(null), 2000);
-                      }
-                    }}
-                    onListenToggle={() => {
-                      const id = `word-${originalIndex}`;
-                      setActiveSpeechId(id);
+              <button
+                key={idx}
+                onClick={() => handleWordSelect(idx)}
+                disabled={isChecked}
+                className={`px-4 py-2 rounded-full border-2 font-bold transition-all duration-200 flex items-center gap-2 ${colorClass}`}
+              >
+                <span translate="no">{item.label}</span>
+                {shouldShowAudioControls() && !isMatched && (
+                  <Volume2 
+                    className="w-4 h-4 opacity-50 hover:opacity-100" 
+                    onClick={(e) => {
+                      e.stopPropagation();
                       toggleTTS(1.0, item.label);
-                      if (ttsState.status === 'stopped') {
-                        setTimeout(() => setActiveSpeechId(null), 2000);
-                      }
                     }}
-                    ttsStatus={activeSpeechId === `word-${originalIndex}` ? ttsState.status : 'stopped'}
-                    currentRate={activeSpeechId === `word-${originalIndex}` ? ttsState.rate : 1.0}
-                    hasVoices={false}
                   />
                 )}
-                <span className="font-medium text-gray-700 text-lg selectable-text" translate="no">{displayIndex + 1}. {item.label}</span>
-              </div>
+              </button>
             );
           })}
         </div>
-
-        {/* Definitions Column */}
-        <div className="space-y-4">
-          <h3 className="font-semibold text-xl text-gray-800 mb-4">Definitions:</h3>
-          {data.definitions.map((def, idx) => (
-            <div key={def.id} className="flex gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200 items-start">
-              <span className="font-bold text-gray-500 text-lg min-w-6">{String.fromCharCode(97 + idx)}.</span>
-              <div className="flex-1 flex justify-between items-start gap-2">
-                <span className="text-gray-700 leading-snug text-lg selectable-text" translate="no">{def.text}</span>
-                {shouldShowAudioControls() && (
-                  <AudioControls
-                    onSlowToggle={() => {
-                      const id = `def-${idx}`;
-                      setActiveSpeechId(id);
-                      toggleTTS(0.6, def.text);
-                      if (ttsState.status === 'stopped') {
-                        setTimeout(() => setActiveSpeechId(null), 3000);
-                      }
-                    }}
-                    onListenToggle={() => {
-                      const id = `def-${idx}`;
-                      setActiveSpeechId(id);
-                      toggleTTS(1.0, def.text);
-                      if (ttsState.status === 'stopped') {
-                        setTimeout(() => setActiveSpeechId(null), 3000);
-                      }
-                    }}
-                    ttsStatus={activeSpeechId === `def-${idx}` ? ttsState.status : 'stopped'}
-                    currentRate={activeSpeechId === `def-${idx}` ? ttsState.rate : 1.0}
-                    hasVoices={false}
-                  />
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
       </div>
 
-      <div className="mt-8 flex flex-col items-center gap-4">
-        <div className="flex items-center gap-4">
-          <Button onClick={checkAnswers} size="lg">Check Answers</Button>
-          {isChecked && (
-            <div className={`text-xl font-bold ${score === data.items.length ? 'text-green-600' : 'text-green-600'}`}>
-              Score: {score} / {data.items.length}
+      {/* Definitions List */}
+      <div className="space-y-3">
+        <h3 className="font-bold text-gray-400 text-xs uppercase tracking-widest mb-3">2. Assign to Definition</h3>
+        {shuffledDefIndices.map((defIdx) => {
+          const def = data.definitions[defIdx];
+          const matched = getMatchedWordLabel(defIdx);
+          const isSlotActive = selectedWordIndex !== null;
+          
+          let borderClass = "border-gray-100 bg-gray-50";
+          if (isSlotActive) borderClass = "border-green-300 bg-green-50 ring-2 ring-green-100/50";
+          if (matched) borderClass = "border-green-100 bg-white shadow-sm";
+          
+          if (isChecked && matched) {
+            const item = data.items[matched.index];
+            const correctDefIndex = data.definitions.findIndex(d => d.id === item.answer);
+            const isCorrect = defIdx === correctDefIndex;
+            borderClass = isCorrect ? "border-green-500 bg-green-50" : "border-red-500 bg-red-50";
+          }
+
+          return (
+            <div 
+              key={def.id} 
+              onClick={() => handleDefSelect(defIdx)}
+              className={`group flex items-start gap-2 p-2 md:p-4 md:gap-4 rounded-xl border-2 transition-all cursor-pointer ${borderClass}`}
+            >
+              <div className="flex-l">
+                <p className="text-gray-700 text-base font-medium leading-relaxed mb-2" translate="no">{def.text}</p>
+                {matched ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-black uppercase tracking-tighter text-green-600 bg-green-100 px-2 py-0.5 rounded">Matched:</span>
+                    <span className="font-black text-gray-900 text-base" translate="no">{matched.label}</span>
+                  </div>
+                ) : (
+                  <span className="text-xs font-bold text-gray-300 italic">Tap to assign word...</span>
+                )}
+              </div>
+              {shouldShowAudioControls() && (
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleTTS(1.0, def.text);
+                  }}
+                  className="p-2 rounded-full hover:bg-gray-100 text-gray-400 transition-colors"
+                >
+                  <Volume2 className="w-5 h-5" />
+                </button>
+              )}
             </div>
-          )}
+          );
+        })}
+      </div>
+
+      {/* Sticky Selection Bar */}
+      {selectedWordIndex !== null && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-bounce-in">
+          <div className="bg-green-600 text-white px-4 py-2 rounded-2xl shadow-2xl flex items-center gap-3 border-4 border-white ring-8 ring-green-600/20">
+            <div className="flex flex-col">
+              <span className="text-lg font-black" translate="no">{data.items[selectedWordIndex].label}</span>
+            </div>
+            <button 
+              onClick={() => setSelectedWordIndex(null)}
+              className="bg-white/20 hover:bg-white/40 p-1.5 rounded-lg transition-colors"
+            >
+              <XCircle className="w-5 h-5" />
+            </button>
+          </div>
         </div>
+      )}
+
+      {/* Action Buttons */}
+      <div className="mt-10 flex flex-wrap justify-center gap-4">
+        {!isChecked ? (
+          <Button 
+            onClick={() => checkAnswers()} 
+            className="px-10 py-4 rounded-full font-black text-lg shadow-xl"
+            disabled={Object.keys(savedAnswers).length === 0}
+          >
+            Check Answers
+          </Button>
+        ) : (
+          <>
+            {score < data.items.length && (
+              <Button 
+                onClick={handleRetry} 
+                variant="primary"
+                className="px-8 py-3 rounded-full font-black text-lg shadow-md"
+              >
+                <RefreshCw className="w-5 h-5 mr-2" /> Fix Mistakes
+              </Button>
+            )}
+            <Button 
+              onClick={handleFullReset} 
+              variant="secondary"
+              className="px-8 py-3 rounded-full font-black text-lg border-2"
+            >
+              Reset Activity
+            </Button>
+          </>
+        )}
       </div>
     </section>
   );

@@ -235,8 +235,14 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
               onChange={(vAnswers) => {
                 setAnswers(prev => {
                   const newVocab = { ...(prev.vocabulary || {}) };
+                  // First clear all existing matches for this specific part
+                  Object.keys(newVocab).forEach(key => {
+                    if (key.startsWith(`vocab_${currentPartIndex}_`)) {
+                      delete newVocab[key];
+                    }
+                  });
+                  // Then apply the new set of matches
                   Object.entries(vAnswers).forEach(([key, val]) => {
-                    // Match the key format with part index to avoid collision
                     const pIdxKey = key.replace('vocab_', `vocab_${currentPartIndex}_`);
                     newVocab[pIdxKey] = val;
                   });

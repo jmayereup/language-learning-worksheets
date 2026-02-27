@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { ComprehensionActivity } from '../../types';
 import { Button } from '../UI/Button';
 import { Check, ChevronRight, RefreshCw, XCircle } from 'lucide-react';
@@ -37,6 +37,10 @@ export const Comprehension: React.FC<Props> = ({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isChecked, setIsChecked] = useState(false);
   const [isCompleted, setIsCompleted] = useState(savedIsCompleted);
+
+  useEffect(() => {
+    setIsCompleted(savedIsCompleted);
+  }, [savedIsCompleted]);
 
   // Randomize question order once on mount/data change
   const shuffledIndices = useMemo(() => {
@@ -94,6 +98,7 @@ export const Comprehension: React.FC<Props> = ({
     setIsChecked(false);
     setIsCompleted(false);
     onChange({});
+    onComplete?.(false);
   };
 
   if (isCompleted) {

@@ -212,7 +212,7 @@ export const ReadingPassage: React.FC<ReadingPassageProps> = ({
         {showHighlightHelp && Object.keys(vocabularyExplanations).length > 0 && (
           <div className="mt-4 pt-4 border-t border-gray-100 flex items-center gap-2 text-green-600 font-bold italic">
             <HelpCircle className="w-5 h-5" />
-            <span>Highlight green words are in the vocabulary activity below!</span>
+            <span>Highlighted words are in the vocabulary activity below!</span>
           </div>
         )}
       </div>
