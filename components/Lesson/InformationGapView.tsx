@@ -5,7 +5,7 @@ import { InformationGapQuestions } from '../Activities/InformationGapQuestions';
 import { speakText } from '../../utils/textUtils';
 import { GenericLessonLayout } from './GenericLessonLayout';
 import { VoiceSelectorModal } from '../UI/VoiceSelectorModal';
-import { AudioControls } from '../UI/AudioControls';
+import { ReadingPassage } from '../Activities/ReadingPassage';
 import { LessonFooter } from './LessonFooter';
 
 interface InformationGapViewProps {
@@ -68,60 +68,6 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
 
   const { content } = lesson;
 
-  const handleWordClick = (word: string) => {
-    const cleanWord = word.replace(/^[.,!?;:"'()\[\]{}]+|[.,!?;:"'()\[\]{}]+$/g, '');
-    if (cleanWord) {
-      speakText(cleanWord, lesson.language, 0.7, selectedVoiceName);
-    }
-  };
-
-  const renderClickableText = (text: string) => {
-    if (!text) return null;
-
-    // Use Intl.Segmenter for Thai to handle word boundaries without spaces
-    if (lesson.language === 'Thai' && typeof (Intl as any).Segmenter === 'function') {
-        const segmenter = new (Intl as any).Segmenter('th', { granularity: 'word' });
-        const segments = Array.from(segmenter.segment(text));
-        
-        return segments.map((s: any, j: number) => {
-          if (!s.isWordLike) return <span key={`th-${j}`}>{s.segment}</span>;
-          
-          return (
-            <span
-              key={`th-${j}`}
-              onClick={() => handleWordClick(s.segment)}
-              className="cursor-pointer hover:text-green-600 hover:bg-green-100/50 rounded transition-colors"
-              title="Click to hear pronunciation"
-            >
-              {s.segment}
-            </span>
-          );
-        });
-    }
-
-    const segments = text.split(/(\s+)/);
-    return segments.map((segment, i) => {
-      if (/^\s+$/.test(segment)) return segment;
-      const subSegments = segment.split(/([.,!?;:"'()\[\]{}]+)/).filter(Boolean);
-      return (
-        <React.Fragment key={i}>
-          {subSegments.map((sub, j) => {
-            if (/^[.,!?;:"'()!?;:"'()\[\]{}]+$/.test(sub)) return <span key={j}>{sub}</span>;
-            return (
-              <span
-                key={j}
-                onClick={() => handleWordClick(sub)}
-                className="cursor-pointer hover:text-green-600 hover:bg-green-100/50 rounded transition-colors"
-                title="Click to hear pronunciation"
-              >
-                {sub}
-              </span>
-            );
-          })}
-        </React.Fragment>
-      );
-    });
-  };
 
   // Normalize activities - support:
   // 1. Array of activities directly: [...]
@@ -305,52 +251,33 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
       </div>
 
       {/* Information for the current player */}
-      <section className="bg-transparent sm:bg-white p-2 sm:p-8 rounded-xl sm:shadow-sm sm:border sm:border-green-100 mb-8 overflow-hidden relative">
-        <div className="mb-6">
-            <h1 className="text-xl font-black text-gray-900 leading-tight mb-2 tracking-tight">{currentActivity.topic}</h1>
-            <p className="text-base text-gray-500 font-medium leading-relaxed">Read your information below and ask your partner questions to find the missing details.</p>
-        </div>
-        <div className="flex flex-col md:flex-row items-center justify-between mb-4">
-          <h2 className="text-lg mb-4 font-black text-green-900 uppercase tracking-widest opacity-70">Your Secret Information</h2>
-          <AudioControls 
-            onVoiceOpen={availableVoices.length > 0 ? () => setIsVoiceModalOpen(true) : undefined}
-            onSlowToggle={() => toggleTTS(0.6, myTextBlocks.map(b => b.text).join(' '))}
-            onListenToggle={() => toggleTTS(1.0, myTextBlocks.map(b => b.text).join(' '))}
-            ttsStatus={ttsState.status}
-            currentRate={ttsState.rate}
-            hasVoices={availableVoices.length > 0}
-          />
+      <ReadingPassage
+        text={myTextBlocks.map(b => b.text).join('\n\n')}
+        language={lesson.language}
+        title="Your Secret Information"
+        onSlowToggle={() => toggleTTS(0.6, myTextBlocks.map(b => b.text).join(' '))}
+        onListenToggle={() => toggleTTS(1.0, myTextBlocks.map(b => b.text).join(' '))}
+        ttsStatus={ttsState.status}
+        currentRate={ttsState.rate}
+        hasVoices={availableVoices.length > 0}
+        onVoiceOpen={availableVoices.length > 0 ? () => setIsVoiceModalOpen(true) : undefined}
+        passageRef={passageRef}
+        className="mb-8"
+      />
 
-          {availableVoices.length > 0 && (
-            <VoiceSelectorModal
-              isOpen={isVoiceModalOpen}
-              onClose={() => setIsVoiceModalOpen(false)}
-              voices={availableVoices}
-              selectedVoiceName={selectedVoiceName}
-              onSelectVoice={setSelectedVoiceName}
-              language={lesson.language}
-              hasRecordedAudio={!!lesson.audioFileUrl}
-              audioPreference={audioPreference}
-              onSelectPreference={setAudioPreference}
-            />
-          )}
-        </div>
-        
-        <div className="space-y-6">
-          {myTextBlocks.length > 0 ? myTextBlocks.map((block, i) => (
-            <div 
-              key={i} 
-              className="max-w-none font-sans text-xl leading-relaxed text-gray-800 bg-transparent p-0 sm:bg-gray-50/50 sm:p-6 rounded-2xl sm:border sm:border-gray-100 relative z-10"
-            >
-              {renderClickableText(block.text)}
-            </div>
-          )) : (
-            <div className="text-center py-8 text-gray-400 italic font-medium">
-              You have no specific text for this role. Use your partner's information.
-            </div>
-          )}
-        </div>
-      </section>
+      {availableVoices.length > 0 && (
+        <VoiceSelectorModal
+          isOpen={isVoiceModalOpen}
+          onClose={() => setIsVoiceModalOpen(false)}
+          voices={availableVoices}
+          selectedVoiceName={selectedVoiceName}
+          onSelectVoice={setSelectedVoiceName}
+          language={lesson.language}
+          hasRecordedAudio={!!lesson.audioFileUrl}
+          audioPreference={audioPreference}
+          onSelectPreference={setAudioPreference}
+        />
+      )}
 
       {/* Questions to ask the partner */}
       <section className="mb-6 p-2">

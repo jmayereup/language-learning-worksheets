@@ -9,6 +9,7 @@ import { HelpCircle, ChevronRight, ChevronLeft, CheckCircle2, MessageSquare, XCi
 import { Button } from '../UI/Button';
 import { Vocabulary } from '../Activities/Vocabulary';
 import { ReadingPassage } from '../Activities/ReadingPassage';
+import { Comprehension } from '../Activities/Comprehension';
 
 interface FocusedReaderViewProps {
   lesson: ParsedLesson & { content: FocusedReaderContent };
@@ -265,52 +266,27 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
             <div className="h-10 w-2 bg-green-500 rounded-full" />
             <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tight">Comprehension Check</h2>
           </div>
-
-          <div className="grid gap-6">
-            {currentPart.questions.map((q, qIdx) => {
-              const userAnswer = answers.focusedReader?.[currentPartIndex]?.[qIdx];
-              return (
-                <div key={qIdx} className="bg-transparent sm:bg-white p-4 sm:p-8 rounded-none sm:rounded-xl shadow-none sm:shadow-sm border-none sm:border sm:border-green-100 hover:border-green-300 transition-all">
-                  <p className="text-lg sm:text-xl font-bold text-gray-800 mb-6">
-                    {qIdx + 1}. {q.question}
-                  </p>
-                  
-                  <div className="grid sm:grid-cols-2 gap-2">
-                    {q.options.map((option, oIdx) => {
-                      const isCorrect = option === q.answer;
-                      const isSelected = userAnswer === option;
-                      const hasAnswered = !!userAnswer;
-                      
-                      let buttonClass = 'border-gray-100 bg-gray-50 text-gray-700 hover:border-green-200';
-                      if (hasAnswered) {
-                        if (isCorrect) {
-                          buttonClass = 'border-green-500 bg-green-50 text-green-900';
-                        } else if (isSelected) {
-                          buttonClass = 'border-red-500 bg-red-50 text-red-900';
-                        } else {
-                          buttonClass = 'border-gray-100 bg-gray-50 text-gray-400 opacity-50 cursor-not-allowed';
-                        }
-                      }
-
-                      return (
-                        <button
-                          key={oIdx}
-                          onClick={() => updateAnswers(currentPartIndex, qIdx, option)}
-                          disabled={hasAnswered}
-                          className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all text-left font-bold ${buttonClass}`}
-                        >
-                          <span>{option}</span>
-                          {hasAnswered && isCorrect && <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0" />}
-                          {isSelected && !isCorrect && <XCircle className="w-5 h-5 text-red-600 shrink-0" />}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
+        {currentPart.questions.length > 0 && (
+          <Comprehension
+            data={{ questions: currentPart.questions }}
+            readingText={currentPart.text}
+            language={lesson.language}
+            onChange={(partAnswers) => {
+              setAnswers(prev => {
+                const focusedReader = { ...(prev.focusedReader || {}) };
+                focusedReader[currentPartIndex] = partAnswers;
+                return { ...prev, focusedReader };
+              });
+            }}
+            savedAnswers={answers.focusedReader?.[currentPartIndex] || {}}
+            voiceName={selectedVoiceName}
+            toggleTTS={toggleTTS}
+            ttsState={ttsState}
+            lessonId={`${lesson.id}-part-${currentPartIndex}`}
+            title={`Part ${currentPart.part_number} Check`}
+          />
+        )}
+      </section>
 
         {/* Controls */}
         <div className="flex justify-between items-center py-8">
