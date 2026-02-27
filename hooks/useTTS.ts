@@ -38,7 +38,16 @@ export const useTTS = ({
       const voices = getVoicesForLang(langCode);
       setAvailableVoices(voices);
 
-      if (!userHasSelectedVoice.current) {
+      const synth = window.speechSynthesis;
+      const allVoices = synth.getVoices();
+      const currentVoice = allVoices.find(v => v.name === selectedVoiceName);
+      
+      const langPrefix = langCode.split(/[-_]/)[0].toLowerCase();
+      const currentVoicePrefix = currentVoice?.lang.split(/[-_]/)[0].toLowerCase();
+
+      // If no voice selected, OR if the selected voice doesn't match the current language 
+      // (and the user hasn't explicitly chosen it for THIS session/language)
+      if (!selectedVoiceName || (currentVoicePrefix !== langPrefix && !userHasSelectedVoice.current)) {
         const best = getBestVoice(langCode);
         if (best) setSelectedVoiceName(best.name);
       }
@@ -63,7 +72,7 @@ export const useTTS = ({
         audioRef.current = null;
       }
     };
-  }, [language]);
+  }, [language, selectedVoiceName]);
 
   const playTTS = useCallback((rate: number, text: string) => {
     const synth = window.speechSynthesis;

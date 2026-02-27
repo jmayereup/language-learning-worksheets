@@ -48,13 +48,16 @@ export const seededShuffle = <T,>(array: T[], seed: string): T[] => {
 };
 
 export const getLangCode = (langName: string): string => {
+  if (!langName) return "en-US";
+  const normalized = langName.toLowerCase().trim();
   const map: Record<string, string> = {
-    "English": "en-US",
-    "French": "fr-FR",
-    "Spanish": "es-ES",
-    "German": "de-DE"
+    "english": "en-US",
+    "french": "fr-FR",
+    "spanish": "es-ES",
+    "german": "de-DE",
+    "thai": "th-TH"
   };
-  return map[langName] || "en-US";
+  return map[normalized] || "en-US";
 };
 
 export const speakText = (text: string, language: string, rate: number = 1.0, voiceName?: string | null) => {

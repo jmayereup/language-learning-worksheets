@@ -57,7 +57,11 @@ export const speak = (text: string, lang: string, rate: number = 1.0, voiceName?
     if (voiceName) {
         const selectedVoice = voices.find(v => v.name === voiceName);
         if (selectedVoice) {
-            utterance.voice = selectedVoice;
+            const langPrefix = lang.split(/[-_]/)[0].toLowerCase();
+            const voicePrefix = selectedVoice.lang.split(/[-_]/)[0].toLowerCase();
+            if (langPrefix === voicePrefix) {
+                utterance.voice = selectedVoice;
+            }
         }
     }
 
