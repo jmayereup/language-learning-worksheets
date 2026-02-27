@@ -270,7 +270,7 @@ const App: React.FC = () => {
                                                 className="group bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl hover:translate-y-[-4px] transition-all duration-300 cursor-pointer flex flex-col h-full"
                                             >
                                                 {/* Image Header */}
-                                                <div className="aspect-[16/9] w-full flex-shrink-0 bg-gray-100 flex items-center justify-center overflow-hidden relative rounded-t-2xl">
+                                                <div className="aspect-video w-full shrink-0 bg-gray-100 flex items-center justify-center overflow-hidden relative rounded-t-2xl">
                                                     {l.imageUrl ? (
                                                         <img
                                                             src={l.imageUrl}
@@ -290,7 +290,7 @@ const App: React.FC = () => {
                                                 </div>
 
                                                 {/* Content logic */}
-                                                <div className="flex-grow p-6 flex flex-col">
+                                                <div className="grow p-6 flex flex-col">
                                                     <div className="mb-4">
                                                         {/* Badge / Code-like Ref */}
                                                         <div className="flex items-center gap-2 mb-3">
@@ -301,13 +301,13 @@ const App: React.FC = () => {
                                                             <span className="text-[11px] text-gray-400 font-medium">#{l.id.substring(0, 4)}</span>
                                                         </div>
 
-                                                        <h3 className="font-extrabold text-[#2563eb] text-xl leading-tight mb-3 group-hover:text-green-700 transition-colors line-clamp-2 min-h-[3rem]">
+                                                        <h3 className="font-extrabold text-[#2563eb] text-xl leading-tight mb-3 group-hover:text-green-700 transition-colors line-clamp-2 min-h-12">
                                                             {l.title}
                                                         </h3>
 
-                                                        {(l.seo || l.description) && (
+                                                        {((l.content as any).seo_intro || l.seo || l.description) && (
                                                             <p className="text-gray-500 text-sm leading-relaxed line-clamp-2 mb-0">
-                                                                {l.seo || l.description}
+                                                                {(l.content as any).seo_intro || l.seo || l.description}
                                                             </p>
                                                         )}
                                                     </div>

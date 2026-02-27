@@ -32,11 +32,11 @@ export const InformationGapQuestions: React.FC<InformationGapQuestionsProps> = (
 
   if (questions.length === 0) {
     return (
-      <div className="bg-gray-50 p-12 rounded-3xl border-2 border-dashed border-gray-200 text-center animate-fade-in">
+      <div className="bg-gray-50 p-12 rounded-xl border-2 border-dashed border-gray-200 text-center animate-fade-in">
         <p className="text-gray-500 font-bold text-xl mb-4">No questions for this role.</p>
         <p className="text-gray-400">Wait for your partner to ask you questions, then show them this screen when you are both done.</p>
         <div className="mt-8">
-            <Button onClick={() => onFinish(0, 0)} className="bg-green-600 hover:bg-green-700 shadow-lg">Finish Lesson</Button>
+            <Button onClick={() => onFinish(0, 0)} className="bg-green-600 hover:bg-green-700 shadow-sm">Finish Lesson</Button>
         </div>
       </div>
     );
@@ -45,27 +45,27 @@ export const InformationGapQuestions: React.FC<InformationGapQuestionsProps> = (
   if (isCompleted) {
     const percentage = Math.round((score / questions.length) * 100);
     return (
-      <div className="bg-white p-12 rounded-3xl shadow-xl border-4 border-green-500 text-center animate-bounce-in">
-        <div className="w-24 h-24 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
-          <Trophy className="w-12 h-12 text-yellow-500" />
+      <div className="bg-white p-12 rounded-xl shadow-sm border border-green-100 text-center animate-bounce-in">
+        <div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <Trophy className="w-10 h-10 text-yellow-500" />
         </div>
-        <h2 className="text-4xl font-black text-green-900 mb-2">Well Done!</h2>
-        <p className="text-gray-600 text-xl mb-8">You completed your side of the activity.</p>
+        <h2 className="text-3xl font-black text-green-900 mb-2">Well Done!</h2>
+        <p className="text-gray-600 text-lg mb-8">You completed your side of the activity.</p>
         
         <div className="flex justify-center gap-8 mb-10">
           <div className="text-center">
-            <div className="text-5xl font-black text-green-600 mb-1">{score}/{questions.length}</div>
+            <div className="text-4xl font-black text-green-600 mb-1">{score}/{questions.length}</div>
             <div className="text-sm font-bold text-gray-400 uppercase tracking-widest">Score</div>
           </div>
           <div className="text-center">
-            <div className="text-5xl font-black text-blue-600 mb-1">{percentage}%</div>
+            <div className="text-4xl font-black text-blue-600 mb-1">{percentage}%</div>
             <div className="text-sm font-bold text-gray-400 uppercase tracking-widest">Accuracy</div>
           </div>
         </div>
 
         <Button 
           onClick={() => onFinish(score, questions.length)} 
-          className="w-full max-w-sm h-16 text-xl font-black bg-green-600 hover:bg-green-700 hover:scale-105 transition-all shadow-xl rounded-2xl"
+          className="w-full max-w-sm h-14 text-lg font-black bg-green-600 hover:bg-green-700 transition-all shadow-sm rounded-xl"
         >
           {isLastActivity ? 'Finish Lesson' : 'Proceed to Next Activity'}
         </Button>
@@ -96,13 +96,13 @@ export const InformationGapQuestions: React.FC<InformationGapQuestionsProps> = (
   };
 
   return (
-    <div className="bg-white p-4 md:p-4 rounded-3xl shadow-lg border border-gray-100 animate-fade-in">
-      <div className="flex justify-between items-center mb-4">
-        <div className="bg-gray-100 text-gray-500 px-4 py-1.5 rounded-full text-sm font-black">
-          QUESTION {currentQuestionIndex + 1} OF {questions.length}
+    <div className="bg-white p-6 rounded-xl shadow-sm border border-green-100 animate-fade-in">
+      <div className="flex justify-between items-center mb-6">
+        <div className="bg-gray-100 text-gray-500 px-4 py-1.5 rounded-full text-xs font-black tracking-widest uppercase">
+          Question {currentQuestionIndex + 1} of {questions.length}
         </div>
-        <div className="text-green-600 font-black">
-          SCORE: {score}
+        <div className="text-green-600 font-black text-sm uppercase tracking-widest">
+          Score: {score}
         </div>
       </div>
 
@@ -119,7 +119,7 @@ export const InformationGapQuestions: React.FC<InformationGapQuestionsProps> = (
           hasVoices={false}
           className="mb-4"
         />
-        <h3 className="text-xl md:text-2xl font-black text-gray-900 leading-tight">
+        <h3 className="text-lg font-bold text-gray-900 leading-relaxed text-center">
           {currentQuestion.question}
         </h3>
       </div>
@@ -142,24 +142,24 @@ export const InformationGapQuestions: React.FC<InformationGapQuestionsProps> = (
               key={i}
               onClick={() => handleOptionSelect(option)}
               disabled={showFeedback}
-              className={`p-4 md:p-6 rounded-2xl text-left text-lg md:text-xl transition-all flex justify-between items-center ${optionStyles}`}
+              className={`p-4 rounded-xl text-left text-base font-bold transition-all flex justify-between items-center ${optionStyles}`}
             >
               <span>{option}</span>
-              {showFeedback && option === currentQuestion.correct_answer && <CheckCircle2 className="w-8 h-8 text-green-600" />}
-              {showFeedback && option === selectedOption && option !== currentQuestion.correct_answer && <XCircle className="w-8 h-8 text-red-600" />}
+              {showFeedback && option === currentQuestion.correct_answer && <CheckCircle2 className="w-6 h-6 text-green-600" />}
+              {showFeedback && option === selectedOption && option !== currentQuestion.correct_answer && <XCircle className="w-6 h-6 text-red-600" />}
             </button>
           );
         })}
       </div>
 
       {showFeedback && (
-        <div className="animate-slide-up">
+        <div className="animate-slide-up mt-6">
           <Button 
             onClick={handleNext} 
-            className="w-full h-16 text-xl font-black bg-green-600 hover:bg-green-700 rounded-2xl shadow-lg flex items-center justify-center gap-2"
+            className="w-full h-14 text-lg font-black bg-green-600 hover:bg-green-700 rounded-xl shadow-sm flex items-center justify-center gap-2"
           >
             {currentQuestionIndex < questions.length - 1 ? (
-              <>Next Question <ArrowRight className="w-6 h-6" /></>
+              <>Next Question <ArrowRight className="w-5 h-5" /></>
             ) : (
               'Finish Quiz'
             )}

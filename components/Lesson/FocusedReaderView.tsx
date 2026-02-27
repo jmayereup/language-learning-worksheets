@@ -146,10 +146,11 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
             >
               {part}
             </span>
-            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-64 p-3 bg-gray-900 text-white text-sm rounded-lg shadow-xl z-50 animate-fade-in pointer-events-none">
-              <p className="font-bold border-b border-gray-700 pb-1 mb-1">{part}</p>
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-64 p-3 bg-white border border-green-100 text-gray-800 text-sm rounded-lg shadow-xl z-50 animate-fade-in pointer-events-none">
+              <p className="font-bold border-b border-green-100 pb-1 mb-1 text-green-700">{part}</p>
               {explanation}
-              <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-gray-900" />
+              <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-white" />
+              <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-green-100 mt-px -z-10" />
             </div>
           </span>
         );
@@ -198,17 +199,6 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
       isNameLocked={isNameLocked}
     >
       <div className="max-w-4xl mx-auto space-y-8">
-        {/* Intro Section */}
-        {content.seo_intro && (
-          <section className="bg-green-50 p-6 rounded-2xl border border-green-100 shadow-sm animate-fade-in text-center">
-             <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-4 text-green-600">
-               <MessageSquare className="w-6 h-6" />
-             </div>
-             <p className="text-gray-700 text-lg leading-relaxed italic">
-               "{content.seo_intro}"
-             </p>
-          </section>
-        )}
 
         {/* Navigation Dots */}
         <div className="flex justify-center gap-2 mb-4">
@@ -225,8 +215,8 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
         </div>
 
         {/* Reading Section */}
-        <section className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden animate-slide-up">
-          <div className="bg-green-600 p-4 flex justify-between items-center text-white">
+        <section className="bg-white rounded-xl shadow-sm border border-green-100 overflow-hidden animate-slide-up">
+          <div className="bg-white border-b border-green-100 p-4 flex justify-between items-center text-green-900">
             <h2 className="text-xl font-black uppercase tracking-widest">Part {currentPart.part_number}</h2>
             
             <div className="flex gap-2">
@@ -237,13 +227,12 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
                 ttsStatus={ttsState.status}
                 currentRate={ttsState.rate}
                 hasVoices={availableVoices.length > 0}
-                variant="white"
               />
             </div>
           </div>
 
           <div className="p-8 sm:p-12">
-            <div className="prose max-w-none text-xl sm:text-2xl leading-relaxed text-gray-800 select-none">
+            <div className="prose max-w-none text-lg leading-relaxed text-gray-800 select-none">
               {renderTextWithVocabulary(currentPart.text, currentPart.vocabulary_explanations)}
             </div>
             
@@ -265,7 +254,7 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
             {currentPart.questions.map((q, qIdx) => {
               const userAnswer = answers.focusedReader?.[currentPartIndex]?.[qIdx];
               return (
-                <div key={qIdx} className="bg-white p-6 sm:p-8 rounded-2xl shadow-md border border-gray-100 hover:border-green-200 transition-all">
+                <div key={qIdx} className="bg-white p-6 sm:p-8 rounded-xl shadow-sm border border-green-100 hover:border-green-300 transition-all">
                   <p className="text-lg sm:text-xl font-bold text-gray-800 mb-6">
                     {qIdx + 1}. {q.question}
                   </p>

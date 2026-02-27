@@ -201,8 +201,8 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
             </span>
           </div>
 
-          <h1 className="text-4xl md:text-5xl font-black text-green-900 mb-4 tracking-tight leading-tight max-w-2xl mx-auto">{mainTitle}</h1>
-          <p className="text-xl text-gray-600 font-medium max-w-xl mx-auto">{mainDesc}</p>
+          <h1 className="text-3xl font-black text-green-900 mb-4 tracking-tight leading-tight max-w-2xl mx-auto">{mainTitle}</h1>
+          <p className="text-lg text-gray-600 font-medium max-w-xl mx-auto">{mainDesc}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-2xl mx-auto">
@@ -210,7 +210,7 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
             <button
               key={playerNum}
               onClick={() => setCurrentPlayer(playerNum)}
-              className="group bg-white p-10 rounded-4xl shadow-lg border-2 border-transparent hover:border-green-500 hover:shadow-2xl transition-all duration-300 flex flex-col items-center text-center"
+              className="group bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:border-green-500 hover:shadow-xl transition-all duration-300 flex flex-col items-center text-center"
             >
               <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <Mic className="w-10 h-10 text-green-600" />
@@ -283,7 +283,7 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
       </div>
 
       {/* Information for the current player */}
-      <section className="bg-transparent sm:bg-white p-2 sm:p-8 rounded-3xl sm:shadow-sm sm:border sm:border-green-100 mb-8 overflow-hidden relative">
+      <section className="bg-transparent sm:bg-white p-2 sm:p-8 rounded-xl sm:shadow-sm sm:border sm:border-green-100 mb-8 overflow-hidden relative">
         <div className="mb-6">
             <h1 className="text-xl font-black text-gray-900 leading-tight mb-2 tracking-tight">{currentActivity.topic}</h1>
             <p className="text-base text-gray-500 font-medium leading-relaxed">Read your information below and ask your partner questions to find the missing details.</p>
