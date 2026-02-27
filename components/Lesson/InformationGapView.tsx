@@ -77,6 +77,28 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
 
   const renderClickableText = (text: string) => {
     if (!text) return null;
+
+    // Use Intl.Segmenter for Thai to handle word boundaries without spaces
+    if (lesson.language === 'Thai' && typeof (Intl as any).Segmenter === 'function') {
+        const segmenter = new (Intl as any).Segmenter('th', { granularity: 'word' });
+        const segments = Array.from(segmenter.segment(text));
+        
+        return segments.map((s: any, j: number) => {
+          if (!s.isWordLike) return <span key={`th-${j}`}>{s.segment}</span>;
+          
+          return (
+            <span
+              key={`th-${j}`}
+              onClick={() => handleWordClick(s.segment)}
+              className="cursor-pointer hover:text-green-600 hover:bg-green-100/50 rounded transition-colors"
+              title="Click to hear pronunciation"
+            >
+              {s.segment}
+            </span>
+          );
+        });
+    }
+
     const segments = text.split(/(\s+)/);
     return segments.map((segment, i) => {
       if (/^\s+$/.test(segment)) return segment;
@@ -84,7 +106,7 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
       return (
         <React.Fragment key={i}>
           {subSegments.map((sub, j) => {
-            if (/^[.,!?;:"'()\[\]{}]+$/.test(sub)) return <span key={j}>{sub}</span>;
+            if (/^[.,!?;:"'()!?;:"'()\[\]{}]+$/.test(sub)) return <span key={j}>{sub}</span>;
             return (
               <span
                 key={j}

@@ -217,6 +217,7 @@ const App: React.FC = () => {
                                     >
                                         <option value="English">English</option>
                                         <option value="Spanish">Spanish</option>
+                                        <option value="Thai">Thai</option>
                                     </select>
                                 </div>
                                 <div>

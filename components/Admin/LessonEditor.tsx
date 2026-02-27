@@ -227,6 +227,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                                         <option value="" disabled>Select language...</option>
                                         <option value="English">English</option>
                                         <option value="Spanish">Spanish</option>
+                                        <option value="Thai">Thai</option>
                                         <option value="French">French</option>
                                         <option value="German">German</option>
                                     </select>

@@ -151,6 +151,26 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
     
     // Function to render clickable segments for regular text
     const renderClickableSegments = (textSegment: string, segmentKeyPrefix: string) => {
+      // Use Intl.Segmenter for Thai to handle word boundaries without spaces
+      if (lesson.language === 'Thai' && typeof (Intl as any).Segmenter === 'function') {
+        const segmenter = new (Intl as any).Segmenter('th', { granularity: 'word' });
+        const segments = Array.from(segmenter.segment(textSegment));
+        
+        return segments.map((s: any, j: number) => {
+          if (!s.isWordLike) return <span key={`${segmentKeyPrefix}-th-${j}`}>{s.segment}</span>;
+          
+          return (
+            <span
+              key={`${segmentKeyPrefix}-th-${j}`}
+              onClick={() => handleWordClick(s.segment)}
+              className="cursor-pointer hover:text-green-600 hover:bg-green-50 rounded px-0.5 transition-colors"
+            >
+              {s.segment}
+            </span>
+          );
+        });
+      }
+
       const wordsAndSpaces = textSegment.split(/(\s+)/);
       return wordsAndSpaces.map((subPart, j) => {
         if (/^\s+$/.test(subPart)) return subPart;
