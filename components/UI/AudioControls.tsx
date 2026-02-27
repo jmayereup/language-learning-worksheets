@@ -9,6 +9,7 @@ interface AudioControlsProps {
   currentRate: number;
   hasVoices?: boolean;
   className?: string;
+  variant?: 'white' | 'green';
 }
 
 export const AudioControls: React.FC<AudioControlsProps> = ({
@@ -18,7 +19,8 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
   ttsStatus,
   currentRate,
   hasVoices = false,
-  className = ""
+  className = "",
+  variant = "white"
 }) => {
   const isSlowActive = currentRate === 0.6 && (ttsStatus === 'playing' || ttsStatus === 'paused');
   const isListenActive = currentRate === 1.0 && (ttsStatus === 'playing' || ttsStatus === 'paused');
@@ -30,21 +32,25 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
       {hasVoices && onVoiceOpen && (
         <button
           onClick={onVoiceOpen}
-          className="flex items-center px-3 py-1.5 text-sm font-bold border border-gray-200 rounded-xl shadow-sm hover:border-green-300 hover:bg-green-50 hover:text-green-600 transition-all bg-white text-gray-700"
+          className={`flex items-center px-3 py-1.5 text-sm font-bold border rounded-xl shadow-sm transition-all ${
+            variant === 'white' 
+              ? 'border-gray-200 bg-white text-gray-700 hover:border-green-300 hover:bg-green-50 hover:text-green-600' 
+              : 'border-green-400 bg-green-500 text-white hover:bg-green-400'
+          }`}
           title="Voice Settings"
         >
-          <Settings2 className="w-4 h-4 mr-1.5 text-gray-500" />
+          <Settings2 className={`w-4 h-4 mr-1.5 ${variant === 'white' ? 'text-gray-500' : 'text-white'}`} />
         </button>
       )}
 
-      <div className="flex bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+      <div className={`flex bg-white rounded-xl border shadow-sm overflow-hidden ${variant === 'white' ? 'border-gray-200' : 'border-green-400'}`}>
         <button
           onClick={onSlowToggle}
-          className={`flex items-center px-1 py-1.5 text-sm font-bold transition-all border-r border-gray-100 ${
+          className={`flex items-center px-1 py-1.5 text-sm font-bold transition-all border-r ${
             isSlowActive 
               ? 'bg-green-50 text-green-700' 
               : 'hover:bg-gray-50 text-gray-700'
-          }`}
+          } ${variant === 'white' ? 'border-gray-100' : 'border-green-100'}`}
           title="Slow Speed"
         >
           {isSlowActive && ttsStatus === 'playing' ? (

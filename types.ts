@@ -67,11 +67,33 @@ export interface InformationGapContent {
   player_count: number;
   blocks?: InformationGapBlock[]; // Optional for backward compatibility
   activities?: InformationGapActivity[];
+  seo_intro?: string; // Added for SEO automation
+}
+
+export interface FocusedReaderQuestion {
+  question: string;
+  type: 'True/False' | 'Multiple Choice' | string;
+  options: string[];
+  answer: string;
+}
+
+export interface FocusedReaderPart {
+  part_number: number;
+  text: string;
+  vocabulary_explanations: Record<string, string>;
+  questions: FocusedReaderQuestion[];
+}
+
+export interface FocusedReaderContent {
+  title: string;
+  seo_intro: string;
+  parts: FocusedReaderPart[];
 }
 
 export interface StandardLessonContent {
   title: string;
   readingText: string;
+  seo_intro?: string; // Added for SEO automation
   activities: {
     vocabulary: VocabularyActivity;
     fillInTheBlanks: FillInBlankItem[];
@@ -81,7 +103,7 @@ export interface StandardLessonContent {
   };
 }
 
-export type LessonContent = StandardLessonContent | InformationGapContent | InformationGapActivity[];
+export type LessonContent = StandardLessonContent | InformationGapContent | InformationGapActivity[] | FocusedReaderContent;
 
 export interface LessonRecord {
   id: string;
@@ -118,6 +140,7 @@ export interface UserAnswers {
   scrambled: Record<number, string>; // index -> user formed sentence
   writing: Record<number, string>; // index -> user text
   infoGap?: Record<number, { score: number, total: number }>; // activityIndex -> result
+  focusedReader?: Record<number, Record<number, string>>; // partIndex -> questionIndex -> answer
   completionStates?: Record<string, boolean>; // sectionKey -> boolean
 }
 

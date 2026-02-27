@@ -1,0 +1,99 @@
+{
+  "title": "The Amazing World of Dolphins: Smart Friends of the Sea",
+  "seo_intro": "Discover the fascinating lives of dolphins! Learn about their intelligence, communication, and playful behavior in this easy B1 reading text.",
+  "parts": [
+    {
+      "part_number": 1,
+      "text": "Dolphins are some of the most intelligent and beloved animals in the ocean. They are not fish, but marine mammals, which means they breathe air and give birth to live babies. Dolphins have a smooth, rubbery skin and a curved dorsal fin on their backs. They are famous for their playful behavior. You can often see them jumping out of the water and riding the waves created by boats. There are over forty different species of dolphins, and they live in oceans all around the world, from tropical waters to colder seas. The bottlenose dolphin is the most common.",
+      "vocabulary_explanations": {
+        "beloved": "Deeply loved or cared for by people.",
+        "marine mammals": "Animals that live in the ocean but breathe air, are warm-blooded, and produce milk for their babies.",
+        "give birth": "To have babies from the body, instead of laying eggs.",
+        "dorsal fin": "The fin located on the top of a fish or marine mammal's back.",
+        "species": "A specific group of animals or plants that are similar."
+      },
+      "questions": [
+        {
+          "question": "Dolphins are a type of highly intelligent fish.",
+          "type": "True/False",
+          "options": ["True", "False"],
+          "answer": "False"
+        },
+        {
+          "question": "What do dolphins breathe?",
+          "type": "Multiple Choice",
+          "options": ["A) Water", "B) Air", "C) Sand"],
+          "answer": "B) Air"
+        },
+        {
+          "question": "Which type of dolphin is the most commonly found?",
+          "type": "Multiple Choice",
+          "options": ["A) The tropical dolphin", "B) The jumping dolphin", "C) The bottlenose dolphin"],
+          "answer": "C) The bottlenose dolphin"
+        }
+      ]
+    },
+    {
+      "part_number": 2,
+      "text": "Dolphins are very social animals. They live in groups called pods. A pod can have just a few dolphins, or it can have hundreds of them! Living in a pod helps them stay safe from predators like sharks. It also makes hunting for food much easier. Dolphins have a special way of finding food called echolocation. They make clicking sounds that travel through the water. When the sound hits an object, like a fish, it bounces back to the dolphin. This echo tells the dolphin exactly where the fish is, how big it is, and how fast it is moving.",
+      "vocabulary_explanations": {
+        "social": "Enjoying being with others; living and interacting in groups.",
+        "pod": "A specific word used for a group of dolphins or whales.",
+        "predators": "Animals that hunt, kill, and eat other animals.",
+        "echolocation": "A way of finding things by making sounds and listening to the echo that comes back.",
+        "bounces back": "To hit a surface and return in the opposite direction."
+      },
+      "questions": [
+        {
+          "question": "What is a group of dolphins called?",
+          "type": "Multiple Choice",
+          "options": ["A) A school", "B) A herd", "C) A pod"],
+          "answer": "C) A pod"
+        },
+        {
+          "question": "Living in a group helps dolphins hunt for food.",
+          "type": "True/False",
+          "options": ["True", "False"],
+          "answer": "True"
+        },
+        {
+          "question": "What special ability do dolphins use to find fish?",
+          "type": "Multiple Choice",
+          "options": ["A) Their strong sense of smell", "B) Echolocation", "C) Bright underwater lights"],
+          "answer": "B) Echolocation"
+        }
+      ]
+    },
+    {
+      "part_number": 3,
+      "text": "Communication is incredibly important in a dolphin pod. Dolphins talk to each other using a mix of clicks, whistles, and body language. Scientists believe that every bottlenose dolphin has a unique 'signature whistle.' This whistle acts just like a human name! When a dolphin uses its signature whistle, it tells the others, 'I am here!' Dolphins also show their feelings through body language. They might slap the water with their tails to show they are angry or excited. They also love to play together, which is a great way for young dolphins to learn important skills for adult life.",
+      "vocabulary_explanations": {
+        "incredibly": "Very; extremely; hard to believe.",
+        "unique": "Being the only one of its kind; completely special.",
+        "signature": "A special mark, sound, or action that identifies a specific person or animal.",
+        "body language": "Communicating feelings or thoughts by moving your body instead of speaking.",
+        "slap": "To hit something quickly and loudly with a flat surface."
+      },
+      "questions": [
+        {
+          "question": "Every bottlenose dolphin has a special whistle that acts like a name.",
+          "type": "True/False",
+          "options": ["True", "False"],
+          "answer": "True"
+        },
+        {
+          "question": "How do dolphins show they are feeling angry or excited?",
+          "type": "Multiple Choice",
+          "options": ["A) They swim away quickly", "B) They slap the water with their tails", "C) They stop eating fish"],
+          "answer": "B) They slap the water with their tails"
+        },
+        {
+          "question": "Why is playing together important for young dolphins?",
+          "type": "Multiple Choice",
+          "options": ["A) It annoys the older dolphins", "B) It helps them sleep better at night", "C) It helps them learn important skills"],
+          "answer": "C) It helps them learn important skills"
+        }
+      ]
+    }
+  ]
+}

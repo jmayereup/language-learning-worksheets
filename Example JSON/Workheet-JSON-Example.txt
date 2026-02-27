@@ -1,0 +1,53 @@
+{
+  "title": "My Daily Routine",
+  "seo_intro": "An approximately 20 word SEO optimized introduction to the activity"
+  "readingText": "My name is Sarah. I wake up at 7:00 am every day. I brush my teeth and wash my face. Then, I eat breakfast with my family. I usually eat toast and eggs. I go to school by bus at 8:00 am. School finishes at 3:00 pm. In the evening, I do my homework and watch TV. I go to bed at 9:00 pm.",
+  "activities": {
+    "vocabulary": {
+      "definitions": [
+        { "id": "A", "text": "To stop sleeping." },
+        { "id": "B", "text": "Cleaning your teeth with a brush." },
+        { "id": "C", "text": "School work you do at home." },
+        { "id": "D", "text": "The morning meal." },
+        { "id": "E", "text": "A large vehicle for many people." }
+      ],
+      "items": [
+        { "label": "Wake up", "answer": "A" },
+        { "label": "Brush teeth", "answer": "B" },
+        { "label": "Breakfast", "answer": "D" },
+        { "label": "Bus", "answer": "E" },
+        { "label": "Homework", "answer": "C" }
+      ]
+    },
+    "fillInTheBlanks": [
+      { "before": "I", "after": "at 7:00 am every morning.", "answer": "wake up" },
+      { "before": "I eat", "after": "before I go to school.", "answer": "breakfast" },
+      { "before": "I take the", "after": "to school because it is far.", "answer": "bus" },
+      { "before": "I must do my", "after": "before I watch TV.", "answer": "homework" },
+      { "before": "Don't forget to", "after": "your teeth!", "answer": "brush" }
+    ],
+    "scrambled": [ 
+      { "text": "to be generated", "answer": "I go to school by bus." },
+      { "text": "to be generated", "answer": "I eat eggs for breakfast." },
+      { "text": "to be generated", "answer": "I watch TV in the evening." },
+      { "text": "to be generated", "answer": "I brush my teeth." },
+      { "text": "to be generated", "answer": "I go to bed at 9:00 pm." }
+    ],
+    "comprehension": {
+      "questions": [
+        { "text": "Sarah wakes up at 8:00 am.", "answer": "false" },
+        { "text": "She eats toast and eggs for breakfast.", "answer": "true" },
+        { "text": "She goes to school by car.", "answer": "false" },
+        { "text": "School finishes at 3:00 pm.", "answer": "true" },
+        { "text": "She goes to bed at 10:00 pm.", "answer": "false" }
+      ]
+    },
+    "writtenExpression": {
+      "questions": [
+        { "text": "What time do you wake up?" },
+        { "text": "What do you do in the evening?" }
+      ],
+      "examples": "<p><strong>Examples:</strong></p><ul class='list-disc pl-5'><li>I wake up at 6:30 am.</li><li>I usually read a book or play games in the evening.</li></ul>"
+    }
+  }
+}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ParsedLesson, StandardLessonContent, InformationGapContent, LessonContent, ReportData } from '../../types';
+import { ParsedLesson, StandardLessonContent, InformationGapContent, FocusedReaderContent, LessonContent, ReportData } from '../../types';
 import { selectElementText } from '../../utils/textUtils';
 import { Loader } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -10,6 +10,7 @@ import { ReportCard } from '../UI/ReportCard';
 
 const InformationGapView = React.lazy(() => import('./InformationGapView').then(m => ({ default: m.InformationGapView })));
 const WorksheetView = React.lazy(() => import('./WorksheetView').then(m => ({ default: m.WorksheetView })));
+const FocusedReaderView = React.lazy(() => import('./FocusedReaderView').then(m => ({ default: m.FocusedReaderView })));
 
 interface Props {
   lesson: ParsedLesson;
@@ -19,8 +20,13 @@ const isStandardLesson = (content: LessonContent): content is StandardLessonCont
   return content !== null && typeof content === 'object' && 'activities' in content && !Array.isArray(content.activities);
 };
 
+const isFocusedReader = (content: LessonContent): content is FocusedReaderContent => {
+  return content !== null && typeof content === 'object' && 'parts' in content && Array.isArray((content as any).parts);
+};
+
 export const LessonView: React.FC<Props> = ({ lesson }) => {
   const isStandard = isStandardLesson(lesson.content);
+  const isFocused = isFocusedReader(lesson.content);
 
   const {
     answers,
@@ -58,7 +64,7 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
   } = useTTS({
     language: lesson.language,
     audioFileUrl: lesson.audioFileUrl,
-    defaultReadingText: isStandard ? (lesson.content as StandardLessonContent).readingText : '',
+    defaultReadingText: isStandard ? (lesson.content as StandardLessonContent).readingText : (isFocused ? (lesson.content as FocusedReaderContent).parts[0].text : ''),
     onStartCallback: () => {
       if (passageRef.current) {
         selectElementText(passageRef.current);
@@ -73,7 +79,7 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
     setSubmissionStatus
   } = useTeacherSubmission();
 
-  const displayTitle = lesson.title || (isStandard ? (lesson.content as StandardLessonContent).title : (lesson.content as InformationGapContent).topic);
+  const displayTitle = lesson.title || (isStandard ? (lesson.content as StandardLessonContent).title : (isFocused ? (lesson.content as FocusedReaderContent).title : (lesson.content as InformationGapContent).topic));
 
   // Simple Effect for Mobile styling/logic
   useEffect(() => {
@@ -147,6 +153,31 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
             setAudioPreference={setAudioPreference}
             answers={answers}
             setAnswers={setAnswers}
+          />
+        ) : lesson.lessonType === 'focused-reading' ? (
+          <FocusedReaderView
+            key={`focused-reader-${resetKey}`}
+            lesson={{...lesson, content: lesson.content as FocusedReaderContent}}
+            studentName={studentName}
+            setStudentName={setStudentName}
+            studentId={studentId}
+            setStudentId={setStudentId}
+            homeroom={homeroom}
+            setHomeroom={setHomeroom}
+            isNameLocked={isNameLocked}
+            onFinish={handleFinish}
+            onReset={handleReset}
+            answers={answers}
+            setAnswers={setAnswers}
+            toggleTTS={toggleTTS}
+            ttsState={ttsState}
+            availableVoices={availableVoices}
+            selectedVoiceName={selectedVoiceName}
+            setSelectedVoiceName={setSelectedVoiceName}
+            isVoiceModalOpen={isVoiceModalOpen}
+            setIsVoiceModalOpen={setIsVoiceModalOpen}
+            audioPreference={audioPreference}
+            setAudioPreference={setAudioPreference}
           />
         ) : (
           <WorksheetView

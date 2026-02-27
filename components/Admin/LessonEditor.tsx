@@ -61,6 +61,20 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
         }
     }, [lessonId]);
 
+    // Automatically sync SEO from jsonContent if empty
+    useEffect(() => {
+        if (!seo.trim() && jsonContent.trim()) {
+            try {
+                const parsed = JSON.parse(jsonContent);
+                if (parsed.seo_intro) {
+                    setSeo(parsed.seo_intro);
+                }
+            } catch (e) {
+                // Ignore parse errors while typing
+            }
+        }
+    }, [jsonContent, seo]);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         
@@ -136,6 +150,9 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                     const parsed = JSON.parse(text);
                     if (parsed.title) {
                         setTitle(parsed.title);
+                    }
+                    if (parsed.seo_intro && !seo) {
+                        setSeo(parsed.seo_intro);
                     }
                 } catch (e) {
                     // Not valid JSON yet, that's fine
@@ -252,6 +269,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                                     <option value="" disabled>Select lesson type...</option>
                                     <option value="worksheet">Worksheet (Standard)</option>
                                     <option value="information-gap">Information-Gap</option>
+                                    <option value="focused-reading">Focused Reading</option>
                                 </select>
                             </div>
                         </div>
@@ -377,7 +395,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                 </div>
 
                 <div className="mb-8 p-6 bg-blue-50/30 border border-blue-100 rounded-2xl">
-                    <label className="block text-sm font-black text-blue-900 mb-2 ml-1 uppercase tracking-wider flex items-center gap-2">
+                    <label className="text-sm font-black text-blue-900 mb-2 ml-1 uppercase tracking-wider flex items-center gap-2">
                         <Info className="w-4 h-4 text-blue-500" /> SEO Description / Snippet
                     </label>
                     <textarea
@@ -418,7 +436,9 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                             <a 
                                 href={lessonType === 'information-gap' 
                                     ? "https://gemini.google.com/gem/1bdsM9tYk1Qb4lcCsnPVOTK1FR_37HYnX?usp=sharing"
-                                    : "https://gemini.google.com/gem/1a183ceHi_da5ac9scUQ3AXs0A5-TcOtn?usp=sharing"
+                                    : lessonType === 'focused-reading'
+                                        ? "https://gemini.google.com/gem/1ZcCIp-jD0vhJk_nZziTbmGv0eVz-vfHV?usp=sharing" 
+                                        : "https://gemini.google.com/gem/1a183ceHi_da5ac9scUQ3AXs0A5-TcOtn?usp=sharing"
                                 }
                                 target="_blank" 
                                 rel="noopener noreferrer"
