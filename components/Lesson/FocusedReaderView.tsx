@@ -7,6 +7,7 @@ import { VoiceSelectorModal } from '../UI/VoiceSelectorModal';
 import { LessonFooter } from './LessonFooter';
 import { HelpCircle, ChevronRight, ChevronLeft, CheckCircle2, MessageSquare, XCircle } from 'lucide-react';
 import { Button } from '../UI/Button';
+import { Vocabulary } from '../Activities/Vocabulary';
 
 interface FocusedReaderViewProps {
   lesson: ParsedLesson & { content: FocusedReaderContent };
@@ -105,6 +106,7 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
     let maxOverallScore = 0;
 
     content.parts.forEach((part, pIdx) => {
+      // Questions score
       let partScore = 0;
       const partAnswers = answers.focusedReader?.[pIdx] || {};
       part.questions.forEach((q, qIdx) => {
@@ -113,12 +115,40 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
         }
       });
       pills.push({
-        label: `Part ${part.part_number}`,
+        label: `Part ${part.part_number} Questions`,
         score: partScore,
         total: part.questions.length
       });
       totalScore += partScore;
       maxOverallScore += part.questions.length;
+
+      // Vocabulary score (if there are vocabulary explanations)
+      const vocabExplanations = part.vocabulary_explanations || {};
+      const vocabCount = Object.keys(vocabExplanations).length;
+      if (vocabCount > 0) {
+        let vocabScore = 0;
+        const vocabAnswers = answers.vocabulary || {};
+        
+        Object.keys(vocabExplanations).forEach((word, index) => {
+          const answerKey = `vocab_${pIdx}_${index}`;
+          const userAnswer = vocabAnswers[answerKey] || '';
+          
+          // The Vocabulary component uses 0-based letters (a, b, c...) based on the definitions array
+          // In our dynamic transformation, we'll keep the order consistent
+          const correctChar = String.fromCharCode(97 + index);
+          if (userAnswer.toLowerCase() === correctChar) {
+            vocabScore++;
+          }
+        });
+
+        pills.push({
+          label: `Part ${part.part_number} Vocab`,
+          score: vocabScore,
+          total: vocabCount
+        });
+        totalScore += vocabScore;
+        maxOverallScore += vocabCount;
+      }
     });
 
     const now = new Date();
@@ -146,6 +176,17 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
     Object.entries(explanations).forEach(([key, value]) => {
       normalizedExplanations[key.normalize('NFC').toLowerCase()] = value;
     });
+
+    // For Thai, we pre-calculate word boundaries using Intl.Segmenter
+    const breakPositions = new Set<number>([0, normalizedText.length]);
+    if (lesson.language === 'Thai' && typeof (Intl as any).Segmenter === 'function') {
+      const segmenter = new (Intl as any).Segmenter('th', { granularity: 'word' });
+      const segments = Array.from(segmenter.segment(normalizedText));
+      segments.forEach((s: any) => {
+        breakPositions.add(s.index);
+        breakPositions.add(s.index + s.segment.length);
+      });
+    }
 
     const sortedKeys = Object.keys(normalizedExplanations).sort((a, b) => b.length - a.length);
     
@@ -215,11 +256,18 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
       const end = start + word.length;
 
       // Verify word boundaries
-      const charBefore = start > 0 ? normalizedText[start - 1] : '';
-      const charAfter = end < normalizedText.length ? normalizedText[end] : '';
-      
-      const isWordBoundaryBefore = !charBefore || !/[\p{L}\p{N}]/u.test(charBefore);
-      const isWordBoundaryAfter = !charAfter || !/[\p{L}\p{N}]/u.test(charAfter);
+      let isWordBoundaryBefore = false;
+      let isWordBoundaryAfter = false;
+
+      if (lesson.language === 'Thai' && breakPositions.size > 2) {
+        isWordBoundaryBefore = breakPositions.has(start);
+        isWordBoundaryAfter = breakPositions.has(end);
+      } else {
+        const charBefore = start > 0 ? normalizedText[start - 1] : '';
+        const charAfter = end < normalizedText.length ? normalizedText[end] : '';
+        isWordBoundaryBefore = !charBefore || !/[\p{L}\p{N}]/u.test(charBefore);
+        isWordBoundaryAfter = !charAfter || !/[\p{L}\p{N}]/u.test(charAfter);
+      }
 
       if (isWordBoundaryBefore && isWordBoundaryAfter) {
         // Add preceding text as clickable segments
@@ -228,21 +276,14 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
         }
 
         // Add highlighted vocabulary word
-        const explanation = normalizedExplanations[word.toLowerCase()];
         result.push(
-          <span key={`vocab-${start}`} className="relative group inline-block">
+          <span key={`vocab-${start}`} className="inline-block">
             <span 
               onClick={() => handleWordClick(word)}
               className="cursor-pointer font-bold text-green-700 border-b-2 border-dotted border-green-400 hover:bg-green-50 px-0.5 rounded transition-all"
             >
               {word}
             </span>
-            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-64 p-3 bg-white border border-green-100 text-gray-800 text-sm rounded-lg shadow-xl z-50 animate-fade-in pointer-events-none">
-              <p className="font-bold border-b border-green-100 pb-1 mb-1 text-green-700">{word}</p>
-              {explanation}
-              <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-white" />
-              <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-green-100 mt-px -z-10" />
-            </div>
           </span>
         );
         lastIndex = end;
@@ -321,12 +362,55 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
               {renderTextWithVocabulary(currentPart.text, currentPart.vocabulary_explanations)}
             </div>
             
-            <div className="mt-2 pt-2 border-t border-gray-100 flex items-center gap-2 text-green-600 font-bold italic">
+          <div className="mt-4 pt-4 border-t border-gray-100 flex items-center gap-2 text-green-600 font-bold italic">
               <HelpCircle className="w-5 h-5" />
-              <span>Hover over bold green words for explanations!</span>
+              <span>Highlight green words are in the vocabulary activity below!</span>
             </div>
           </div>
         </section>
+
+        {/* Vocabulary Section */}
+        {Object.keys(currentPart.vocabulary_explanations).length > 0 && (
+          <section className="animate-fade-in">
+            <Vocabulary 
+              data={{
+                items: Object.keys(currentPart.vocabulary_explanations).map((word, i) => ({
+                  label: word,
+                  answer: `def_${i}`
+                })),
+                definitions: Object.entries(currentPart.vocabulary_explanations).map(([word, def], i) => ({
+                  id: `def_${i}`,
+                  text: def
+                }))
+              }}
+              language={lesson.language}
+              onChange={(vAnswers) => {
+                setAnswers(prev => {
+                  const newVocab = { ...(prev.vocabulary || {}) };
+                  Object.entries(vAnswers).forEach(([key, val]) => {
+                    // Match the key format with part index to avoid collision
+                    const pIdxKey = key.replace('vocab_', `vocab_${currentPartIndex}_`);
+                    newVocab[pIdxKey] = val;
+                  });
+                  return { ...prev, vocabulary: newVocab };
+                });
+              }}
+              savedAnswers={(() => {
+                const partVocab: Record<string, string> = {};
+                Object.entries(answers.vocabulary || {}).forEach(([key, val]) => {
+                  if (key.startsWith(`vocab_${currentPartIndex}_`)) {
+                    const originalKey = key.replace(`vocab_${currentPartIndex}_`, 'vocab_');
+                    partVocab[originalKey] = val;
+                  }
+                });
+                return partVocab;
+              })()}
+              toggleTTS={toggleTTS}
+              ttsState={ttsState}
+              lessonId={`${lesson.id}-${currentPartIndex}`}
+            />
+          </section>
+        )}
 
         {/* Questions Section */}
         <section className="space-y-6 animate-fade-in" key={currentPartIndex}>
