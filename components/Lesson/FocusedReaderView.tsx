@@ -8,6 +8,7 @@ import { LessonFooter } from './LessonFooter';
 import { HelpCircle, ChevronRight, ChevronLeft, CheckCircle2, MessageSquare, XCircle } from 'lucide-react';
 import { Button } from '../UI/Button';
 import { Vocabulary } from '../Activities/Vocabulary';
+import { ReadingPassage } from '../Activities/ReadingPassage';
 
 interface FocusedReaderViewProps {
   lesson: ParsedLesson & { content: FocusedReaderContent };
@@ -93,12 +94,6 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
     });
   };
 
-  const handleWordClick = (word: string) => {
-    const cleanWord = word.replace(/^[.,!?;:"'()\[\]{}]+|[.,!?;:"'()\[\]{}]+$/g, '');
-    if (cleanWord) {
-      speakText(cleanWord, lesson.language, 0.7, selectedVoiceName);
-    }
-  };
 
   const calculateReportData = (): ReportData => {
     const pills: ReportScorePill[] = [];
@@ -167,136 +162,6 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
     };
   };
 
-  const renderTextWithVocabulary = (text: string, explanations: Record<string, string>) => {
-    if (!text) return null;
-
-    // Normalize to NFC to ensure consistent character representation
-    const normalizedText = text.normalize('NFC');
-    const normalizedExplanations: Record<string, string> = {};
-    Object.entries(explanations).forEach(([key, value]) => {
-      normalizedExplanations[key.normalize('NFC').toLowerCase()] = value;
-    });
-
-    // For Thai, we pre-calculate word boundaries using Intl.Segmenter
-    const breakPositions = new Set<number>([0, normalizedText.length]);
-    if (lesson.language === 'Thai' && typeof (Intl as any).Segmenter === 'function') {
-      const segmenter = new (Intl as any).Segmenter('th', { granularity: 'word' });
-      const segments = Array.from(segmenter.segment(normalizedText));
-      segments.forEach((s: any) => {
-        breakPositions.add(s.index);
-        breakPositions.add(s.index + s.segment.length);
-      });
-    }
-
-    const sortedKeys = Object.keys(normalizedExplanations).sort((a, b) => b.length - a.length);
-    
-    // Function to render clickable segments for regular text
-    const renderClickableSegments = (textSegment: string, segmentKeyPrefix: string) => {
-      // Use Intl.Segmenter for Thai to handle word boundaries without spaces
-      if (lesson.language === 'Thai' && typeof (Intl as any).Segmenter === 'function') {
-        const segmenter = new (Intl as any).Segmenter('th', { granularity: 'word' });
-        const segments = Array.from(segmenter.segment(textSegment));
-        
-        return segments.map((s: any, j: number) => {
-          if (!s.isWordLike) return <span key={`${segmentKeyPrefix}-th-${j}`}>{s.segment}</span>;
-          
-          return (
-            <span
-              key={`${segmentKeyPrefix}-th-${j}`}
-              onClick={() => handleWordClick(s.segment)}
-              className="cursor-pointer hover:text-green-600 hover:bg-green-50 rounded px-0.5 transition-colors"
-            >
-              {s.segment}
-            </span>
-          );
-        });
-      }
-
-      const wordsAndSpaces = textSegment.split(/(\s+)/);
-      return wordsAndSpaces.map((subPart, j) => {
-        if (/^\s+$/.test(subPart)) return subPart;
-        
-        // Split by punctuation for sub-segments
-        const subSegments = subPart.split(/([.,!?;:"'()\[\]{}]+)/).filter(Boolean);
-        return (
-          <React.Fragment key={`${segmentKeyPrefix}-${j}`}>
-            {subSegments.map((sub, k) => {
-              if (/^[.,!?;:"'()\[\]{}]+$/.test(sub)) {
-                return <span key={k}>{sub}</span>;
-              }
-              return (
-                <span
-                  key={k}
-                  onClick={() => handleWordClick(sub)}
-                  className="cursor-pointer hover:text-green-600 hover:bg-green-50 rounded px-0.5 transition-colors"
-                >
-                  {sub}
-                </span>
-              );
-            })}
-          </React.Fragment>
-        );
-      });
-    };
-
-    if (sortedKeys.length === 0) return renderClickableSegments(normalizedText, "plain");
-
-    // Create regex for vocabulary words
-    const escapedKeys = sortedKeys.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
-    const regex = new RegExp(`(${escapedKeys})`, 'gui');
-
-    const result: (string | React.ReactNode | (string | React.ReactNode | React.ReactNode[])[])[] = [];
-    let lastIndex = 0;
-    
-    // Manual iteration with exec to handle boundaries and duplicates correctly
-    let match;
-    while ((match = regex.exec(normalizedText)) !== null) {
-      const start = match.index;
-      const word = match[0];
-      const end = start + word.length;
-
-      // Verify word boundaries
-      let isWordBoundaryBefore = false;
-      let isWordBoundaryAfter = false;
-
-      if (lesson.language === 'Thai' && breakPositions.size > 2) {
-        isWordBoundaryBefore = breakPositions.has(start);
-        isWordBoundaryAfter = breakPositions.has(end);
-      } else {
-        const charBefore = start > 0 ? normalizedText[start - 1] : '';
-        const charAfter = end < normalizedText.length ? normalizedText[end] : '';
-        isWordBoundaryBefore = !charBefore || !/[\p{L}\p{N}]/u.test(charBefore);
-        isWordBoundaryAfter = !charAfter || !/[\p{L}\p{N}]/u.test(charAfter);
-      }
-
-      if (isWordBoundaryBefore && isWordBoundaryAfter) {
-        // Add preceding text as clickable segments
-        if (start > lastIndex) {
-          result.push(renderClickableSegments(normalizedText.substring(lastIndex, start), `text-${start}`));
-        }
-
-        // Add highlighted vocabulary word
-        result.push(
-          <span key={`vocab-${start}`} className="inline-block">
-            <span 
-              onClick={() => handleWordClick(word)}
-              className="cursor-pointer font-bold text-green-700 border-b-2 border-dotted border-green-400 hover:bg-green-50 px-0.5 rounded transition-all"
-            >
-              {word}
-            </span>
-          </span>
-        );
-        lastIndex = end;
-      }
-    }
-
-    // Add remaining text as clickable segments
-    if (lastIndex < normalizedText.length) {
-      result.push(renderClickableSegments(normalizedText.substring(lastIndex), `final`));
-    }
-
-    return result;
-  };
 
   return (
     <GenericLessonLayout
@@ -336,38 +201,20 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
           ))}
         </div>
 
-        {/* Reading Section */}
-        <section 
-          className="bg-transparent sm:bg-white rounded-none sm:rounded-xl shadow-none sm:shadow-sm border-none sm:border sm:border-green-100 animate-slide-up"
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-        >
-          <div className="bg-white border-b border-green-100 p-4 flex justify-between items-center text-green-900 sm:rounded-t-xl">
-            <h2 className="text-xl font-black uppercase tracking-widest">Part {currentPart.part_number}</h2>
-            
-            <div className="flex gap-2">
-              <AudioControls 
-                onVoiceOpen={availableVoices.length > 0 ? () => setIsVoiceModalOpen(true) : undefined}
-                onSlowToggle={() => toggleTTS(0.6, currentPart.text)}
-                onListenToggle={() => toggleTTS(1.0, currentPart.text)}
-                ttsStatus={ttsState.status}
-                currentRate={ttsState.rate}
-                hasVoices={availableVoices.length > 0}
-              />
-            </div>
-          </div>
-
-          <div className="p-1 mx-1 sm:p-4">
-            <div className="prose max-w-none text-lg leading-relaxed text-gray-800 select-none">
-              {renderTextWithVocabulary(currentPart.text, currentPart.vocabulary_explanations)}
-            </div>
-            
-          <div className="mt-4 pt-4 border-t border-gray-100 flex items-center gap-2 text-green-600 font-bold italic">
-              <HelpCircle className="w-5 h-5" />
-              <span>Highlight green words are in the vocabulary activity below!</span>
-            </div>
-          </div>
-        </section>
+        <ReadingPassage
+          text={currentPart.text}
+          language={lesson.language}
+          title={`Part ${currentPart.part_number}`}
+          vocabularyExplanations={currentPart.vocabulary_explanations}
+          onSlowToggle={() => toggleTTS(0.6, currentPart.text)}
+          onListenToggle={() => toggleTTS(1.0, currentPart.text)}
+          ttsStatus={ttsState.status}
+          currentRate={ttsState.rate}
+          hasVoices={availableVoices.length > 0}
+          onVoiceOpen={availableVoices.length > 0 ? () => setIsVoiceModalOpen(true) : undefined}
+          showHighlightHelp={true}
+          className="animate-slide-up"
+        />
 
         {/* Vocabulary Section */}
         {Object.keys(currentPart.vocabulary_explanations).length > 0 && (

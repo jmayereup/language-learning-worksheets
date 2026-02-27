@@ -8,6 +8,7 @@ import { Vocabulary } from '../Activities/Vocabulary';
 import { FillInBlanks } from '../Activities/FillInBlanks';
 import { Comprehension } from '../Activities/Comprehension';
 import { Scrambled } from '../Activities/Scrambled';
+import { ReadingPassage } from '../Activities/ReadingPassage';
 import { VoiceSelectorModal } from '../UI/VoiceSelectorModal';
 import { AudioControls } from '../UI/AudioControls';
 import { TranslateButton } from '../UI/TranslateButton';
@@ -106,12 +107,6 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
     }
   };
 
-  const handleWordClick = (word: string) => {
-    const cleanWord = word.replace(/^[.,!?;:"'()\[\]{}]+|[.,!?;:"'()\[\]{}]+$/g, '');
-    if (cleanWord) {
-      speakText(cleanWord, lesson.language, 0.7, selectedVoiceName);
-    }
-  };
 
   const calculateReportData = (): ReportData => {
     const pills: ReportScorePill[] = [];
@@ -212,33 +207,6 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
     );
   };
 
-  const renderReadingPassage = (text: string) => {
-    if (!text) return null;
-    const segments = text.split(/(\s+)/);
-    return segments.map((segment, i) => {
-      if (/^\s+$/.test(segment)) return segment;
-      const subSegments = segment.split(/([.,!?;:"'()\[\]{}]+)/).filter(Boolean);
-      return (
-        <React.Fragment key={i}>
-          {subSegments.map((sub, j) => {
-            if (/^[.,!?;:"'()\[\]{}]+$/.test(sub)) {
-              return <span key={j}>{sub}</span>;
-            }
-            return (
-              <span
-                key={j}
-                onClick={() => handleWordClick(sub)}
-                className="cursor-pointer hover:text-green-600 hover:bg-green-100/50 rounded transition-colors"
-                title="Click to hear pronunciation"
-              >
-                {sub}
-              </span>
-            );
-          })}
-        </React.Fragment>
-      );
-    });
-  };
 
 
   const printVocabItems = useMemo(() =>
@@ -272,13 +240,9 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
       showBack={false}
     >
       {/* Media Section */}
-      <section className="bg-white p-2 rounded-xl sm:shadow-sm sm:border sm:border-green-100 mb-4">
-        <div translate="no">
-          <h2 className="text-xl font-bold text-green-900 mb-4">Reading Passage</h2>
-        </div>
-
+      <div className="max-w-4xl mx-auto space-y-6 mb-6">
         {lesson.isVideoLesson && lesson.videoUrl && (
-          <div className="relative pt-[56.25%] mb-6 rounded-lg overflow-hidden bg-black shadow-md">
+          <div className="relative pt-[56.25%] rounded-2xl overflow-hidden bg-black shadow-lg border border-green-100 animate-fade-in group">
             <iframe
               className="absolute top-0 left-0 w-full h-full"
               src={lesson.videoUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
@@ -288,50 +252,42 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
         )}
 
         {lesson.imageUrl && (
-          <div className="w-full flex justify-center mb-6">
+          <div className="w-full flex justify-center">
             <img
               src={lesson.imageUrl}
               alt="Lesson topic"
-              className="w-full h-auto max-h-[500px] object-contain rounded-lg shadow-sm"
+              className="w-full h-auto max-h-[500px] object-contain rounded-2xl shadow-lg bg-white p-4 border border-green-100 animate-fade-in"
             />
           </div>
         )}
+      </div>
 
-        {/* Unified Audio Controls */}
-        <div className="flex justify-center sm:justify-end mb-4 gap-2">
-          <TranslateButton onClick={handleTranslate} />
-          <AudioControls 
-            onVoiceOpen={availableVoices.length > 0 ? () => setIsVoiceModalOpen(true) : undefined}
-            onSlowToggle={() => toggleTTS(0.6)}
-            onListenToggle={() => toggleTTS(1.0)}
-            ttsStatus={ttsState.status}
-            currentRate={ttsState.rate}
-            hasVoices={availableVoices.length > 0}
-          />
+      <ReadingPassage
+        text={standardContent.readingText}
+        language={lesson.language}
+        onSlowToggle={() => toggleTTS(0.6)}
+        onListenToggle={() => toggleTTS(1.0)}
+        ttsStatus={ttsState.status}
+        currentRate={ttsState.rate}
+        hasVoices={availableVoices.length > 0}
+        onVoiceOpen={availableVoices.length > 0 ? () => setIsVoiceModalOpen(true) : undefined}
+        onTranslate={handleTranslate}
+        passageRef={passageRef}
+      />
 
-          {availableVoices.length > 0 && (
-            <VoiceSelectorModal
-              isOpen={isVoiceModalOpen}
-              onClose={() => setIsVoiceModalOpen(false)}
-              voices={availableVoices}
-              selectedVoiceName={selectedVoiceName}
-              onSelectVoice={setSelectedVoiceName}
-              language={lesson.language}
-              hasRecordedAudio={!!lesson.audioFileUrl}
-              audioPreference={audioPreference}
-              onSelectPreference={setAudioPreference}
-            />
-          )}
-        </div>
-
-        <div
-          ref={passageRef}
-          className="prose max-w-none text-lg leading-relaxed text-gray-800 bg-transparent p-0 sm:bg-gray-50 sm:p-6 rounded-lg sm:border sm:border-gray-100"
-          translate="no"
-        >
-          {renderReadingPassage(standardContent.readingText)}
-        </div>
-      </section>
+      {availableVoices.length > 0 && (
+        <VoiceSelectorModal
+          isOpen={isVoiceModalOpen}
+          onClose={() => setIsVoiceModalOpen(false)}
+          voices={availableVoices}
+          selectedVoiceName={selectedVoiceName}
+          onSelectVoice={setSelectedVoiceName}
+          language={lesson.language}
+          hasRecordedAudio={!!lesson.audioFileUrl}
+          audioPreference={audioPreference}
+          onSelectPreference={setAudioPreference}
+        />
+      )}
 
       {/* Activities Section */}
       <div className="space-y-8 pb-4">
