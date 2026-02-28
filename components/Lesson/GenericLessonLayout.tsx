@@ -21,9 +21,9 @@ export const GenericLessonLayout: React.FC<GenericLessonLayoutProps> = ({
   displayTitle,
   children}) => {
   return (
-    <div className="bg-white max-w-4xl mx-auto pb-8 px-1 py-4 sm:px-6">
+    <div className="bg-white max-w-4xl mx-auto pb-4 px-1 py-4 sm:px-6">
       {/* Page Title - Unified with the design of other views */}
-      <div className="mb-8 text-center print:hidden">
+      <div className="mb-4 text-center print:hidden">
         <h1 className="text-3xl md:text-4xl font-black text-green-900 mb-2 tracking-tight">
           {displayTitle}
         </h1>
