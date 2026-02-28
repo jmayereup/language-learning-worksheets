@@ -130,8 +130,8 @@ export const FillInBlanks: React.FC<Props> = ({
             const isSelected = selectedWord === word;
 
             let colorClass = isSelected
-              ? "bg-green-600 text-white border-green-600 shadow-lg ring-4 ring-green-100 scale-105"
-              : (isUsed ? "bg-gray-100 text-gray-400 border-gray-200" : "bg-white text-gray-700 border-gray-200 hover:border-green-300 hover:bg-green-50");
+              ? "tj-state-selected text-indigo-900 scale-105"
+              : (isUsed ? "tj-state-matched" : "bg-white text-gray-700 border-gray-200 hover:border-indigo-300 hover:bg-indigo-50");
 
             return (
               <button
@@ -162,9 +162,9 @@ export const FillInBlanks: React.FC<Props> = ({
               ? " border-green-500 bg-green-50 text-green-700"
               : " border-red-500 bg-red-50 text-red-700";
           } else if (userAnswer) {
-            slotClass += " border-green-400 bg-green-50/50 text-green-900";
+            slotClass += " tj-state-selected text-indigo-900 ring-0";
           } else if (isSlotActive) {
-            slotClass += " border-green-300 bg-green-50 ring-4 ring-green-100 animate-pulse";
+            slotClass += " tj-state-selected animate-pulse";
           } else {
             slotClass += " border-gray-200 bg-gray-50/30 text-transparent";
           }
@@ -212,7 +212,7 @@ export const FillInBlanks: React.FC<Props> = ({
       {/* Selection Bar */}
       {selectedWord && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-bounce-in">
-          <div className="bg-green-600 text-white px-4 py-2 rounded-2xl shadow-2xl flex items-center gap-3 border-4 border-white ring-8 ring-green-600/20">
+          <div className="bg-indigo-600 text-white px-4 py-2 rounded-2xl shadow-2xl flex items-center gap-3 border-4 border-white ring-8 ring-indigo-600/20">
             <span className="text-lg font-black" translate="no">{selectedWord}</span>
             <button
               onClick={() => setSelectedWord(null)}

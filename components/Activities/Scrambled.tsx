@@ -193,7 +193,7 @@ export const Scrambled: React.FC<Props> = ({
                     onClick={() => setActivityMode('scramble')}
                     className={`px-3 py-1 text-sm font-medium rounded-md transition-all ${
                       activityMode === 'scramble'
-                        ? 'bg-white text-green-700 shadow-sm'
+                        ? 'bg-white text-indigo-700 shadow-sm'
                         : 'text-gray-500 hover:text-gray-700'
                     }`}
                   >
@@ -203,7 +203,7 @@ export const Scrambled: React.FC<Props> = ({
                     onClick={() => setActivityMode('dictation')}
                     className={`px-3 py-1 text-sm font-medium rounded-md transition-all ${
                       activityMode === 'dictation'
-                        ? 'bg-white text-green-700 shadow-sm'
+                        ? 'bg-white text-indigo-700 shadow-sm'
                         : 'text-gray-500 hover:text-gray-700'
                     }`}
                   >
@@ -248,7 +248,7 @@ export const Scrambled: React.FC<Props> = ({
           min-h-[80px] p-4 rounded-lg mb-6 border-2 flex flex-wrap gap-2 items-center transition-colors
           ${isChecked
             ? (isCorrect ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50')
-            : 'border-dashed border-green-300 bg-green-50/30'
+            : 'border-dashed border-indigo-300 bg-indigo-50/30'
           }
         `}>
           {activityMode === 'scramble' ? (
@@ -261,7 +261,7 @@ export const Scrambled: React.FC<Props> = ({
                     key={word.id}
                     onClick={() => moveWordToBank(word.id)}
                     disabled={isCorrectState}
-                    className="bg-white text-green-800 px-3 py-2 rounded shadow-sm border border-green-200 font-medium hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-colors animate-pop-in text-lg"
+                    className="bg-white text-indigo-800 px-3 py-2 rounded shadow-sm border border-indigo-200 font-medium hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-colors animate-pop-in text-lg"
                   >
                     {word.text}
                   </button>
@@ -300,7 +300,7 @@ export const Scrambled: React.FC<Props> = ({
               <button
                 key={word.id}
                 onClick={() => moveWordToSentence(word.id)}
-                className="bg-white text-green-800 px-4 py-2 rounded-lg shadow-sm border border-green-200 font-medium hover:bg-green-50 hover:border-green-300 hover:scale-105 transition-all text-lg"
+                className="bg-white text-indigo-800 px-4 py-2 rounded-lg shadow-sm border border-indigo-200 font-medium hover:bg-indigo-50 hover:border-indigo-300 hover:scale-105 transition-all text-lg"
               >
                 {word.text}
               </button>

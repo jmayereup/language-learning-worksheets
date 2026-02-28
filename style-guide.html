@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TJ Components - Style Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Design Tokens */
+            --tj-primary-color: #2563eb;
+            --tj-primary-hover: #1d4ed8;
+            --tj-primary-light: #eff6ff;
+            --tj-primary-border: #bfdbfe;
+
+            --tj-success-color: #22c55e;
+            --tj-success-light: #f0fdf4;
+
+            --tj-selection-color: #a7a3f0;
+            --tj-selection-light: #eef2ff;
+            --tj-selection-border: #c7d2fe;
+
+            --tj-error-color: #ef4444;
+            --tj-error-light: #fef2f2;
+
+            --tj-text-main: #1e293b;
+            --tj-text-muted: #64748b;
+            --tj-bg-main: #f8fafc; /* Using slate-50 equivalent for ghostwhite */
+            --tj-bg-card: rgba(255, 255, 255, 0.95);
+            --tj-bg-alt: #f8fafc;
+            --tj-border-main: #e2e8f0;
+
+            --tj-border-radius-sm: 0.125rem;
+            --tj-border-radius-md: 0.375rem;
+            --tj-border-radius-lg: 0.5rem;
+            --tj-border-radius-full: 9999px;
+
+            --tj-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --tj-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --tj-shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+
+            --tj-transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+            --tj-transition-normal: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--tj-bg-main);
+            color: var(--tj-text-main);
+            scroll-behavior: smooth;
+        }
+
+        /* Shared Utility Classes */
+        .tj-card {
+            background: var(--tj-bg-card);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--tj-border-main);
+            border-radius: var(--tj-border-radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--tj-shadow-glass);
+            transition: transform var(--tj-transition-normal), box-shadow var(--tj-transition-normal);
+        }
+
+        .tj-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.1);
+        }
+
+        .tj-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1rem;
+            font-weight: 600;
+            border-radius: var(--tj-border-radius-md);
+            transition: all var(--tj-transition-fast);
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+
+        .tj-btn:active {
+            transform: scale(0.98);
+        }
+
+        .tj-btn-primary {
+            background-color: var(--tj-primary-color);
+            color: white;
+        }
+
+        .tj-btn-primary:hover {
+            background-color: var(--tj-primary-hover);
+        }
+
+        .tj-btn-secondary {
+            background-color: transparent;
+            border-color: var(--tj-border-main);
+            color: var(--tj-text-main);
+        }
+
+        .tj-btn-secondary:hover {
+            background-color: var(--tj-bg-alt);
+            border-color: var(--tj-text-muted);
+        }
+
+        .tj-btn-success {
+            background-color: var(--tj-success-color);
+            color: white;
+        }
+
+        .tj-btn-error {
+            background-color: var(--tj-error-color);
+            color: white;
+        }
+
+        .tj-icon-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: var(--tj-border-radius-full);
+            background-color: white;
+            border: 1px solid var(--tj-border-main);
+            color: var(--tj-text-main);
+            transition: all var(--tj-transition-fast);
+        }
+
+        .tj-icon-btn:hover {
+            background-color: var(--tj-bg-alt);
+            transform: rotate(5deg) scale(1.1);
+        }
+
+        .tj-input {
+            width: 100%;
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--tj-border-main);
+            border-radius: var(--tj-border-radius-md);
+            background-color: white;
+            transition: border-color var(--tj-transition-fast), ring var(--tj-transition-fast);
+        }
+
+        .tj-input:focus {
+            outline: none;
+            border-color: var(--tj-primary-color);
+            box-shadow: 0 0 0 3px var(--tj-primary-border);
+        }
+
+        .tj-divider {
+            position: relative;
+            height: 1px;
+            background: repeating-linear-gradient(to right, var(--tj-border-main) 0, var(--tj-border-main) 5px, transparent 5px, transparent 10px);
+            margin: 2rem 0;
+            border: none;
+        }
+
+        .tj-divider[data-label]::after {
+            content: attr(data-label);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--tj-bg-main);
+            padding: 0 1rem;
+            color: var(--tj-text-muted);
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .tj-sticky-bar {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--tj-border-main);
+            padding: 1rem;
+        }
+
+        /* Activity Demo Styles */
+        .activity-title {
+            font-size: 1.25rem;
+            font-weight: 900;
+            color: #064e3b; /* text-green-900 */
+            text-transform: uppercase;
+            letter-spacing: -0.025em;
+        }
+
+        .activity-instructions {
+            color: var(--tj-text-muted);
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .status-pill {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-weight: 700;
+            font-size: 0.875rem;
+            background-color: var(--tj-success-light);
+            color: #15803d; /* text-green-700 */
+        }
+
+        /* Code Block Styling */
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            overflow-x: auto;
+            margin-top: 1rem;
+        }
+
+        .token-swatch {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 0.5rem;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+
+        /* Animation Classes */
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 animate-fade-in">
+
+    <header class="max-w-4xl mx-auto mb-12">
+        <h1 class="text-4xl md:text-5xl font-black tracking-tighter mb-4">
+            Style <span class="text-blue-600">Guide</span>
+        </h1>
+        <p class="text-lg text-slate-500 max-w-2xl">
+            A premium, living documentation for the TJ Components library. Built with Tailwind and shared CSS variables.
+        </p>
+    </header>
+
+    <main class="max-w-4xl mx-auto space-y-16">
+
+        <!-- Design Tokens Section -->
+        <section id="tokens">
+            <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
+                <span class="w-8 h-1 bg-blue-600 rounded-full"></span>
+                Design Tokens
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Colors -->
+                <div class="space-y-4">
+                    <h3 class="font-semibold text-slate-400 uppercase text-xs tracking-widest">Color Palette</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="flex items-center gap-3">
+                            <div class="token-swatch" style="background-color: var(--tj-primary-color);"></div>
+                            <div>
+                                <p class="text-sm font-bold">Primary</p>
+                                <p class="text-xs text-slate-400">#2563eb</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="token-swatch" style="background-color: var(--tj-success-color);"></div>
+                            <div>
+                                <p class="text-sm font-bold">Success</p>
+                                <p class="text-xs text-slate-400">#22c55e</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="token-swatch" style="background-color: var(--tj-error-color);"></div>
+                            <div>
+                                <p class="text-sm font-bold">Error</p>
+                                <p class="text-xs text-slate-400">#ef4444</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="token-swatch" style="background-color: var(--tj-selection-color);"></div>
+                            <div>
+                                <p class="text-sm font-bold">Selection</p>
+                                <p class="text-xs text-slate-400">#4f46e5</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="token-swatch" style="background-color: var(--tj-text-main);"></div>
+                            <div>
+                                <p class="text-sm font-bold">Main Text</p>
+                                <p class="text-xs text-slate-400">#1e293b</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shadows & Radii -->
+                <div class="space-y-4">
+                    <h3 class="font-semibold text-slate-400 uppercase text-xs tracking-widest">Layout & Sizing</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center p-3 bg-white border border-slate-100 rounded-lg">
+                            <span class="text-sm font-medium">Border Radius (LG)</span>
+                            <span class="text-xs font-mono text-slate-400">0.5rem</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-white border border-slate-100 rounded-lg shadow-sm">
+                            <span class="text-sm font-medium">Shadow (SM)</span>
+                            <span class="text-xs font-mono text-slate-400">Low Elevation</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <hr class="tj-divider" data-label="Utility Classes">
+
+        <!-- Utility Classes Section -->
+        <section id="utilities" class="space-y-8">
+            <h2 class="text-2xl font-bold mb-6">Shared Utility Classes</h2>
+
+            <!-- Cards -->
+            <div class="space-y-4">
+                <h3 class="font-bold text-lg">.tj-card</h3>
+                <p class="text-slate-600 text-sm">Standard container with glassmorphism and subtle elevation.</p>
+                <div class="tj-card max-w-lg">
+                    <h4 class="font-bold mb-2">Card Title</h4>
+                    <p class="text-slate-500 text-sm">This is an example of a .tj-card. It has a beautiful hover effect and blur backdrop.</p>
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="space-y-4">
+                <h3 class="font-bold text-lg">Buttons</h3>
+                <div class="flex flex-wrap gap-4 items-center">
+                    <button class="tj-btn tj-btn-primary">Primary Action</button>
+                    <button class="tj-btn tj-btn-secondary">Secondary</button>
+                    <button class="tj-btn tj-btn-success">Complete</button>
+                    <button class="tj-btn tj-btn-error">Remove</button>
+                    <button class="tj-icon-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Form Elements -->
+            <div class="space-y-4">
+                <h3 class="font-bold text-lg">Form Elements</h3>
+                <div class="max-w-xs space-y-4">
+                    <input type="text" class="tj-input" placeholder="Enter your answer...">
+                </div>
+            </div>
+        </section>
+
+        <hr class="tj-divider" data-label="Activity Patterns">
+
+        <!-- Component Patterns Section -->
+        <section id="patterns" class="space-y-8">
+            <h2 class="text-2xl font-bold mb-6">Activity Component Pattern</h2>
+            <p class="text-slate-600">Standard structure for all worksheet activities.</p>
+
+            <!-- Activity Demo Container -->
+            <div class="bg-white p-4 md:p-8 rounded-4xl border border-slate-100 shadow-2xl space-y-6">
+                
+                <!-- Mock Collapsible Header -->
+                <div class="flex justify-between items-center border-b border-slate-100 pb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">1</div>
+                        <h3 class="text-xl font-bold">Vocabulary Match</h3>
+                    </div>
+                    <span class="status-pill">85% SCORE</span>
+                </div>
+
+                <!-- Activity Card Content -->
+                <section class="bg-white p-4 sm:p-6 rounded-xl sm:shadow-sm sm:border sm:border-gray-100 relative group transition-all hover:border-gray-200">
+                    <div class="absolute -top-3 left-4 bg-indigo-600 text-white text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-widest">Selection Active</div>
+                    
+                    <h3 class="activity-title mb-1 text-indigo-900">Definitions</h3>
+                    <p class="activity-instructions">Match the following words with their correct definitions.</p>
+
+                    <div class="space-y-3">
+                        <!-- Selection State -->
+                        <div class="flex items-center gap-4 p-3 rounded-lg tj-state-selected">
+                            <div class="tj-indicator tj-indicator-selected"></div>
+                            <span class="text-sm font-bold text-indigo-900">Ephemeral</span>
+                            <span class="text-indigo-400 text-xs grow text-right font-medium">Click a definition to match...</span>
+                        </div>
+
+                        <!-- Matched State (Neutral) -->
+                        <div class="flex items-center gap-4 p-3 rounded-lg tj-state-matched">
+                            <div class="tj-indicator tj-indicator-matched"></div>
+                            <span class="text-sm font-medium text-gray-400 line-through">Luminous</span>
+                            <span class="text-gray-400 text-xs grow text-right italic">Matched</span>
+                        </div>
+
+                        <!-- Feedback State (Success) -->
+                        <div class="flex items-center gap-4 p-3 rounded-lg tj-state-success">
+                            <div class="tj-indicator tj-indicator-success"></div>
+                            <span class="text-sm font-bold text-green-900">Vibrant</span>
+                            <span class="text-green-700 text-xs grow text-right font-bold">✓ Correct</span>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="flex justify-end gap-3 mt-4">
+                    <button class="tj-btn tj-btn-secondary">Reset</button>
+                    <button class="tj-btn tj-btn-primary px-8">Submit Final Answer</button>
+                </div>
+            </div>
+
+            <!-- Mobile Pattern Demo -->
+            <div class="space-y-4">
+                <h3 class="font-bold text-lg">Mobile "Edge-to-Edge" Pattern</h3>
+                <p class="text-slate-600 text-sm">On small screens, cards lose padding, borders, and rounded corners to maximize content area.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Mobile Simulation -->
+                    <div class="w-[320px] mx-auto border-8 border-slate-900 rounded-4xl h-[400px] overflow-hidden bg-white">
+                        <div class="tj-sticky-bar py-2 px-4 flex justify-between items-center">
+                            <span class="font-bold text-xs">Activity</span>
+                            <span class="text-[10px] text-slate-400">Page 1/4</span>
+                        </div>
+                        <div class="p-4 bg-transparent">
+                             <div class="bg-transparent border-none rounded-none p-0">
+                                <h3 class="font-black text-green-900 uppercase tracking-tight text-lg mb-2">Questions</h3>
+                                <p class="text-xs text-slate-500 mb-4">Edge-to-edge content on mobile.</p>
+                                <div class="space-y-2">
+                                    <div class="p-3 bg-slate-50 border-b border-slate-100">Item 1</div>
+                                    <div class="p-3 bg-slate-50 border-b border-slate-100">Item 2</div>
+                                </div>
+                             </div>
+                        </div>
+                    </div>
+                    <!-- Desktop Simulation -->
+                    <div class="hidden md:block bg-slate-100 rounded-xl p-8 flex items-center justify-center">
+                        <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-100 w-full">
+                            <h3 class="font-black text-green-900 uppercase tracking-tight text-xl">Questions</h3>
+                            <p class="text-gray-500 mb-4 text-sm font-medium">Card layout on desktop.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Code Implementation section -->
+        <section id="code">
+             <h2 class="text-2xl font-bold mb-6">Quick Code Reference</h2>
+             <div class="space-y-4">
+                <div>
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Tailwind Config (Approx.)</span>
+                    <pre><code>module.exports = {
+  theme: {
+    extend: {
+      colors: {
+        'tj-blue': '#2563eb',
+        'tj-green': '#22c55e',
+      },
+      borderRadius: {
+        'tj': '0.5rem',
+      }
+    }
+  }
+}</code></pre>
+                </div>
+             </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-4xl mx-auto mt-24 py-12 border-t border-slate-100 text-center text-slate-400 text-sm">
+        <p>Built for TJ Language Learning Platform &bull; 2026</p>
+    </footer>
+
+</body>
+</html>
