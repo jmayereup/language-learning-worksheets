@@ -4,33 +4,6 @@
     --animate-fade-in: fade-in 0.3s ease-out;
     --animate-scale-in: scale-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 
-    --color-tj-primary: #2563eb;
-    --color-tj-primary-hover: #1d4ed8;
-    --color-tj-primary-light: #eff6ff;
-    --color-tj-primary-border: #bfdbfe;
-
-    --color-tj-success: #22c55e;
-    --color-tj-success-light: #f0fdf4;
-
-    --color-tj-selection: #a7a3f0;
-    --color-tj-selection-light: #eef2ff;
-    --color-tj-selection-border: #c7d2fe;
-
-    --color-tj-error: #ef4444;
-    --color-tj-error-light: #fef2f2;
-
-    --color-tj-text-main: #1e293b;
-    --color-tj-text-muted: #64748b;
-
-    --color-tj-bg-main: #f8fafc;
-    --color-tj-bg-card: rgba(255, 255, 255, 0.95);
-
-    --radius-tj-sm: 0.125rem;
-    --radius-tj-md: 0.375rem;
-    --radius-tj-lg: 0.5rem;
-
-    --shadow-tj-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
-
     @keyframes fade-in {
         from {
             opacity: 0;
@@ -55,38 +28,6 @@
 }
 
 @layer utilities {
-    .tj-card {
-        @apply bg-tj-bg-card backdrop-blur-sm border border-gray-200 rounded-tj-lg p-6 shadow-tj-glass transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg;
-    }
-
-    .tj-state-selected {
-        @apply border-2 border-tj-selection bg-tj-selection-light ring-4 ring-tj-selection/20;
-    }
-
-    .tj-state-matched {
-        @apply border border-dashed border-gray-200 bg-slate-50 opacity-60;
-    }
-
-    .tj-state-success {
-        @apply border-2 border-green-500 bg-green-50;
-    }
-
-    .tj-indicator {
-        @apply w-4 h-4 rounded-full border-2;
-    }
-
-    .tj-indicator-selected {
-        @apply border-tj-selection bg-tj-selection;
-    }
-
-    .tj-indicator-matched {
-        @apply border-gray-300;
-    }
-
-    .tj-indicator-success {
-        @apply border-green-500 bg-green-500;
-    }
-
     .custom-scrollbar::-webkit-scrollbar {
         width: 6px;
     }

@@ -132,7 +132,7 @@ export const InformationGapQuestions: React.FC<InformationGapQuestionsProps> = (
 
       <div className="grid grid-cols-1 gap-4 mb-2">
         {currentQuestion.options.map((option, i) => {
-          let optionStyles = "bg-gray-50 border-2 border-gray-100 text-gray-700 hover:border-indigo-300 hover:bg-indigo-50";
+          let optionStyles = "bg-gray-50 border-2 border-gray-100 text-gray-700 hover:border-green-300 hover:bg-green-50";
           if (showFeedback) {
             if (option === currentQuestion.correct_answer) {
               optionStyles = "bg-green-100 border-2 border-green-500 text-green-900 font-bold";
