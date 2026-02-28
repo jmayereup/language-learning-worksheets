@@ -113,7 +113,7 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
   const displayTitle = lesson.title || (isStandard ? (lesson.content as StandardLessonContent).title : (isFocused ? (lesson.content as FocusedReaderContent).title : (lesson.content as InformationGapContent).topic)) || 'Lesson';
 
   return (
-    <div className="bg-white max-w-4xl mx-auto pb-4 px-1 py-4 sm:px-6">
+    <div className="bg-white max-w-4xl mx-auto pb-4 px-1 py-4 sm:px-6 tj-printable-worksheet">
       {/* Page Title - Unified Layout */}
       <div className="mb-4 text-center print:hidden">
         <h1 className="text-3xl md:text-4xl font-black text-green-900 mb-2 tracking-tight">

@@ -31,4 +31,20 @@
         padding: 0;
         background: white;
     }
+
+    /* Universal Print Solo: Hide everything except the worksheet and its container hierarchy */
+    /* This ensures that only the worksheet content is visible when printing, even if deep-embedded. */
+    @supports (selector(:has(*))) {
+        :root:has(.tj-printable-worksheet) body *:not(:has(.tj-printable-worksheet)):not(.tj-printable-worksheet):not(.tj-printable-worksheet *) {
+            display: none !important;
+        }
+
+        /* Ensure the printable container itself is visible and occupies full space */
+        .tj-printable-worksheet {
+            display: block !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+    }
 }
