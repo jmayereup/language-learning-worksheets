@@ -71,6 +71,8 @@ export const shouldShowAudioControls = (): boolean => {
   // 1. Block known in-app browsers and WebViews
   if (ua.includes("wv") || ua.includes("webview") ||
     ua.includes("instagram") || ua.includes("facebook") ||
+    ua.includes("messenger") || ua.includes("fb_iab") ||
+    ua.includes("fban") || ua.includes("fbav") ||
     ua.includes("line")) {
     return false;
   }

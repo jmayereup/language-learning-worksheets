@@ -9,6 +9,8 @@ export const BrowserSupportWarning: React.FC = () => {
             const ua = navigator.userAgent.toLowerCase();
             const isInApp = ua.includes("wv") || ua.includes("webview") ||
                 ua.includes("instagram") || ua.includes("facebook") ||
+                ua.includes("messenger") || ua.includes("fb_iab") ||
+                ua.includes("fban") || ua.includes("fbav") ||
                 ua.includes("line");
 
             const hasSpeech = 'speechSynthesis' in window;
