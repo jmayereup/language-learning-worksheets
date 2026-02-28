@@ -24,7 +24,6 @@ export default defineConfig(({ mode }) => {
         }
       },
       build: process.env.VITE_WC ? {
-        target: 'es2015',
         outDir: 'dist/wc',
         emptyOutDir: false,
         lib: {
@@ -33,7 +32,6 @@ export default defineConfig(({ mode }) => {
           fileName: (format) => `tj-pocketbase-worksheet.${format}.js`
         }
       } : {
-        target: 'es2015',
         outDir: 'dist',
         emptyOutDir: true
       }
