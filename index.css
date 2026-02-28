@@ -45,6 +45,20 @@
             width: 100% !important;
             margin: 0 !important;
             padding: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+            background: transparent !important;
+        }
+
+        /* Strip backgrounds and borders from all ancestors to ensure true isolation */
+        :root:has(.tj-printable-worksheet) body :has(.tj-printable-worksheet) {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            max-width: none !important;
         }
     }
 }
