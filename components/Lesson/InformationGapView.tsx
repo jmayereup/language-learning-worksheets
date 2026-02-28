@@ -8,7 +8,6 @@ import { ReadingPassage } from '../Activities/ReadingPassage';
 import { LessonFooter } from './LessonFooter';
 import { LessonMedia } from '../UI/LessonMedia';
 import { AudioControls } from '../UI/AudioControls';
-import { useInformationGapScores, ActivityResult } from '../../hooks/useInformationGapScores';
 
 interface InformationGapViewProps {
   lesson: ParsedLesson & { content: InformationGapContent };
@@ -34,7 +33,10 @@ interface InformationGapViewProps {
   setAnswers: React.Dispatch<React.SetStateAction<UserAnswers>>;
 }
 
-
+interface ActivityResult {
+  score: number;
+  total: number;
+}
 
 export const InformationGapView: React.FC<InformationGapViewProps> = ({ 
   lesson, 
@@ -83,27 +85,39 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
 
   // Normalize activities ...
 
-  const { calculateReportData } = useInformationGapScores();
+  const handleActivityFinish = (score: number, total: number) => {
+    // 1. Compute total score across all activities
+    let totalScore = 0;
+    let maxScore = 0;
+    const pills: ReportScorePill[] = [];
 
-  const handleActivityFinish = (score?: number, total?: number) => {
+    // Combine all infoGap results
     const results = [...activityResults];
-    if (score !== undefined && total !== undefined && total > 0) {
-      results[currentActivityIndex] = { score, total };
-    }
+    results[currentActivityIndex] = { score, total }; // Ensure current is included
     
-    onFinish(calculateReportData(
-      lesson.title || lesson.content.topic || 'Speaking Lesson',
-      studentName,
-      studentId,
-      homeroom,
-      results
-    ));
-  };
+    results.forEach((res) => {
+      if (res) {
+        totalScore += res.score;
+        maxScore += res.total;
+      }
+    });
 
-  const handleActivityProgress = (score: number, total: number) => {
-    const newResults = [...activityResults];
-    newResults[currentActivityIndex] = { score, total };
-    setActivityResults(newResults);
+    pills.push({ label: 'Speaking Activities', score: totalScore, total: maxScore });
+
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+
+    onFinish({
+      title: lesson.title || lesson.content.topic || 'Speaking Lesson',
+      nickname: studentName,
+      studentId: studentId,
+      homeroom: homeroom,
+      finishTime: `${dateStr}, ${timeStr}`,
+      totalScore,
+      maxScore,
+      pills
+    });
   };
 
   const handleNextActivity = (score: number, total: number) => {
@@ -121,7 +135,7 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
 
   useEffect(() => {
     if (isFinished) {
-      handleActivityFinish(); // Call the final finish handler when all activities are done
+      handleActivityFinish(0, 0); // Call the final finish handler when all activities are done
     }
   }, [isFinished]);
 
@@ -327,7 +341,6 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
           key={currentActivityIndex}
           questions={myQuestions} 
           onFinish={handleNextActivity}
-          onProgress={handleActivityProgress}
           language={lesson.language}
           selectedVoiceName={selectedVoiceName}
           toggleTTS={toggleTTS}
@@ -344,7 +357,35 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
         homeroom={homeroom}
         setHomeroom={setHomeroom}
         isNameLocked={isNameLocked}
-        onFinish={() => handleActivityFinish()}
+        onFinish={() => {
+          let totalScore = 0;
+          let maxScore = 0;
+          const pills: ReportScorePill[] = [];
+          
+          activityResults.forEach((res) => {
+            if (res) {
+              totalScore += res.score;
+              maxScore += res.total;
+            }
+          });
+
+          pills.push({ label: 'Speaking Activities', score: totalScore, total: maxScore });
+          
+          const now = new Date();
+          const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+          const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+
+          onFinish({
+            title: lesson.title || lesson.content.topic || 'Speaking Lesson',
+            nickname: studentName,
+            studentId: studentId,
+            homeroom: homeroom,
+            finishTime: `${dateStr}, ${timeStr}`,
+            totalScore,
+            maxScore,
+            pills
+          });
+        }}
         onReset={onReset}
       />
     </div>

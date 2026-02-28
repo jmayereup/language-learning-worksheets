@@ -11,7 +11,6 @@ import { ReadingPassage } from '../Activities/ReadingPassage';
 import { Comprehension } from '../Activities/Comprehension';
 import { CollapsibleActivity } from '../UI/CollapsibleActivity';
 import { LessonMedia } from '../UI/LessonMedia';
-import { useFocusedReaderScores } from '../../hooks/useFocusedReaderScores';
 
 interface FocusedReaderViewProps {
   lesson: ParsedLesson & { content: FocusedReaderContent };
@@ -98,13 +97,115 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
   };
 
 
-  const {
-    vocabScore,
-    isVocabCompleted,
-    comprehensionScore,
-    isComprehensionCompleted,
-    calculateReportData
-  } = useFocusedReaderScores(content, answers, currentPartIndex);
+  const calculateReportData = (): ReportData => {
+    const pills: ReportScorePill[] = [];
+    let totalScore = 0;
+    let maxOverallScore = 0;
+
+    content.parts.forEach((part, pIdx) => {
+      // Questions score
+      let partScore = 0;
+      const partAnswers = answers.focusedReader?.[pIdx] || {};
+      part.questions.forEach((q, qIdx) => {
+        if (partAnswers[qIdx] === q.answer) {
+          partScore++;
+        }
+      });
+      pills.push({
+        label: `Part ${part.part_number} Questions`,
+        score: partScore,
+        total: part.questions.length
+      });
+      totalScore += partScore;
+      maxOverallScore += part.questions.length;
+
+      // Vocabulary score (if there are vocabulary explanations)
+      const vocabExplanations = part.vocabulary_explanations || {};
+      const vocabCount = Object.keys(vocabExplanations).length;
+      if (vocabCount > 0) {
+        let vocabScore = 0;
+        const vocabAnswers = answers.vocabulary || {};
+        
+        Object.keys(vocabExplanations).forEach((word, index) => {
+          const answerKey = `vocab_${pIdx}_${index}`;
+          const userAnswer = vocabAnswers[answerKey] || '';
+          
+          // The Vocabulary component uses 0-based letters (a, b, c...) based on the definitions array
+          // In our dynamic transformation, we'll keep the order consistent
+          const correctChar = String.fromCharCode(97 + index);
+          if (userAnswer.toLowerCase() === correctChar) {
+            vocabScore++;
+          }
+        });
+
+        pills.push({
+          label: `Part ${part.part_number} Vocab`,
+          score: vocabScore,
+          total: vocabCount
+        });
+        totalScore += vocabScore;
+        maxOverallScore += vocabCount;
+      }
+    });
+
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+
+    return {
+      title: lesson.title || content.title,
+      nickname: studentName,
+      studentId,
+      homeroom,
+      finishTime: `${dateStr}, ${timeStr}`,
+      totalScore,
+      maxScore: maxOverallScore,
+      pills,
+    };
+  };
+
+  const vocabScore = useMemo(() => {
+    let score = 0;
+    const vocabExplanations = currentPart.vocabulary_explanations || {};
+    const vocabAnswers = answers.vocabulary || {};
+    Object.keys(vocabExplanations).forEach((word, index) => {
+      const answerKey = `vocab_${currentPartIndex}_${index}`;
+      const userAnswer = vocabAnswers[answerKey] || '';
+      const correctChar = String.fromCharCode(97 + index);
+      if (userAnswer.toLowerCase() === correctChar) score++;
+    });
+    return score;
+  }, [currentPart, currentPartIndex, answers.vocabulary]);
+
+  const isVocabCompleted = useMemo(() => {
+    const vocabExplanations = currentPart.vocabulary_explanations || {};
+    const vocabCount = Object.keys(vocabExplanations).length;
+    if (vocabCount === 0) return false;
+    
+    const vocabAnswers = answers.vocabulary || {};
+    let matchedCount = 0;
+    Object.keys(vocabExplanations).forEach((_, index) => {
+      if (vocabAnswers[`vocab_${currentPartIndex}_${index}`]) matchedCount++;
+    });
+    return matchedCount === vocabCount;
+  }, [currentPart, currentPartIndex, answers.vocabulary]);
+
+  const comprehensionScore = useMemo(() => {
+    let score = 0;
+    const questions = currentPart.questions || [];
+    const partAnswers = answers.focusedReader?.[currentPartIndex] || {};
+    questions.forEach((q, i) => {
+      if (partAnswers[i] === q.answer) score++;
+    });
+    return score;
+  }, [currentPart, currentPartIndex, answers.focusedReader]);
+
+  const isComprehensionCompleted = useMemo(() => {
+    const questions = currentPart.questions || [];
+    if (questions.length === 0) return false;
+    const partAnswers = answers.focusedReader?.[currentPartIndex] || {};
+    return questions.every((_, i) => !!partAnswers[i]);
+  }, [currentPart, currentPartIndex, answers.focusedReader]);
 
 
   return (
@@ -268,7 +369,7 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
           homeroom={homeroom}
           setHomeroom={setHomeroom}
           isNameLocked={isNameLocked}
-          onFinish={() => onFinish(calculateReportData(lesson.title, studentName, studentId, homeroom))}
+          onFinish={() => onFinish(calculateReportData())}
           onReset={onReset}
         />
       </div>
