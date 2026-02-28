@@ -217,9 +217,14 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
         }
       }}
       showBack={true}
-      playerRole={currentPlayer}
       variant="white"
     >
+      <div className="flex flex-col items-center mb-8">
+        <div className="inline-block bg-green-100 text-green-800 px-4 py-1 rounded-full text-sm font-black uppercase tracking-wider border border-green-200">
+          Player {currentPlayer}
+        </div>
+      </div>
+
       <div className="mb-6 flex flex-col md:flex-row items-center justify-between gap-4 px-2 h-fit">
         <div className="flex items-center justify-center gap-2 p-2 w-full md:w-auto">
             {activities.map((_, idx) => (
