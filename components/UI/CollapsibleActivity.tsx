@@ -18,7 +18,7 @@ export const CollapsibleActivity: React.FC<CollapsibleActivityProps> = ({
   const [hasAutoCollapsed, setHasAutoCollapsed] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const lastHeightRef = useRef<number>(0);
-  const isAutoRef = useRef<boolean>(false);
+  const isAdjustingRef = useRef<boolean>(false);
 
   useEffect(() => {
     if (!isCompleted) {
@@ -34,7 +34,7 @@ export const CollapsibleActivity: React.FC<CollapsibleActivityProps> = ({
         if (!entry.isIntersecting && entry.boundingClientRect.top < 0 && !hasAutoCollapsed) {
           if (containerRef.current) {
             lastHeightRef.current = containerRef.current.offsetHeight;
-            isAutoRef.current = true;
+            isAdjustingRef.current = true;
           }
           setIsCollapsed(true);
           setHasAutoCollapsed(true);
@@ -50,27 +50,47 @@ export const CollapsibleActivity: React.FC<CollapsibleActivityProps> = ({
     return () => observer.disconnect();
   }, [isCompleted, hasAutoCollapsed]);
 
-  // Handle scroll compensation to prevent "jerking" when collapsing content above viewport
+  // Handle scroll compensation to prevent "jerking" when height changes above viewport
   React.useLayoutEffect(() => {
-    if (isCollapsed && lastHeightRef.current && containerRef.current && isAutoRef.current) {
+    if (lastHeightRef.current && containerRef.current && isAdjustingRef.current) {
       const newHeight = containerRef.current.offsetHeight;
       const delta = lastHeightRef.current - newHeight;
-      if (delta > 0) {
-        // We only care if the element is above the viewport 
-        // (which it should be based on our IntersectionObserver logic)
-        window.scrollBy(0, -delta);
+      const rect = containerRef.current.getBoundingClientRect();
+      
+      // We only care if the element's top is above or near the top of the viewport
+      if (delta !== 0 && rect.top < 100) {
+        // Use requestAnimationFrame to ensure the scroll happens after layout but before paint
+        requestAnimationFrame(() => {
+          window.scrollBy({
+            top: -delta,
+            behavior: 'instant'
+          } as ScrollToOptions);
+        });
       }
+      
       lastHeightRef.current = 0;
-      isAutoRef.current = false;
+      isAdjustingRef.current = false;
     }
   }, [isCollapsed]);
 
+  const handleToggle = (collapsed: boolean) => {
+    if (containerRef.current) {
+      lastHeightRef.current = containerRef.current.offsetHeight;
+      isAdjustingRef.current = true;
+    }
+    setIsCollapsed(collapsed);
+  };
+
   if (!isCollapsed) {
     return (
-      <div ref={containerRef} className="mb-2 animate-fade-in group relative">
+      <div 
+        ref={containerRef} 
+        className="mb-2 animate-fade-in group relative"
+        style={{ overflowAnchor: isAdjustingRef.current ? 'none' : 'auto' }}
+      >
         <button 
           className="w-full justify-end px-0 py-1 mb-1 rounded-md text-[10px] font-bold text-gray-400 uppercase tracking-tighter hover:text-green-600 transition-colors flex items-center gap-1"
-          onClick={() => setIsCollapsed(true)}
+          onClick={() => handleToggle(true)}
         >
           <span>Collapse</span>
           <ChevronUp className="w-3 h-3" />
@@ -84,7 +104,8 @@ export const CollapsibleActivity: React.FC<CollapsibleActivityProps> = ({
     <div 
       ref={containerRef}
       className="bg-white p-3 mb-2 md:p-4 rounded-xl border border-green-50 shadow-sm flex items-center justify-between animate-fade-in group cursor-pointer hover:bg-green-50 transition-colors"
-      onClick={() => setIsCollapsed(false)}
+      onClick={() => handleToggle(false)}
+      style={{ overflowAnchor: isAdjustingRef.current ? 'none' : 'auto' }}
     >
       <div className="flex items-center gap-3">
         <div className={`flex items-center justify-center w-8 h-8 rounded-full ${isCompleted ? 'bg-green-100' : 'bg-gray-100'}`}>
