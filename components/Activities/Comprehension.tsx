@@ -183,10 +183,10 @@ export const Comprehension: React.FC<Props> = ({
                         ${isOptionSelected 
                           ? (isChecked 
                               ? (isCorrectOption ? 'border-green-500 bg-green-50 text-green-800' : 'border-red-500 bg-red-50 text-red-800')
-                              : 'border-green-500 bg-green-50 text-green-800 shadow-md ring-2 ring-green-100')
+                              : 'border-slate-500 bg-slate-50 text-slate-800 shadow-md ring-2 ring-slate-100')
                           : (isChecked && isCorrectOption 
                               ? 'border-green-500 bg-green-50 text-green-800' 
-                              : 'border-gray-100 hover:border-green-200 hover:bg-gray-50 text-gray-700')
+                              : 'border-gray-100 hover:border-slate-300 hover:bg-slate-50 text-gray-700')
                         }
                       `}
                     >
@@ -203,7 +203,7 @@ export const Comprehension: React.FC<Props> = ({
                         ${isOptionSelected 
                           ? (isChecked 
                               ? (isCorrectOption ? 'border-green-600 bg-green-600' : 'border-red-600 bg-red-600')
-                              : 'border-green-600 bg-green-600')
+                              : 'border-slate-600 bg-slate-600')
                           : 'border-gray-300'}
                       `}>
                         {isOptionSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
@@ -226,8 +226,8 @@ export const Comprehension: React.FC<Props> = ({
                         ${isValSelected
                           ? (isChecked
                             ? (isCorrectVal ? 'border-green-500 bg-green-50 text-green-800' : 'border-red-500 bg-red-50 text-red-800')
-                            : 'border-green-500 bg-green-50 text-green-800 shadow-md ring-2 ring-green-100')
-                          : 'border-gray-100 hover:border-green-200 hover:bg-gray-50 text-gray-700'
+                            : 'border-slate-500 bg-slate-50 text-slate-800 shadow-md ring-2 ring-slate-100')
+                          : 'border-gray-100 hover:border-slate-300 hover:bg-slate-50 text-gray-700'
                         }
                       `}
                     >

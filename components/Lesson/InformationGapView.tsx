@@ -161,10 +161,10 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
             <button
               key={playerNum}
               onClick={() => setCurrentPlayer(playerNum)}
-              className="group bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:border-green-500 hover:shadow-xl transition-all duration-300 flex flex-col items-center text-center"
+              className="group bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:border-blue-500 hover:shadow-xl transition-all duration-300 flex flex-col items-center text-center"
             >
-              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                <Mic className="w-10 h-10 text-green-600" />
+              <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <Mic className="w-10 h-10 text-blue-600" />
               </div>
               <h2 className="text-2xl font-black text-gray-800 mb-2">Player {playerNum}</h2>
               <p className="text-gray-500 font-medium tracking-wide">Click to select this role</p>
@@ -181,10 +181,10 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
                 onChange={(e) => setIsSinglePlayer(e.target.checked)}
                 className="sr-only peer"
               />
-              <div className="w-14 h-7 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-green-600"></div>
+              <div className="w-14 h-7 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-blue-600"></div>
             </div>
             <div className="flex flex-col">
-              <span className="text-gray-900 font-black text-lg group-hover:text-green-700 transition-colors">Single Player Mode</span>
+              <span className="text-gray-900 font-black text-lg group-hover:text-blue-700 transition-colors">Single Player Mode</span>
               <span className="text-gray-500 text-sm font-medium">Listen to partner info via TTS</span>
             </div>
           </label>
@@ -214,7 +214,7 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
               setCurrentPlayer(null);
             }
           }}
-          className="flex items-center text-green-700 font-bold hover:text-green-800 transition-colors mb-4"
+          className="flex items-center text-blue-700 font-bold hover:text-blue-800 transition-colors mb-4"
         >
           &larr; Back
         </button>
@@ -236,9 +236,9 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
                     }}
                     className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center font-black transition-all ${
                         idx === currentActivityIndex 
-                            ? 'bg-green-600 text-white shadow-lg scale-110' 
+                            ? 'bg-blue-600 text-white shadow-lg scale-110' 
                             : activityResults[idx] 
-                                ? 'bg-green-100 text-green-600 border-2 border-green-200 hover:bg-green-200' 
+                                ? 'bg-blue-100 text-blue-600 border-2 border-blue-200 hover:bg-blue-200' 
                                 : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
                     }`}
                     title={`Activity ${idx + 1}`}
@@ -318,7 +318,7 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
       {/* Questions to ask the partner */}
       <section className="mb-6 p-2">
         <div className="flex items-center gap-3 mb-6 ml-2">
-          <div className="bg-green-600 p-2 rounded-lg">
+          <div className="bg-blue-600 p-2 rounded-lg">
             <CheckCircle className="w-5 h-5 text-white" />
           </div>
           <h2 className="text-2xl font-black text-gray-900 tracking-tight">Your Task: Ask Your Partner</h2>

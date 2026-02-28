@@ -38,7 +38,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
             const isAndroid = /android/i.test(navigator.userAgent);
 
             return (
-                <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-slate-900/95 backdrop-blur-md p-6 overflow-y-auto">
+                <div className="fixed inset-0 z-1000 flex items-center justify-center bg-slate-900/95 backdrop-blur-md p-6 overflow-y-auto">
                     <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border border-slate-100 animate-in fade-in zoom-in duration-300 my-auto">
                         <div className="flex justify-center mb-6">
                             <div className="bg-red-50 p-4 rounded-full">
@@ -60,14 +60,14 @@ export class ErrorBoundary extends React.Component<Props, State> {
                             {isAndroid ? (
                                 <a
                                     href={this.getAndroidIntentLink()}
-                                    className="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-2xl text-center shadow-lg shadow-green-200 transition-all active:scale-95"
+                                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-2xl text-center shadow-lg shadow-blue-200 transition-all active:scale-95"
                                 >
                                     Open in Chrome
                                 </a>
                             ) : (
                                 <button
                                     onClick={() => alert('Please tap your browser menu and select "Open in Safari" or "Open in Browser".')}
-                                    className="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-2xl text-center shadow-lg shadow-green-200 transition-all active:scale-95"
+                                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-2xl text-center shadow-lg shadow-blue-200 transition-all active:scale-95"
                                 >
                                     How to Open
                                 </button>

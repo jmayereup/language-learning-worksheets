@@ -123,7 +123,7 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
               key={idx}
               onClick={() => setCurrentPartIndex(idx)}
               className={`h-3 rounded-full transition-all duration-300 ${
-                currentPartIndex === idx ? 'w-8 bg-green-600' : 'w-3 bg-green-200 hover:bg-green-300'
+                currentPartIndex === idx ? 'w-8 bg-blue-600' : 'w-3 bg-blue-200 hover:bg-blue-300'
               }`}
               title={`Go to Part ${idx + 1}`}
             />

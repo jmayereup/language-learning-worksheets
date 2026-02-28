@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { FillInBlankItem, VocabularyItem } from '../../types';
-import { normalizeString, seededShuffle, speakText, shouldShowAudioControls, selectElementText } from '../../utils/textUtils';
+import { normalizeString, seededShuffle, shouldShowAudioControls } from '../../utils/textUtils';
 import { Button } from '../UI/Button';
-import { Check, Volume2, XCircle, RefreshCw } from 'lucide-react';
+import { Check, XCircle } from 'lucide-react';
 import { AudioControls } from '../UI/AudioControls';
 
 interface Props {
@@ -130,8 +130,8 @@ export const FillInBlanks: React.FC<Props> = ({
             const isSelected = selectedWord === word;
 
             let colorClass = isSelected
-              ? "bg-green-600 text-white border-green-600 shadow-lg ring-4 ring-green-100 scale-105"
-              : (isUsed ? "bg-gray-100 text-gray-400 border-gray-200" : "bg-white text-gray-700 border-gray-200 hover:border-green-300 hover:bg-green-50");
+              ? "bg-slate-700 text-white border-slate-700 shadow-lg ring-4 ring-slate-100 scale-105"
+              : (isUsed ? "bg-gray-100 text-gray-400 border-gray-200" : "bg-white text-gray-700 border-gray-200 hover:border-slate-300 hover:bg-slate-50");
 
             return (
               <button
@@ -162,9 +162,9 @@ export const FillInBlanks: React.FC<Props> = ({
               ? " border-green-500 bg-green-50 text-green-700"
               : " border-red-500 bg-red-50 text-red-700";
           } else if (userAnswer) {
-            slotClass += " border-green-400 bg-green-50/50 text-green-900";
+            slotClass += " border-slate-400 bg-slate-50/50 text-slate-900";
           } else if (isSlotActive) {
-            slotClass += " border-green-300 bg-green-50 ring-4 ring-green-100 animate-pulse";
+            slotClass += " border-slate-300 bg-slate-50 ring-4 ring-slate-100 animate-pulse";
           } else {
             slotClass += " border-gray-200 bg-gray-50/30 text-transparent";
           }
@@ -212,7 +212,7 @@ export const FillInBlanks: React.FC<Props> = ({
       {/* Selection Bar */}
       {selectedWord && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-bounce-in">
-          <div className="bg-green-600 text-white px-4 py-2 rounded-2xl shadow-2xl flex items-center gap-3 border-4 border-white ring-8 ring-green-600/20">
+          <div className="bg-slate-700 text-white px-4 py-2 rounded-2xl shadow-2xl flex items-center gap-3 border-4 border-white ring-8 ring-slate-700/20">
             <span className="text-lg font-black" translate="no">{selectedWord}</span>
             <button
               onClick={() => setSelectedWord(null)}
@@ -230,26 +230,26 @@ export const FillInBlanks: React.FC<Props> = ({
           <Button
             onClick={handleCheck}
             variant='primary'
-            size="sm"
+            size='md'
             disabled={Object.keys(savedAnswers).length === 0}
           >
-            <Check size={20} className="mr-2" /> Check Answers
+            <Check size={20} /> Check Answers
           </Button>
         ) : (
           <>
             {correctCount < data.length && (
               <Button
                 onClick={handleRetry}
-                variant='primary'
-                size="sm"
+                variant="primary"
+                size="md"
               >
                 Continue
               </Button>
             )}
             <Button
               onClick={handleFullReset}
-              variant='danger'
-              size="sm"
+              variant="danger"
+              size="md"
             >
               Reset Activity
             </Button>

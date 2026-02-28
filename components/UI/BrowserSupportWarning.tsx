@@ -38,11 +38,11 @@ export const BrowserSupportWarning: React.FC = () => {
     if (!isVisible) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/90 backdrop-blur-md p-6">
+        <div className="fixed inset-0 z-100 flex items-center justify-center bg-slate-900/90 backdrop-blur-md p-6">
             <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border border-slate-100 animate-in fade-in zoom-in duration-300">
                 <div className="flex justify-center mb-6">
-                    <div className="bg-green-50 p-4 rounded-full">
-                        <svg className="w-12 h-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="bg-blue-50 p-4 rounded-full">
+                        <svg className="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
                         </svg>
                     </div>
@@ -60,14 +60,14 @@ export const BrowserSupportWarning: React.FC = () => {
                     {isAndroid ? (
                         <a
                             href={getAndroidIntentLink()}
-                            className="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-2xl text-center shadow-lg shadow-green-200 transition-all active:scale-95"
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-2xl text-center shadow-lg shadow-blue-200 transition-all active:scale-95"
                         >
                             Open in Chrome
                         </a>
                     ) : (
                         <button
                             onClick={() => alert('Please tap your browser menu and select "Open in Safari" or "Open in Browser" for full audio support.')}
-                            className="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-2xl text-center shadow-lg shadow-green-200 transition-all active:scale-95"
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-2xl text-center shadow-lg shadow-blue-200 transition-all active:scale-95"
                         >
                             How to Open
                         </button>

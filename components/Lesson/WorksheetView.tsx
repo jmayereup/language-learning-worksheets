@@ -281,11 +281,16 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
         </section>
 
         <section id="writing">
-          <WrittenExpression
-            data={standardContent.activities.writtenExpression}
-            savedAnswers={answers.writing}
-            onChange={(newWriting) => updateAnswers('writing', newWriting)}
-          />
+          <CollapsibleActivity
+            isCompleted={completionStates.scrambledCompleted}
+            title="Written Expression"
+          >
+            <WrittenExpression
+              data={standardContent.activities.writtenExpression}
+              savedAnswers={answers.writing}
+              onChange={(newWriting) => updateAnswers('writing', newWriting)}
+            />
+          </CollapsibleActivity>
         </section>
 
         <LessonFooter

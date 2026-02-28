@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { VocabularyActivity } from '../../types';
 import { Button } from '../UI/Button';
 import { Volume2, RefreshCw, XCircle, Check } from 'lucide-react';
-import { speakText, shouldShowAudioControls, selectElementText, seededShuffle } from '../../utils/textUtils';
-import { AudioControls } from '../UI/AudioControls';
+import { shouldShowAudioControls, seededShuffle } from '../../utils/textUtils';
 
 interface Props {
   data: VocabularyActivity;
@@ -21,14 +20,11 @@ interface Props {
 
 export const Vocabulary: React.FC<Props> = ({
   data,
-  language,
   onChange,
   savedAnswers,
-  voiceName,
   savedIsChecked = false,
   onComplete,
   toggleTTS,
-  ttsState,
   lessonId,
   title = "Vocabulary Matching"
 }) => {
@@ -162,8 +158,8 @@ export const Vocabulary: React.FC<Props> = ({
 
             // Validation colors if checked
             let colorClass = isSelected
-              ? "bg-green-600 text-white border-green-600 shadow-lg ring-4 ring-green-100 scale-105"
-              : (isMatched ? "bg-gray-100 text-gray-400 border-gray-200" : "bg-white text-gray-700 border-gray-200 hover:border-green-300 hover:bg-green-50");
+              ? "bg-slate-700 text-white border-slate-700 shadow-lg ring-4 ring-slate-100 scale-105"
+              : (isMatched ? "bg-gray-100 text-gray-400 border-gray-200" : "bg-white text-gray-700 border-gray-200 hover:border-slate-300 hover:bg-slate-50");
 
             if (isChecked && isMatched) {
               const userAnswer = savedAnswers[`vocab_${idx}`];
@@ -206,8 +202,8 @@ export const Vocabulary: React.FC<Props> = ({
           const isSlotActive = selectedWordIndex !== null;
 
           let borderClass = "border-gray-100 bg-gray-50";
-          if (isSlotActive) borderClass = "border-green-300 bg-green-50 ring-2 ring-green-100/50";
-          if (matched) borderClass = "border-green-100 bg-white shadow-sm";
+          if (isSlotActive) borderClass = "border-slate-300 bg-slate-50 ring-2 ring-slate-100/50";
+          if (matched) borderClass = "border-blue-100 bg-white shadow-sm";
 
           if (isChecked && matched) {
             const item = data.items[matched.index];
@@ -226,7 +222,7 @@ export const Vocabulary: React.FC<Props> = ({
                 <p className="text-gray-700 text-sm md:text-base font-medium leading-relaxed mb-2" translate="no">{def.text}</p>
                 {matched ? (
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-black uppercase tracking-tighter text-green-600 bg-green-100 px-2 py-0.5 rounded">Matched:</span>
+                    <span className="text-xs font-black uppercase tracking-tighter text-blue-600 bg-blue-100 px-2 py-0.5 rounded">Matched:</span>
                     <span className="font-black text-gray-900 text-sm md:text-base" translate="no">{matched.label}</span>
                   </div>
                 ) : (
@@ -252,7 +248,7 @@ export const Vocabulary: React.FC<Props> = ({
       {/* Sticky Selection Bar */}
       {selectedWordIndex !== null && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-bounce-in">
-          <div className="bg-green-600 text-white px-4 py-2 rounded-2xl shadow-2xl flex items-center gap-3 border-4 border-white ring-8 ring-green-600/20">
+          <div className="bg-slate-700 text-white px-4 py-2 rounded-2xl shadow-2xl flex items-center gap-3 border-4 border-white ring-8 ring-slate-700/20">
             <div className="flex flex-col">
               <span className="text-lg font-black" translate="no">{data.items[selectedWordIndex].label}</span>
             </div>
@@ -272,10 +268,10 @@ export const Vocabulary: React.FC<Props> = ({
           <Button
             onClick={() => checkAnswers()}
             variant='primary'
-            size="sm"
+            size="md"
             disabled={Object.keys(savedAnswers).length === 0}
           >
-            <Check size={20} className="mr-2" /> Check Answers
+            <Check size={20} /> Check Answers
           </Button>
         ) : (
           <>
@@ -283,7 +279,7 @@ export const Vocabulary: React.FC<Props> = ({
               <Button
                 onClick={handleRetry}
                 variant="primary"
-                className="p-2 rounded-full font-black text-lg shadow-md"
+                size="md"
               >
                 <RefreshCw className="w-5 h-5 mr-2" /> Continue
               </Button>
@@ -291,7 +287,7 @@ export const Vocabulary: React.FC<Props> = ({
             <Button
               onClick={handleFullReset}
               variant="danger"
-              className="p-2 rounded-full font-black text-lg border-2"
+              size="md"
             >
               Reset Activity
             </Button>

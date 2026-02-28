@@ -38,7 +38,7 @@ export const InformationGapQuestions: React.FC<InformationGapQuestionsProps> = (
         <p className="text-gray-500 font-bold text-xl mb-4">No questions for this role.</p>
         <p className="text-gray-400">Wait for your partner to ask you questions, then show them this screen when you are both done.</p>
         <div className="mt-8">
-            <Button onClick={() => onFinish(0, 0)} className="bg-green-600 hover:bg-green-700 shadow-sm">Finish Lesson</Button>
+            <Button onClick={() => onFinish(0, 0)} variant="primary">Finish Lesson</Button>
         </div>
       </div>
     );
@@ -67,7 +67,8 @@ export const InformationGapQuestions: React.FC<InformationGapQuestionsProps> = (
 
         <Button 
           onClick={() => onFinish(score, questions.length)} 
-          className="w-full max-w-sm h-14 text-lg font-black bg-green-600 hover:bg-green-700 transition-all shadow-sm rounded-xl"
+          variant="primary"
+          className="w-full max-w-sm h-14 text-lg font-black rounded-xl"
         >
           {isLastActivity ? 'Finish Lesson' : 'Proceed to Next Activity'}
         </Button>
@@ -132,7 +133,7 @@ export const InformationGapQuestions: React.FC<InformationGapQuestionsProps> = (
 
       <div className="grid grid-cols-1 gap-4 mb-2">
         {currentQuestion.options.map((option, i) => {
-          let optionStyles = "bg-gray-50 border-2 border-gray-100 text-gray-700 hover:border-green-300 hover:bg-green-50";
+          let optionStyles = "bg-gray-50 border-2 border-gray-100 text-gray-700 hover:border-slate-300 hover:bg-slate-50";
           if (showFeedback) {
             if (option === currentQuestion.correct_answer) {
               optionStyles = "bg-green-100 border-2 border-green-500 text-green-900 font-bold";
@@ -162,7 +163,8 @@ export const InformationGapQuestions: React.FC<InformationGapQuestionsProps> = (
         <div className="animate-slide-up mt-6">
           <Button 
             onClick={handleNext} 
-            className="w-full h-14 text-lg font-black bg-green-600 hover:bg-green-700 rounded-xl shadow-sm flex items-center justify-center gap-2"
+            variant="primary"
+            className="w-full h-14 text-lg font-black rounded-xl"
           >
             {currentQuestionIndex < questions.length - 1 ? (
               <>Next Question <ArrowRight className="w-5 h-5" /></>
