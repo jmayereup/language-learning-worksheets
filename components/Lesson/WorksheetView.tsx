@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { ParsedLesson, StandardLessonContent, UserAnswers, ReportData, ReportScorePill, ReportWrittenResponse, CompletionStates } from '../../types';
 import { normalizeString, seededShuffle } from '../../utils/textUtils';
-import { GenericLessonLayout } from './GenericLessonLayout';
 import { Vocabulary } from '../Activities/Vocabulary';
 import { FillInBlanks } from '../Activities/FillInBlanks';
 import { Comprehension } from '../Activities/Comprehension';
@@ -241,19 +240,7 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
   }, [standardContent, lesson.id]);
 
   return (
-    <GenericLessonLayout
-      lesson={lesson}
-      displayTitle={displayTitle}
-      studentName={studentName}
-      setStudentName={setStudentName}
-      studentId={studentId}
-      setStudentId={setStudentId}
-      homeroom={homeroom}
-      setHomeroom={setHomeroom}
-      isNameLocked={isNameLocked}
-      onBack={onReset}
-      showBack={false}
-    >
+    <div className="space-y-4">
       {/* Worksheet Actions */}
       <div className="hidden sm:flex">
         <WorksheetExportActions
@@ -526,6 +513,6 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
         </div>
       </div>
 
-    </GenericLessonLayout>
+    </div>
   );
 };

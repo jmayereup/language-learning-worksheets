@@ -110,89 +110,100 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
     }, 200);
   };
 
+  const displayTitle = lesson.title || (isStandard ? (lesson.content as StandardLessonContent).title : (isFocused ? (lesson.content as FocusedReaderContent).title : (lesson.content as InformationGapContent).topic)) || 'Lesson';
+
   return (
-    <>
-      <React.Suspense fallback={<div className="flex items-center justify-center p-20"><Loader className="w-8 h-8 animate-spin text-green-600" /></div>}>
-        {lesson.lessonType === 'information-gap' ? (
-          <InformationGapView 
-            key={`info-gap-${resetKey}`}
-            lesson={{...lesson, content: lesson.content as InformationGapContent}} 
-            onReset={handleReset}
-            onFinish={handleFinish}
-            studentName={studentName}
-            setStudentName={setStudentName}
-            studentId={studentId}
-            setStudentId={setStudentId}
-            homeroom={homeroom}
-            setHomeroom={setHomeroom}
-            isNameLocked={isNameLocked}
-            toggleTTS={toggleTTS}
-            ttsState={ttsState}
-            availableVoices={availableVoices}
-            selectedVoiceName={selectedVoiceName}
-            setSelectedVoiceName={setSelectedVoiceName}
-            isVoiceModalOpen={isVoiceModalOpen}
-            setIsVoiceModalOpen={setIsVoiceModalOpen}
-            audioPreference={audioPreference}
-            setAudioPreference={setAudioPreference}
-            answers={answers}
-            setAnswers={setAnswers}
-          />
-        ) : lesson.lessonType === 'focused-reading' ? (
-          <FocusedReaderView
-            key={`focused-reader-${resetKey}`}
-            lesson={{...lesson, content: lesson.content as FocusedReaderContent}}
-            studentName={studentName}
-            setStudentName={setStudentName}
-            studentId={studentId}
-            setStudentId={setStudentId}
-            homeroom={homeroom}
-            setHomeroom={setHomeroom}
-            isNameLocked={isNameLocked}
-            onFinish={handleFinish}
-            onReset={handleReset}
-            answers={answers}
-            setAnswers={setAnswers}
-            toggleTTS={toggleTTS}
-            ttsState={ttsState}
-            availableVoices={availableVoices}
-            selectedVoiceName={selectedVoiceName}
-            setSelectedVoiceName={setSelectedVoiceName}
-            isVoiceModalOpen={isVoiceModalOpen}
-            setIsVoiceModalOpen={setIsVoiceModalOpen}
-            audioPreference={audioPreference}
-            setAudioPreference={setAudioPreference}
-          />
-        ) : (
-          <WorksheetView
-            key={`worksheet-${resetKey}`}
-            lesson={{...lesson, content: lesson.content as StandardLessonContent}}
-            studentName={studentName}
-            setStudentName={setStudentName}
-            studentId={studentId}
-            setStudentId={setStudentId}
-            homeroom={homeroom}
-            setHomeroom={setHomeroom}
-            isNameLocked={isNameLocked}
-            onFinish={handleFinish}
-            onReset={handleReset}
-            answers={answers}
-            setAnswers={setAnswers}
-            completionStates={completionStates}
-            setCompletionStates={setCompletionStates}
-            toggleTTS={toggleTTS}
-            ttsState={ttsState}
-            availableVoices={availableVoices}
-            selectedVoiceName={selectedVoiceName}
-            setSelectedVoiceName={setSelectedVoiceName}
-            isVoiceModalOpen={isVoiceModalOpen}
-            setIsVoiceModalOpen={setIsVoiceModalOpen}
-            audioPreference={audioPreference}
-            setAudioPreference={setAudioPreference}
-            passageRef={passageRef}
-          />
-        )}
-      </React.Suspense>
+    <div className="bg-white max-w-4xl mx-auto pb-4 px-1 py-4 sm:px-6">
+      {/* Page Title - Unified Layout */}
+      <div className="mb-4 text-center print:hidden">
+        <h1 className="text-3xl md:text-4xl font-black text-green-900 mb-2 tracking-tight">
+          {displayTitle}
+        </h1>
+      </div>
+
+      <main>
+        <React.Suspense fallback={<div className="flex items-center justify-center p-20"><Loader className="w-8 h-8 animate-spin text-green-600" /></div>}>
+          {lesson.lessonType === 'information-gap' ? (
+            <InformationGapView 
+              key={`info-gap-${resetKey}`}
+              lesson={{...lesson, content: lesson.content as InformationGapContent}} 
+              onReset={handleReset}
+              onFinish={handleFinish}
+              studentName={studentName}
+              setStudentName={setStudentName}
+              studentId={studentId}
+              setStudentId={setStudentId}
+              homeroom={homeroom}
+              setHomeroom={setHomeroom}
+              isNameLocked={isNameLocked}
+              toggleTTS={toggleTTS}
+              ttsState={ttsState}
+              availableVoices={availableVoices}
+              selectedVoiceName={selectedVoiceName}
+              setSelectedVoiceName={setSelectedVoiceName}
+              isVoiceModalOpen={isVoiceModalOpen}
+              setIsVoiceModalOpen={setIsVoiceModalOpen}
+              audioPreference={audioPreference}
+              setAudioPreference={setAudioPreference}
+              answers={answers}
+              setAnswers={setAnswers}
+            />
+          ) : lesson.lessonType === 'focused-reading' ? (
+            <FocusedReaderView
+              key={`focused-reader-${resetKey}`}
+              lesson={{...lesson, content: lesson.content as FocusedReaderContent}}
+              studentName={studentName}
+              setStudentName={setStudentName}
+              studentId={studentId}
+              setStudentId={setStudentId}
+              homeroom={homeroom}
+              setHomeroom={setHomeroom}
+              isNameLocked={isNameLocked}
+              onFinish={handleFinish}
+              onReset={handleReset}
+              answers={answers}
+              setAnswers={setAnswers}
+              toggleTTS={toggleTTS}
+              ttsState={ttsState}
+              availableVoices={availableVoices}
+              selectedVoiceName={selectedVoiceName}
+              setSelectedVoiceName={setSelectedVoiceName}
+              isVoiceModalOpen={isVoiceModalOpen}
+              setIsVoiceModalOpen={setIsVoiceModalOpen}
+              audioPreference={audioPreference}
+              setAudioPreference={setAudioPreference}
+            />
+          ) : (
+            <WorksheetView
+              key={`worksheet-${resetKey}`}
+              lesson={{...lesson, content: lesson.content as StandardLessonContent}}
+              studentName={studentName}
+              setStudentName={setStudentName}
+              studentId={studentId}
+              setStudentId={setStudentId}
+              homeroom={homeroom}
+              setHomeroom={setHomeroom}
+              isNameLocked={isNameLocked}
+              onFinish={handleFinish}
+              onReset={handleReset}
+              answers={answers}
+              setAnswers={setAnswers}
+              completionStates={completionStates}
+              setCompletionStates={setCompletionStates}
+              toggleTTS={toggleTTS}
+              ttsState={ttsState}
+              availableVoices={availableVoices}
+              selectedVoiceName={selectedVoiceName}
+              setSelectedVoiceName={setSelectedVoiceName}
+              isVoiceModalOpen={isVoiceModalOpen}
+              setIsVoiceModalOpen={setIsVoiceModalOpen}
+              audioPreference={audioPreference}
+              setAudioPreference={setAudioPreference}
+              passageRef={passageRef}
+            />
+          )}
+        </React.Suspense>
+      </main>
 
       {showReportCard && reportData && (
         <ReportCard 
@@ -200,6 +211,6 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
           onClose={() => setShowReportCard(false)} 
         />
       )}
-    </>
+    </div>
   );
 };

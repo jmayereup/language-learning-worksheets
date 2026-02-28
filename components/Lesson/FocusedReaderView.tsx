@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { ParsedLesson, FocusedReaderContent, UserAnswers, ReportData, ReportScorePill } from '../../types';
 import { speakText } from '../../utils/textUtils';
-import { GenericLessonLayout } from './GenericLessonLayout';
 import { AudioControls } from '../UI/AudioControls';
 import { VoiceSelectorModal } from '../UI/VoiceSelectorModal';
 import { LessonFooter } from './LessonFooter';
@@ -210,17 +209,7 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
 
 
   return (
-    <GenericLessonLayout
-      lesson={lesson}
-      displayTitle={lesson.title || content.title}
-      studentName={studentName}
-      setStudentName={setStudentName}
-      studentId={studentId}
-      setStudentId={setStudentId}
-      homeroom={homeroom}
-      setHomeroom={setHomeroom}
-      isNameLocked={isNameLocked}
-    >
+    <div className="space-y-4">
       <div className="max-w-4xl mx-auto px-1 sm:px-4 py-4 sm:py-8 space-y-2">
         <LessonMedia 
           imageUrl={lesson.imageUrl} 
@@ -396,6 +385,6 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
         audioPreference={audioPreference}
         onSelectPreference={setAudioPreference}
       />
-    </GenericLessonLayout>
+    </div>
   );
 };

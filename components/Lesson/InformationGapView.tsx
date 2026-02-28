@@ -3,7 +3,6 @@ import { ParsedLesson, InformationGapContent, UserAnswers, ReportData, ReportSco
 import { Mic, CheckCircle } from 'lucide-react';
 import { InformationGapQuestions } from '../Activities/InformationGapQuestions';
 import { speakText } from '../../utils/textUtils';
-import { GenericLessonLayout } from './GenericLessonLayout';
 import { VoiceSelectorModal } from '../UI/VoiceSelectorModal';
 import { ReadingPassage } from '../Activities/ReadingPassage';
 import { LessonFooter } from './LessonFooter';
@@ -195,26 +194,21 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
 
 
   return (
-    <GenericLessonLayout
-      lesson={lesson}
-      displayTitle={currentActivity.topic}
-      studentName={studentName}
-      setStudentName={setStudentName}
-      studentId={studentId}
-      setStudentId={setStudentId}
-      homeroom={homeroom}
-      setHomeroom={setHomeroom}
-      isNameLocked={isNameLocked}
-      onBack={() => {
-        if (currentActivityIndex > 0) {
-            setCurrentActivityIndex(prev => prev - 1);
-        } else {
-            setCurrentPlayer(null);
-        }
-      }}
-      showBack={true}
-      variant="white"
-    >
+    <div className="space-y-4">
+      {currentPlayer !== null && (
+        <button 
+          onClick={() => {
+            if (currentActivityIndex > 0) {
+              setCurrentActivityIndex(prev => prev - 1);
+            } else {
+              setCurrentPlayer(null);
+            }
+          }}
+          className="flex items-center text-green-700 font-bold hover:text-green-800 transition-colors mb-4"
+        >
+          &larr; Back
+        </button>
+      )}
       <div className="flex flex-col items-center mb-8">
         <div className="inline-block bg-green-100 text-green-800 px-4 py-1 rounded-full text-sm font-black uppercase tracking-wider border border-green-200">
           Player {currentPlayer}
@@ -339,6 +333,6 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
         }}
         onReset={onReset}
       />
-    </GenericLessonLayout>
+    </div>
   );
 };
