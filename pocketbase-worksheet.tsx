@@ -1,6 +1,7 @@
 import { createRoot } from 'react-dom/client';
 import React from 'react';
 import { LessonView } from './components/Lesson/LessonView';
+import { BrowserSupportWarning } from './components/UI/BrowserSupportWarning';
 import './index.css'; // Ensure tailwind is imported
 
 export class TJPocketBaseWorksheet extends HTMLElement {
@@ -75,6 +76,7 @@ export class TJPocketBaseWorksheet extends HTMLElement {
       if (this.root && lessonData) {
         this.root.render(
           <React.StrictMode>
+              <BrowserSupportWarning />
               <LessonView lesson={lessonData} />
           </React.StrictMode>
         );

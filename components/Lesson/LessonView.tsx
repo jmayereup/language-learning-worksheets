@@ -5,7 +5,6 @@ import { Loader } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useTTS } from '../../hooks/useTTS';
 import { useLessonProgress } from '../../hooks/useLessonProgress';
-import { useTeacherSubmission } from '../../hooks/useTeacherSubmission';
 import { ReportCard } from '../UI/ReportCard';
 
 const InformationGapView = React.lazy(() => import('./InformationGapView').then(m => ({ default: m.InformationGapView })));
@@ -70,12 +69,6 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
     }
   });
 
-  // Submission Hook (still needed for some state if we weren't moving it entirely, 
-  // but we'll use a local one in ReportCard for now. 
-  // Keeping it here for other potential needs if any)
-  const {
-    setSubmissionStatus
-  } = useTeacherSubmission();
 
 
 
@@ -86,7 +79,6 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
       setShowReportCard(false);
       setReportData(null);
       setIsNameLocked(false);
-      setSubmissionStatus('idle');
       window.scrollTo(0, 0);
     }
   };
