@@ -47,7 +47,7 @@ export const BrowserSupportWarning: React.FC = () => {
     if (!isVisible) return null;
 
     return (
-        <div className="fixed inset-0 z-100 flex items-center justify-center bg-slate-900/90 backdrop-blur-md p-6">
+        <div className="fixed inset-0 flex items-center justify-center bg-slate-900/90 backdrop-blur-md p-6" style={{ zIndex: 99999 }}>
             <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border border-slate-100 animate-in fade-in zoom-in duration-300">
                 <div className="flex justify-center mb-6">
                     <div className="bg-blue-50 p-4 rounded-full">

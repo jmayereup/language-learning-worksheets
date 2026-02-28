@@ -73,11 +73,11 @@ export class TJPocketBaseWorksheet extends HTMLElement {
         this.root = createRoot(this.mountPoint);
       }
 
-      if (this.root && lessonData) {
+      if (this.root) {
         this.root.render(
           <React.StrictMode>
               <BrowserSupportWarning />
-              <LessonView lesson={lessonData} />
+              {lessonData && <LessonView lesson={lessonData} />}
           </React.StrictMode>
         );
       }
