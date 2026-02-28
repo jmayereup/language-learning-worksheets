@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { ParsedLesson, InformationGapContent, UserAnswers, ReportData, ReportScorePill } from '../../types';
-import { Mic, CheckCircle } from 'lucide-react';
+import { Mic, CheckCircle, Volume2 } from 'lucide-react';
 import { InformationGapQuestions } from '../Activities/InformationGapQuestions';
 import { speakText } from '../../utils/textUtils';
 import { VoiceSelectorModal } from '../UI/VoiceSelectorModal';
 import { ReadingPassage } from '../Activities/ReadingPassage';
 import { LessonFooter } from './LessonFooter';
 import { LessonMedia } from '../UI/LessonMedia';
+import { AudioControls } from '../UI/AudioControls';
 
 interface InformationGapViewProps {
   lesson: ParsedLesson & { content: InformationGapContent };
@@ -64,6 +65,7 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
   const [currentActivityIndex, setCurrentActivityIndex] = useState(0);
   const [activityResults, setActivityResults] = useState<ActivityResult[]>([]);
   const [isFinished, setIsFinished] = useState(false);
+  const [isSinglePlayer, setIsSinglePlayer] = useState(false);
   const passageRef = React.useRef<HTMLDivElement>(null);
 
   const { content } = lesson;
@@ -168,7 +170,7 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
           <p className="text-lg text-gray-600 font-medium max-w-xl mx-auto">{mainDesc}</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-2xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-2xl mx-auto mb-12">
           {[1, 2].map((playerNum) => (
             <button
               key={playerNum}
@@ -183,6 +185,24 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
             </button>
           ))}
         </div>
+
+        <div className="flex flex-col items-center p-6 bg-green-50 rounded-2xl border border-green-100 max-w-lg mx-auto">
+          <label className="flex items-center gap-4 cursor-pointer group">
+            <div className="relative inline-flex items-center">
+              <input 
+                type="checkbox" 
+                checked={isSinglePlayer} 
+                onChange={(e) => setIsSinglePlayer(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-14 h-7 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-green-600"></div>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-gray-900 font-black text-lg group-hover:text-green-700 transition-colors">Single Player Mode</span>
+              <span className="text-gray-500 text-sm font-medium">Listen to partner info via TTS</span>
+            </div>
+          </label>
+        </div>
       </div>
     );
   }
@@ -191,6 +211,10 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
   
   const myTextBlocks = currentActivity.blocks.filter(b => b.text_holder_id === currentPlayer);
   const myQuestions = currentActivity.blocks.flatMap(b => b.questions).filter(q => q.asker_id === currentPlayer);
+  const partnerText = currentActivity.blocks
+    .filter(b => b.text_holder_id !== currentPlayer)
+    .map(b => b.text)
+    .join('\n\n');
 
 
   return (
@@ -272,6 +296,37 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
           audioPreference={audioPreference}
           onSelectPreference={setAudioPreference}
         />
+      )}
+
+      {/* Single Player: Partner's Information Section */}
+      {isSinglePlayer && partnerText && (
+        <div className="mb-8 p-6 bg-blue-50 border border-blue-100 rounded-2xl animate-fade-in">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-3">
+            <div className="flex items-center gap-3">
+              <div className="bg-blue-600 p-2 rounded-lg shadow-sm">
+                <Volume2 className="w-5 h-5 text-white" />
+              </div>
+              <div className="text-left">
+                <h3 className="text-lg font-black text-blue-900 tracking-tight leading-none mb-1">Listen to Partner's Info</h3>
+                <p className="text-xs text-blue-600 font-bold uppercase tracking-wider">Partner ({currentPlayer === 1 ? 'Player 2' : 'Player 1'})</p>
+              </div>
+            </div>
+            <AudioControls
+              onSlowToggle={() => toggleTTS(0.6, partnerText)}
+              onListenToggle={() => toggleTTS(1.0, partnerText)}
+              ttsStatus={ttsState.status}
+              currentRate={ttsState.rate}
+              hasVoices={false}
+              variant="white"
+              className="sm:justify-end"
+            />
+          </div>
+          <div className="bg-white/50 p-4 rounded-xl border border-blue-50">
+            <p className="text-blue-800 font-medium italic text-sm text-center sm:text-left">
+              "Your partner has secret information you need. Click the buttons above to hear what they know."
+            </p>
+          </div>
+        </div>
       )}
 
       {/* Questions to ask the partner */}
