@@ -9,7 +9,10 @@ export class TJPocketBaseWorksheet extends HTMLElement {
   private mountPoint: HTMLDivElement | null = null;
 
   connectedCallback() {
-    this.render();
+    // Defer rendering to ensure children (like the JSON script tag) are fully parsed by the browser
+    setTimeout(() => {
+      this.render();
+    }, 0);
   }
 
   render() {
@@ -28,7 +31,9 @@ export class TJPocketBaseWorksheet extends HTMLElement {
     }
 
     if (!jsonContent.trim() && !this.mountPoint) {
-      return; // Do nothing if empty and not already rendered
+      // Even if empty, we might still want to render the browser warning if necessary 
+      // but if there's truly no content, it could be a blank placeholder.
+      // Let's at least mount the root so the warning can show.
     }
 
     try {
