@@ -2,17 +2,16 @@ import React, { useMemo, useState } from 'react';
 import { Video, Eye, EyeOff } from 'lucide-react';
 import { ParsedLesson, StandardLessonContent, UserAnswers, ReportData, ReportScorePill, ReportWrittenResponse, CompletionStates } from '../../types';
 import { normalizeString, seededShuffle } from '../../utils/textUtils';
-import { speakText } from '../../utils/textUtils';
 import { GenericLessonLayout } from './GenericLessonLayout';
 import { Vocabulary } from '../Activities/Vocabulary';
 import { FillInBlanks } from '../Activities/FillInBlanks';
 import { Comprehension } from '../Activities/Comprehension';
 import { Scrambled } from '../Activities/Scrambled';
 import { ReadingPassage } from '../Activities/ReadingPassage';
+import { WrittenExpression } from '../Activities/WrittenExpression';
 import { VoiceSelectorModal } from '../UI/VoiceSelectorModal';
-import { AudioControls } from '../UI/AudioControls';
-import { TranslateButton } from '../UI/TranslateButton';
 import { LessonFooter } from './LessonFooter';
+import { CollapsibleActivity } from '../UI/CollapsibleActivity';
 
 interface WorksheetViewProps {
   lesson: ParsedLesson & { content: StandardLessonContent };
@@ -106,6 +105,44 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
       window.open(`https://translate.google.com/?sl=${sourceLang}&text=${encodeURIComponent(text)}&op=translate`, '_blank');
     }
   };
+  const vocabScore = useMemo(() => {
+    let score = 0;
+    const vocabData = standardContent.activities.vocabulary;
+    vocabData.items.forEach((item, idx) => {
+      const userAnswer = answers.vocabulary[`vocab_${idx}`] || '';
+      const correctDefIndex = vocabData.definitions.findIndex(d => d.id === item.answer);
+      const correctChar = String.fromCharCode(97 + correctDefIndex);
+      if (userAnswer.toLowerCase() === correctChar) score++;
+    });
+    return score;
+  }, [standardContent, answers.vocabulary]);
+
+  const fillScore = useMemo(() => {
+    let score = 0;
+    const fillData = standardContent.activities.fillInTheBlanks;
+    fillData.forEach((item, idx) => {
+      if (normalizeString(answers.fillBlanks[idx] || '') === normalizeString(item.answer)) score++;
+    });
+    return score;
+  }, [standardContent, answers.fillBlanks]);
+  const compScore = useMemo(() => {
+    let score = 0;
+    const compData = standardContent.activities.comprehension;
+    compData.questions.forEach((q, idx) => {
+      if ((answers.comprehension[idx] || '').toLowerCase() === q.answer.toLowerCase()) score++;
+    });
+    return score;
+  }, [standardContent, answers.comprehension]);
+
+  const scrambledScore = useMemo(() => {
+    let score = 0;
+    const scrambledData = standardContent.activities.scrambled;
+    scrambledData.forEach((item, idx) => {
+      if (normalizeString(answers.scrambled[idx] || '') === normalizeString(item.answer)) score++;
+    });
+    return score;
+  }, [standardContent, answers.scrambled]);
+
 
 
   const calculateReportData = (): ReportData => {
@@ -290,113 +327,102 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
       )}
 
       {/* Activities Section */}
-      <div className="space-y-8 pb-4">
+      <div className="space-y-2 pb-4">
         <section id="vocabulary">
-          <Vocabulary 
-            data={standardContent.activities.vocabulary}
-            language={lesson.language}
-            onChange={(data) => updateAnswers('vocabulary', data)}
-            savedAnswers={answers.vocabulary}
-            voiceName={selectedVoiceName}
-            savedIsChecked={completionStates.vocabularyChecked}
-            onComplete={(isChecked) => setCompletionStates(prev => ({ ...prev, vocabularyChecked: isChecked }))}
-            toggleTTS={toggleTTS}
-            ttsState={ttsState}
-            lessonId={lesson.id}
-          />
+          <CollapsibleActivity 
+            isCompleted={completionStates.vocabularyChecked} 
+            title="Vocabulary Matching"
+            score={`${vocabScore}/${standardContent.activities.vocabulary.items.length}`}
+          >
+            <Vocabulary 
+              data={standardContent.activities.vocabulary}
+              language={lesson.language}
+              onChange={(data) => updateAnswers('vocabulary', data)}
+              savedAnswers={answers.vocabulary}
+              voiceName={selectedVoiceName}
+              savedIsChecked={completionStates.vocabularyChecked}
+              onComplete={(isChecked) => setCompletionStates(prev => ({ ...prev, vocabularyChecked: isChecked }))}
+              toggleTTS={toggleTTS}
+              ttsState={ttsState}
+              lessonId={lesson.id}
+            />
+          </CollapsibleActivity>
         </section>
 
         <section id="fill-blanks">
-          <FillInBlanks 
-            data={standardContent.activities.fillInTheBlanks}
-            vocabItems={standardContent.activities.vocabulary.items}
-            level={lesson.level.replace('Level ', '')}
-            language={lesson.language}
-            onChange={(data) => updateAnswers('fillBlanks', data)}
-            savedAnswers={answers.fillBlanks}
-            voiceName={selectedVoiceName}
-            savedIsChecked={completionStates.fillBlanksChecked}
-            onComplete={(isChecked) => setCompletionStates(prev => ({ ...prev, fillBlanksChecked: isChecked }))}
-            toggleTTS={toggleTTS}
-            ttsState={ttsState}
-            lessonId={lesson.id}
-          />
+          <CollapsibleActivity 
+            isCompleted={completionStates.fillBlanksChecked} 
+            title="Fill in the Blanks"
+            score={`${fillScore}/${standardContent.activities.fillInTheBlanks.length}`}
+          >
+            <FillInBlanks 
+              data={standardContent.activities.fillInTheBlanks}
+              vocabItems={standardContent.activities.vocabulary.items}
+              level={lesson.level.replace('Level ', '')}
+              language={lesson.language}
+              onChange={(data) => updateAnswers('fillBlanks', data)}
+              savedAnswers={answers.fillBlanks}
+              voiceName={selectedVoiceName}
+              savedIsChecked={completionStates.fillBlanksChecked}
+              onComplete={(isChecked) => setCompletionStates(prev => ({ ...prev, fillBlanksChecked: isChecked }))}
+              toggleTTS={toggleTTS}
+              ttsState={ttsState}
+              lessonId={lesson.id}
+            />
+          </CollapsibleActivity>
         </section>
 
         <section id="comprehension">
-          <Comprehension
-            data={standardContent.activities.comprehension}
-            readingText={standardContent.readingText}
-            language={lesson.language}
-            onChange={(data) => updateAnswers('comprehension', data)}
-            savedAnswers={answers.comprehension}
-            voiceName={selectedVoiceName}
-            savedIsCompleted={completionStates.comprehensionCompleted}
-            onComplete={(isChecked) => setCompletionStates(prev => ({ ...prev, comprehensionCompleted: isChecked }))}
-            toggleTTS={toggleTTS}
-            ttsState={ttsState}
-            lessonId={lesson.id}
-          />
+          <CollapsibleActivity
+            isCompleted={completionStates.comprehensionCompleted}
+            title="Comprehension Check"
+            score={`${compScore}/${standardContent.activities.comprehension.questions.length}`}
+          >
+            <Comprehension
+              data={standardContent.activities.comprehension}
+              readingText={standardContent.readingText}
+              language={lesson.language}
+              onChange={(data) => updateAnswers('comprehension', data)}
+              savedAnswers={answers.comprehension}
+              voiceName={selectedVoiceName}
+              savedIsCompleted={completionStates.comprehensionCompleted}
+              onComplete={(isChecked) => setCompletionStates(prev => ({ ...prev, comprehensionCompleted: isChecked }))}
+              toggleTTS={toggleTTS}
+              ttsState={ttsState}
+              lessonId={lesson.id}
+              showReferenceText={false}
+            />
+          </CollapsibleActivity>
         </section>
 
         <section id="scrambled">
-          <Scrambled 
-            data={standardContent.activities.scrambled}
-            level={lesson.level.replace('Level ', '')}
-            language={lesson.language}
-            onChange={(data) => updateAnswers('scrambled', data)}
-            savedAnswers={answers.scrambled}
-            voiceName={selectedVoiceName}
-            savedIsChecked={completionStates.scrambledCompleted}
-            onComplete={(isChecked) => setCompletionStates(prev => ({ ...prev, scrambledCompleted: isChecked }))}
-            toggleTTS={toggleTTS}
-            ttsState={ttsState}
-            lessonId={lesson.id}
-          />
+          <CollapsibleActivity
+            isCompleted={completionStates.scrambledCompleted}
+            title="Scrambled Sentences"
+            score={`${scrambledScore}/${standardContent.activities.scrambled.length}`}
+          >
+            <Scrambled 
+              data={standardContent.activities.scrambled}
+              level={lesson.level.replace('Level ', '')}
+              language={lesson.language}
+              onChange={(data) => updateAnswers('scrambled', data)}
+              savedAnswers={answers.scrambled}
+              voiceName={selectedVoiceName}
+              savedIsChecked={completionStates.scrambledCompleted}
+              onComplete={(isChecked) => setCompletionStates(prev => ({ ...prev, scrambledCompleted: isChecked }))}
+              toggleTTS={toggleTTS}
+              ttsState={ttsState}
+              lessonId={lesson.id}
+            />
+          </CollapsibleActivity>
         </section>
 
         <section id="writing">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-green-100">
-            <h2 className="text-xl font-bold text-green-900 mb-6">Written Expression</h2>
-            <div className="space-y-8">
-              {standardContent.activities.writtenExpression.questions.map((q, i) => (
-                <div key={i} className="space-y-3">
-                  <p className="font-medium text-gray-800 text-lg">{i + 1}. {q.text}</p>
-                  <textarea
-                    className="w-full p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-400 focus:border-transparent outline-none transition-all min-h-[100px] text-lg"
-                    placeholder="Write your answer here..."
-                    value={answers.writing[i] || ''}
-                    onChange={(e) => {
-                      const newWriting = { ...answers.writing, [i]: e.target.value };
-                      updateAnswers('writing', newWriting);
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
-
-            {standardContent.activities.writtenExpression.examples && (
-              <div className="mt-8">
-                <button
-                  onClick={() => setShowExamples(!showExamples)}
-                  className="text-green-600 font-bold flex items-center gap-2 hover:text-green-700 transition-colors"
-                >
-                  {showExamples ? (
-                    <><EyeOff className="w-5 h-5" /> Hide Example Answers</>
-                  ) : (
-                    <><Eye className="w-5 h-5" /> Show Example Answers</>
-                  )}
-                </button>
-
-                {showExamples && (
-                  <div
-                    className="mt-4 p-6 bg-green-50 rounded-xl border border-green-100 prose max-w-none animate-fade-in"
-                    dangerouslySetInnerHTML={{ __html: standardContent.activities.writtenExpression.examples }}
-                  />
-                )}
-              </div>
-            )}
-          </div>
+          <WrittenExpression
+            data={standardContent.activities.writtenExpression}
+            savedAnswers={answers.writing}
+            onChange={(newWriting) => updateAnswers('writing', newWriting)}
+          />
         </section>
 
         <LessonFooter

@@ -181,10 +181,10 @@ export const ReadingPassage: React.FC<ReadingPassageProps> = ({
   };
 
   return (
-    <section className={`bg-white p-2 rounded-xl sm:shadow-sm sm:border sm:border-green-100 mb-4 ${className}`}>
-      <div className="bg-white border-b border-green-100 p-4 flex justify-between items-center text-green-900 sm:rounded-t-xl">
+    <section className={`bg-white p-2 sm:p-4 rounded-xl sm:shadow-sm sm:border sm:border-gray-100 mb-2 relative ${className}`}>
+      <div className="flex justify-between items-center mb-2">
         <div translate="no">
-          <h2 className="text-xl font-bold uppercase tracking-tight">{title}</h2>
+          <h2 className="text-xl font-black text-green-900 uppercase tracking-tight">{title}</h2>
         </div>
         
         <div className="flex gap-2">
@@ -200,10 +200,12 @@ export const ReadingPassage: React.FC<ReadingPassageProps> = ({
         </div>
       </div>
 
-      <div className="p-1 mx-1 sm:p-4">
+      <p className="text-gray-500 mb-4 text-sm font-medium">Read the text carefully. Tap any word to hear its pronunciation.</p>
+
+      <div className="mx-0 sm:mx-1">
         <div
           ref={passageRef}
-          className="prose max-w-none text-lg leading-relaxed text-gray-800 bg-transparent p-0 sm:bg-gray-50 sm:p-6 rounded-lg sm:border sm:border-gray-100"
+          className="prose max-w-none text-base leading-relaxed text-gray-800 bg-transparent p-0 sm:bg-gray-50 sm:p-4 rounded-lg sm:border sm:border-gray-100"
           translate="no"
         >
           {renderTextWithVocabulary()}

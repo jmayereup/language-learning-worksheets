@@ -154,14 +154,18 @@ export const Scrambled: React.FC<Props> = ({
       return normalizeString(savedAnswers[idx] || '') === normalizeString(item.answer) ? acc + 1 : acc;
     }, 0);
     return (
-      <section className="bg-white p-2 rounded-xl sm:shadow-sm sm:border sm:border-gray-100 mb-2 text-center">
-        <h2 className="text-2xl font-bold text-green-800 mb-4">Activity 4: Sentences</h2>
-        <div className={`text-3xl font-bold mb-4 ${totalCorrect === data.length ? 'text-green-600' : 'text-green-600'}`}>
+      <section className="bg-white p-6 rounded-xl sm:shadow-sm sm:border sm:border-gray-100 mb-2 text-center">
+        <h2 className="text-xl font-black text-green-900 uppercase tracking-tight mb-4">Scrambled Sentences</h2>
+        <div className="text-2xl font-black mb-4 text-green-600">
           Activity Completed!
         </div>
-        <p className="text-gray-600 text-lg mb-6">Score: {totalCorrect} / {data.length}</p>
-        <Button onClick={() => { setCurrentIndex(0); setIsCompleted(false); setIsChecked(false); onChange({}); }} variant="secondary">
-          <RefreshCw className="w-4 h-4 mr-2" /> Retry
+        <div className="flex justify-center mb-6">
+          <div className="bg-green-100 text-green-800 px-4 py-2 rounded-full font-bold text-lg">
+            Score: {totalCorrect} / {data.length}
+          </div>
+        </div>
+        <Button onClick={() => { setCurrentIndex(0); setIsCompleted(false); setIsChecked(false); onChange({}); }} variant="secondary" className="px-8 py-3 rounded-full font-bold">
+          <RefreshCw className="w-5 h-5 mr-2" /> Retry Activity
         </Button>
       </section>
     );
@@ -171,11 +175,11 @@ export const Scrambled: React.FC<Props> = ({
   const isCorrect = normalizeString(userAnswer) === normalizeString(currentItem?.answer || '');
 
   return (
-    <section className="bg-white p-2 rounded-xl sm:shadow-sm sm:border sm:border-gray-100 mb-2">
-      <div className="space-y-4 mb-6">
+    <section className="bg-white p-2 sm:p-4 rounded-xl sm:shadow-sm sm:border sm:border-gray-100 mb-2 relative">
+      <div className="space-y-4 mb-2">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <h2 className="text-2xl font-bold text-green-800 leading-tight">Activity 4: Sentences</h2>
+            <h2 className="text-xl font-black text-green-900 uppercase tracking-tight">Scrambled Sentences</h2>
           </div>
 
           <div className="flex justify-between gap-3">
@@ -221,14 +225,14 @@ export const Scrambled: React.FC<Props> = ({
                   }}
                   ttsStatus={activeSpeechIdx === currentIndex ? ttsState.status : 'stopped'}
                   currentRate={activeSpeechIdx === currentIndex ? ttsState.rate : 1.0}
-                  hasVoices={false} // Vocabulary usually doesn't show voice settings here, but we could pass it if we want
+                  hasVoices={false}
                 />
               </>
             )}
           </div>
         </div>
 
-        <p className="text-gray-600 text-lg">
+        <p className="text-gray-500 mb-4 text-sm font-medium">
           {activityMode === 'dictation' 
             ? 'Listen to the audio and type the sentence.' 
             : 'Unscramble the words to form a correct sentence.'}

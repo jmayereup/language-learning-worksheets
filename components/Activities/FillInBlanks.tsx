@@ -71,15 +71,17 @@ export const FillInBlanks: React.FC<Props> = ({
   }, 0);
 
   return (
-    <section className="bg-white p-2 md:p-8 rounded-xl sm:shadow-sm sm:border sm:border-gray-100 mb-2">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-green-800">Activity 2: Fill in the blanks</h2>
+    <section className="bg-white p-2 sm:p-4 rounded-xl sm:shadow-sm sm:border sm:border-gray-100 mb-2 relative">
+      <div className="flex justify-between items-center mb-2">
+        <h2 className="text-xl font-black text-green-900 uppercase tracking-tight">Fill in the blanks</h2>
         {isChecked && (
-          <div className={`text-xl font-bold ${correctCount === data.length ? 'text-green-600' : 'text-green-600'}`}>
-            Score: {correctCount}/{data.length}
+          <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full font-bold text-sm">
+            Score: {correctCount} / {data.length}
           </div>
         )}
       </div>
+
+      <p className="text-gray-500 mb-4 text-sm font-medium">Fill in the missing words to complete the sentences.</p>
 
       {/* Word Bank */}
       <div className="bg-gray-50 p-4 rounded-lg mb-8 border border-gray-200">

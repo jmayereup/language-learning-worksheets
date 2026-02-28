@@ -16,6 +16,7 @@ interface Props {
   toggleTTS: (rate: number, overrideText?: string) => void;
   ttsState: { status: 'playing' | 'paused' | 'stopped', rate: number };
   lessonId: string;
+  title?: string;
 }
 
 export const Vocabulary: React.FC<Props> = ({ 
@@ -28,7 +29,8 @@ export const Vocabulary: React.FC<Props> = ({
   onComplete,
   toggleTTS,
   ttsState,
-  lessonId
+  lessonId,
+  title = "Vocabulary Matching"
 }) => {
   const [shuffledWordIndices, setShuffledWordIndices] = useState<number[]>([]);
   const [shuffledDefIndices, setShuffledDefIndices] = useState<number[]>([]);
@@ -137,9 +139,9 @@ export const Vocabulary: React.FC<Props> = ({
   };
 
   return (
-    <section className="bg-white p-4 rounded-xl sm:shadow-sm sm:border sm:border-gray-100 mb-2 relative">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-black text-green-900 uppercase tracking-tight">Vocabulary Matching</h2>
+    <section className="bg-white p-2 sm:p-4 rounded-xl sm:shadow-sm sm:border sm:border-gray-100 mb-2 relative">
+      <div className="flex justify-between items-center mb-2">
+        <h2 className="text-xl font-black text-green-900 uppercase tracking-tight">{title}</h2>
         {isChecked && (
           <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full font-bold text-sm">
             Score: {score} / {data.items.length}
@@ -147,12 +149,12 @@ export const Vocabulary: React.FC<Props> = ({
         )}
       </div>
 
-      <p className="text-gray-500 mb-6 text-sm font-medium">Tap a word and then tap its definition to match. Click "Check" when finished.</p>
+      <p className="text-gray-500 mb-4 text-sm font-medium">Tap a word and then tap its definition to match. Click "Check" when finished.</p>
 
       {/* Words Grid - Compact */}
       <div className="mb-8">
-        <h3 className="font-bold text-gray-400 text-xs uppercase tracking-widest mb-3">1. Select a Word</h3>
-        <div className="flex flex-wrap gap-2">
+        <h3 className="font-bold text-gray-400 text-sm uppercase tracking-widest mb-3">1. Select a Word</h3>
+        <div className="flex flex-wrap gap-2 text-sm">
           {shuffledWordIndices.map((idx) => {
             const item = data.items[idx];
             const isSelected = selectedWordIndex === idx;
@@ -197,7 +199,7 @@ export const Vocabulary: React.FC<Props> = ({
 
       {/* Definitions List */}
       <div className="space-y-3">
-        <h3 className="font-bold text-gray-400 text-xs uppercase tracking-widest mb-3">2. Assign to Definition</h3>
+        <h3 className="font-bold text-gray-400 text-sm uppercase tracking-widest mb-3">2. Assign to Definition</h3>
         {shuffledDefIndices.map((defIdx) => {
           const def = data.definitions[defIdx];
           const matched = getMatchedWordLabel(defIdx);
@@ -221,11 +223,11 @@ export const Vocabulary: React.FC<Props> = ({
               className={`group flex items-start gap-2 p-2 md:p-4 md:gap-4 rounded-xl border-2 transition-all cursor-pointer ${borderClass}`}
             >
               <div className="flex-l">
-                <p className="text-gray-700 text-base font-medium leading-relaxed mb-2" translate="no">{def.text}</p>
+                <p className="text-gray-700 text-sm md:text-base font-medium leading-relaxed mb-2" translate="no">{def.text}</p>
                 {matched ? (
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-black uppercase tracking-tighter text-green-600 bg-green-100 px-2 py-0.5 rounded">Matched:</span>
-                    <span className="font-black text-gray-900 text-base" translate="no">{matched.label}</span>
+                    <span className="font-black text-gray-900 text-sm md:text-base" translate="no">{matched.label}</span>
                   </div>
                 ) : (
                   <span className="text-xs font-bold text-gray-300 italic">Tap to assign word...</span>
@@ -269,7 +271,7 @@ export const Vocabulary: React.FC<Props> = ({
         {!isChecked ? (
           <Button 
             onClick={() => checkAnswers()} 
-            className="px-10 py-4 rounded-full font-black text-lg shadow-xl"
+            className="px-10 py-4 rounded-full font-black text-base shadow-xl"
             disabled={Object.keys(savedAnswers).length === 0}
           >
             Check Answers

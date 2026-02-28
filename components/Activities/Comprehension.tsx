@@ -1,8 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { ComprehensionActivity } from '../../types';
 import { Button } from '../UI/Button';
-import { Check, ChevronRight, RefreshCw, XCircle } from 'lucide-react';
-import { speakText, shouldShowAudioControls, selectElementText, seededShuffle } from '../../utils/textUtils';
+import { ChevronRight, RefreshCw, XCircle } from 'lucide-react';
+import { shouldShowAudioControls, seededShuffle } from '../../utils/textUtils';
 import { AudioControls } from '../UI/AudioControls';
 
 interface Props {
@@ -18,21 +17,21 @@ interface Props {
   ttsState: { status: 'playing' | 'paused' | 'stopped', rate: number };
   lessonId: string;
   title?: string;
+  showReferenceText?: boolean;
 }
 
 export const Comprehension: React.FC<Props> = ({
   data,
   readingText,
-  language,
   onChange,
   savedAnswers,
-  voiceName,
   savedIsCompleted = false,
   onComplete,
   toggleTTS,
   ttsState,
   lessonId,
-  title = "Activity 3: Comprehension"
+  title = "Reading Comprehension",
+  showReferenceText = true
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isChecked, setIsChecked] = useState(false);
@@ -110,7 +109,7 @@ export const Comprehension: React.FC<Props> = ({
 
     return (
       <section className="bg-white p-6 rounded-xl sm:shadow-sm sm:border sm:border-gray-100 mb-2 text-center">
-        <h2 className="text-xl font-bold text-green-800 mb-4">{title}</h2>
+        <h2 className="text-xl font-black text-green-900 uppercase tracking-tight mb-4">{isCompleted ? "Activity Completed!" : title}</h2>
         <div className="text-2xl font-black mb-4 text-green-600">
           {score === data.questions.length ? '🎉 Perfect!' : 'Good Job!'}
         </div>
@@ -125,33 +124,37 @@ export const Comprehension: React.FC<Props> = ({
   const isCorrect = userAnswer === currentQuestion.answer;
 
   return (
-    <section className="bg-white p-2 rounded-xl sm:shadow-sm sm:border sm:border-gray-100 mb-2">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold text-green-800 tracking-tight">{title}</h2>
-        <span className="font-bold text-gray-400 text-xs uppercase tracking-widest bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100">
+    <section className="bg-white p-2 sm:p-4 rounded-xl sm:shadow-sm sm:border sm:border-gray-100 mb-2 relative">
+      <div className="flex justify-between items-center mb-2">
+        <h2 className="text-xl font-black text-green-900 uppercase tracking-tight">{title}</h2>
+        <span className="bg-green-50 text-green-700 px-3 py-1 rounded-full font-bold text-sm">
           Question {currentIndex + 1} of {data.questions.length}
         </span>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <p className="text-gray-500 mb-4 text-sm font-medium">Read the text and choose the correct answer for each question.</p>
+
+      <div className={showReferenceText ? "grid grid-cols-1 lg:grid-cols-2 gap-8" : "max-w-3xl mx-auto"}>
         {/* Reading Text Column */}
-        <div className="order-2 lg:order-1">
-          <h3 className="font-black text-gray-400 text-xs uppercase tracking-widest mb-3 flex items-center gap-2">
-            <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-            Reference Text
-          </h3>
-          <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 max-h-[400px] overflow-y-auto custom-scrollbar shadow-inner select-text">
-            <p className="text-gray-700 leading-relaxed font-sans text-base whitespace-pre-line" translate="no">
-              {readingText}
-            </p>
+        {showReferenceText && (
+          <div className="order-2 lg:order-1">
+            <h3 className="font-black text-gray-400 text-xs uppercase tracking-widest mb-3 flex items-center gap-2">
+              <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+              Reference Text
+            </h3>
+            <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 max-h-[400px] overflow-y-auto custom-scrollbar shadow-inner select-text">
+              <p className="text-gray-700 leading-relaxed font-sans text-base whitespace-pre-line" translate="no">
+                {readingText}
+              </p>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Question Column */}
-        <div className="order-1 lg:order-2 flex flex-col justify-center">
-          <div className="mb-6 min-h-[120px]">
-            <div className="flex items-start gap-4 mb-6">
-              <p className="text-lg md:text-xl font-black text-gray-900 flex-1 leading-tight tracking-tight selectable-text" translate="no">
+        <div className={showReferenceText ? "order-1 lg:order-2 flex flex-col justify-center" : "flex flex-col justify-center"}>
+          <div className="mb-6 min-h-[100px]">
+            <div className="flex items-start gap-4 mb-4">
+              <p className="text-base md:text-lg font-black text-gray-900 flex-1 leading-tight tracking-tight selectable-text" translate="no">
                 {currentQuestion.text || currentQuestion.question}
               </p>
               {shouldShowAudioControls() && (
@@ -165,20 +168,18 @@ export const Comprehension: React.FC<Props> = ({
               )}
             </div>
 
-            <div className={`flex ${currentQuestion.options ? 'flex-col' : 'flex-col sm:flex-row'} gap-4`}>
+            <div className={`flex ${currentQuestion.options ? 'flex-col' : 'flex-col sm:flex-row'} gap-2`}>
               {currentQuestion.options ? (
                 // Multiple Choice rendering
                 currentQuestion.options.map((option: string, idx: number) => {
                   const isOptionSelected = userAnswer === option;
                   const isCorrectOption = option === currentQuestion.answer;
-                  const showSuccess = isChecked && isCorrectOption;
-                  const showError = isChecked && isOptionSelected && !isCorrectOption;
 
                   return (
                     <label 
                       key={idx}
                       className={`
-                        flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 select-none
+                        flex items-center gap-2 sm:gap-4 p-2 sm:p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 select-none
                         ${isOptionSelected 
                           ? (isChecked 
                               ? (isCorrectOption ? 'border-green-500 bg-green-50 text-green-800' : 'border-red-500 bg-red-50 text-red-800')

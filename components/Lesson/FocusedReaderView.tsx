@@ -10,6 +10,7 @@ import { Button } from '../UI/Button';
 import { Vocabulary } from '../Activities/Vocabulary';
 import { ReadingPassage } from '../Activities/ReadingPassage';
 import { Comprehension } from '../Activities/Comprehension';
+import { CollapsibleActivity } from '../UI/CollapsibleActivity';
 
 interface FocusedReaderViewProps {
   lesson: ParsedLesson & { content: FocusedReaderContent };
@@ -163,6 +164,49 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
     };
   };
 
+  const vocabScore = useMemo(() => {
+    let score = 0;
+    const vocabExplanations = currentPart.vocabulary_explanations || {};
+    const vocabAnswers = answers.vocabulary || {};
+    Object.keys(vocabExplanations).forEach((word, index) => {
+      const answerKey = `vocab_${currentPartIndex}_${index}`;
+      const userAnswer = vocabAnswers[answerKey] || '';
+      const correctChar = String.fromCharCode(97 + index);
+      if (userAnswer.toLowerCase() === correctChar) score++;
+    });
+    return score;
+  }, [currentPart, currentPartIndex, answers.vocabulary]);
+
+  const isVocabCompleted = useMemo(() => {
+    const vocabExplanations = currentPart.vocabulary_explanations || {};
+    const vocabCount = Object.keys(vocabExplanations).length;
+    if (vocabCount === 0) return false;
+    
+    const vocabAnswers = answers.vocabulary || {};
+    let matchedCount = 0;
+    Object.keys(vocabExplanations).forEach((_, index) => {
+      if (vocabAnswers[`vocab_${currentPartIndex}_${index}`]) matchedCount++;
+    });
+    return matchedCount === vocabCount;
+  }, [currentPart, currentPartIndex, answers.vocabulary]);
+
+  const comprehensionScore = useMemo(() => {
+    let score = 0;
+    const questions = currentPart.questions || [];
+    const partAnswers = answers.focusedReader?.[currentPartIndex] || {};
+    questions.forEach((q, i) => {
+      if (partAnswers[i] === q.answer) score++;
+    });
+    return score;
+  }, [currentPart, currentPartIndex, answers.focusedReader]);
+
+  const isComprehensionCompleted = useMemo(() => {
+    const questions = currentPart.questions || [];
+    if (questions.length === 0) return false;
+    const partAnswers = answers.focusedReader?.[currentPartIndex] || {};
+    return questions.every((_, i) => !!partAnswers[i]);
+  }, [currentPart, currentPartIndex, answers.focusedReader]);
+
 
   return (
     <GenericLessonLayout
@@ -176,7 +220,7 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
       setHomeroom={setHomeroom}
       isNameLocked={isNameLocked}
     >
-      <div className="max-w-4xl mx-auto space-y-8">
+      <div className="max-w-4xl mx-auto px-1 sm:px-4 py-4 sm:py-8 space-y-2">
         {lesson.imageUrl && (
           <div className="w-full flex justify-center mb-6">
             <img
@@ -205,7 +249,7 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
         <ReadingPassage
           text={currentPart.text}
           language={lesson.language}
-          title={`Part ${currentPart.part_number}`}
+          title={`Page ${currentPart.part_number}`}
           vocabularyExplanations={currentPart.vocabulary_explanations}
           onSlowToggle={() => toggleTTS(0.6, currentPart.text)}
           onListenToggle={() => toggleTTS(1.0, currentPart.text)}
@@ -220,82 +264,94 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
         {/* Vocabulary Section */}
         {Object.keys(currentPart.vocabulary_explanations).length > 0 && (
           <section className="animate-fade-in">
-            <Vocabulary 
-              data={{
-                items: Object.keys(currentPart.vocabulary_explanations).map((word, i) => ({
-                  label: word,
-                  answer: `def_${i}`
-                })),
-                definitions: Object.entries(currentPart.vocabulary_explanations).map(([word, def], i) => ({
-                  id: `def_${i}`,
-                  text: def
-                }))
-              }}
-              language={lesson.language}
-              onChange={(vAnswers) => {
-                setAnswers(prev => {
-                  const newVocab = { ...(prev.vocabulary || {}) };
-                  // First clear all existing matches for this specific part
-                  Object.keys(newVocab).forEach(key => {
+            <CollapsibleActivity
+              isCompleted={isVocabCompleted}
+              title={`Page ${currentPart.part_number} Vocabulary`}
+              score={`${vocabScore}/${Object.keys(currentPart.vocabulary_explanations).length}`}
+            >
+              <Vocabulary 
+                data={{
+                  items: Object.keys(currentPart.vocabulary_explanations).map((word, i) => ({
+                    label: word,
+                    answer: `def_${i}`
+                  })),
+                  definitions: Object.entries(currentPart.vocabulary_explanations).map(([word, def], i) => ({
+                    id: `def_${i}`,
+                    text: def
+                  }))
+                }}
+                language={lesson.language}
+                onChange={(vAnswers) => {
+                  setAnswers(prev => {
+                    const newVocab = { ...(prev.vocabulary || {}) };
+                    // First clear all existing matches for this specific part
+                    Object.keys(newVocab).forEach(key => {
+                      if (key.startsWith(`vocab_${currentPartIndex}_`)) {
+                        delete newVocab[key];
+                      }
+                    });
+                    // Then apply the new set of matches
+                    Object.entries(vAnswers).forEach(([key, val]) => {
+                      const pIdxKey = key.replace('vocab_', `vocab_${currentPartIndex}_`);
+                      newVocab[pIdxKey] = val;
+                    });
+                    return { ...prev, vocabulary: newVocab };
+                  });
+                }}
+                savedAnswers={(() => {
+                  const partVocab: Record<string, string> = {};
+                  Object.entries(answers.vocabulary || {}).forEach(([key, val]) => {
                     if (key.startsWith(`vocab_${currentPartIndex}_`)) {
-                      delete newVocab[key];
+                      const originalKey = key.replace(`vocab_${currentPartIndex}_`, 'vocab_');
+                      partVocab[originalKey] = val;
                     }
                   });
-                  // Then apply the new set of matches
-                  Object.entries(vAnswers).forEach(([key, val]) => {
-                    const pIdxKey = key.replace('vocab_', `vocab_${currentPartIndex}_`);
-                    newVocab[pIdxKey] = val;
-                  });
-                  return { ...prev, vocabulary: newVocab };
-                });
-              }}
-              savedAnswers={(() => {
-                const partVocab: Record<string, string> = {};
-                Object.entries(answers.vocabulary || {}).forEach(([key, val]) => {
-                  if (key.startsWith(`vocab_${currentPartIndex}_`)) {
-                    const originalKey = key.replace(`vocab_${currentPartIndex}_`, 'vocab_');
-                    partVocab[originalKey] = val;
-                  }
-                });
-                return partVocab;
-              })()}
-              toggleTTS={toggleTTS}
-              ttsState={ttsState}
-              lessonId={`${lesson.id}-${currentPartIndex}`}
-            />
+                  return partVocab;
+                })()}
+                toggleTTS={toggleTTS}
+                ttsState={ttsState}
+                lessonId={`${lesson.id}-part-${currentPartIndex}`}
+                title={`Page ${currentPart.part_number} Vocabulary`}
+                savedIsChecked={isVocabCompleted}
+              />
+            </CollapsibleActivity>
           </section>
         )}
 
         {/* Questions Section */}
-        <section className="space-y-6 animate-fade-in" key={currentPartIndex}>
-          <div className="flex items-center gap-3 mb-6">
-            <div className="h-10 w-2 bg-green-500 rounded-full" />
-            <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tight">Comprehension Check</h2>
-          </div>
         {currentPart.questions.length > 0 && (
-          <Comprehension
-            data={{ questions: currentPart.questions }}
-            readingText={currentPart.text}
-            language={lesson.language}
-            onChange={(partAnswers) => {
-              setAnswers(prev => {
-                const focusedReader = { ...(prev.focusedReader || {}) };
-                focusedReader[currentPartIndex] = partAnswers;
-                return { ...prev, focusedReader };
-              });
-            }}
-            savedAnswers={answers.focusedReader?.[currentPartIndex] || {}}
-            voiceName={selectedVoiceName}
-            toggleTTS={toggleTTS}
-            ttsState={ttsState}
-            lessonId={`${lesson.id}-part-${currentPartIndex}`}
-            title={`Part ${currentPart.part_number} Check`}
-          />
+          <section className="animate-fade-in" key={currentPartIndex}>
+            <CollapsibleActivity
+              isCompleted={isComprehensionCompleted}
+              title={`Page ${currentPart.part_number} Questions`}
+              score={`${comprehensionScore}/${currentPart.questions.length}`}
+            >
+              <Comprehension
+                data={{ questions: currentPart.questions }}
+                readingText={currentPart.text}
+                language={lesson.language}
+                onChange={(partAnswers) => {
+                  setAnswers(prev => {
+                    const focusedReader = { ...(prev.focusedReader || {}) };
+                    focusedReader[currentPartIndex] = partAnswers;
+                    return { ...prev, focusedReader };
+                  });
+                }}
+                savedAnswers={answers.focusedReader?.[currentPartIndex] || {}}
+                voiceName={selectedVoiceName}
+                toggleTTS={toggleTTS}
+                ttsState={ttsState}
+                lessonId={`${lesson.id}-part-${currentPartIndex}`}
+                title={`Page ${currentPart.part_number} Questions`}
+                showReferenceText={false}
+                savedIsCompleted={isComprehensionCompleted}
+              />
+            </CollapsibleActivity>
+          </section>
         )}
-      </section>
-
+        <hr className="border-gray-300 my-6"/>
         {/* Controls */}
-        <div className="flex justify-between items-center py-8">
+        <div className="flex justify-between items-center">
           <Button
             variant="secondary"
             onClick={() => setCurrentPartIndex(Math.max(0, currentPartIndex - 1))}

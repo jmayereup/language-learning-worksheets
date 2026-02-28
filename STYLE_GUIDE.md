@@ -106,3 +106,37 @@ Example using Tailwind:
   </div>
 </section>
 ```
+
+## Standard Activity Component Pattern
+
+All worksheet activities should follow this unified structure to ensure a premium, consistent look.
+
+### Container & Layout
+Use a subtle white card with responsive padding and a light border. **For activities, prefer wrapping the component in `CollapsibleActivity`** to keep the worksheet organized and focused.
+
+```tsx
+<CollapsibleActivity 
+  isCompleted={isCompleted} 
+  title="Activity Name" 
+  score={`${currentScore}/${totalItems}`}
+>
+  <section className="bg-white p-2 sm:p-4 rounded-xl sm:shadow-sm sm:border sm:border-gray-100 mb-2 relative">
+    {/* ... activity content ... */}
+  </section>
+</CollapsibleActivity>
+```
+
+### Layout & Spacing
+Maintain a consistent vertical rhythm by using **`mb-2`** (or `space-y-2`) between major content sections.
+
+- **Passage to Activity**: `mb-2`
+- **Activity to Activity**: `mb-2`
+- **Internal Spacing**: Use `mb-4` or `space-y-4` for logical groupings within an activity card.
+
+### Key Styling Details
+- **Titles**: `text-xl font-black text-green-900 uppercase tracking-tight`
+- **Instructions**: `text-gray-500 mb-4 text-sm font-medium`
+- **Status Pills**: `bg-green-100 text-green-800` (or `bg-green-50 text-green-700`) `px-3 py-1 rounded-full font-bold text-sm`
+- **Shadows/Borders**: Use `sm:shadow-sm` and `sm:border-gray-100` on larger screens, keeping it minimal on mobile.
+
+## Shared Activity Component Pattern
