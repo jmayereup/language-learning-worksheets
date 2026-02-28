@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { VocabularyActivity } from '../../types';
 import { Button } from '../UI/Button';
-import { Volume2, RefreshCw, XCircle } from 'lucide-react';
+import { Volume2, RefreshCw, XCircle, Check } from 'lucide-react';
 import { speakText, shouldShowAudioControls, selectElementText, seededShuffle } from '../../utils/textUtils';
 import { AudioControls } from '../UI/AudioControls';
 
@@ -19,13 +19,13 @@ interface Props {
   title?: string;
 }
 
-export const Vocabulary: React.FC<Props> = ({ 
-  data, 
-  language, 
-  onChange, 
-  savedAnswers, 
-  voiceName, 
-  savedIsChecked = false, 
+export const Vocabulary: React.FC<Props> = ({
+  data,
+  language,
+  onChange,
+  savedAnswers,
+  voiceName,
+  savedIsChecked = false,
   onComplete,
   toggleTTS,
   ttsState,
@@ -61,7 +61,7 @@ export const Vocabulary: React.FC<Props> = ({
 
     // Map definition index to letter (a, b, c...)
     const char = String.fromCharCode(97 + defIndex);
-    
+
     // Check if this word was already matched elsewhere and remove that old match
     const newAnswers = { ...savedAnswers };
     Object.keys(newAnswers).forEach(key => {
@@ -159,18 +159,18 @@ export const Vocabulary: React.FC<Props> = ({
             const item = data.items[idx];
             const isSelected = selectedWordIndex === idx;
             const isMatched = Object.keys(savedAnswers).some(key => key === `vocab_${idx}`);
-            
+
             // Validation colors if checked
-            let colorClass = isSelected 
-              ? "bg-green-600 text-white border-green-600 shadow-lg ring-4 ring-green-100 scale-105" 
+            let colorClass = isSelected
+              ? "bg-green-600 text-white border-green-600 shadow-lg ring-4 ring-green-100 scale-105"
               : (isMatched ? "bg-gray-100 text-gray-400 border-gray-200" : "bg-white text-gray-700 border-gray-200 hover:border-green-300 hover:bg-green-50");
-            
+
             if (isChecked && isMatched) {
               const userAnswer = savedAnswers[`vocab_${idx}`];
               const correctDefIndex = data.definitions.findIndex(d => d.id === item.answer);
               const correctChar = String.fromCharCode(97 + correctDefIndex);
-              colorClass = userAnswer === correctChar 
-                ? "bg-green-50 text-green-700 border-green-200" 
+              colorClass = userAnswer === correctChar
+                ? "bg-green-50 text-green-700 border-green-200"
                 : "bg-red-50 text-red-700 border-red-200";
             }
 
@@ -183,8 +183,8 @@ export const Vocabulary: React.FC<Props> = ({
               >
                 <span translate="no">{item.label}</span>
                 {shouldShowAudioControls() && !isMatched && (
-                  <Volume2 
-                    className="w-4 h-4 opacity-50 hover:opacity-100" 
+                  <Volume2
+                    className="w-4 h-4 opacity-50 hover:opacity-100"
                     onClick={(e) => {
                       e.stopPropagation();
                       toggleTTS(1.0, item.label);
@@ -204,11 +204,11 @@ export const Vocabulary: React.FC<Props> = ({
           const def = data.definitions[defIdx];
           const matched = getMatchedWordLabel(defIdx);
           const isSlotActive = selectedWordIndex !== null;
-          
+
           let borderClass = "border-gray-100 bg-gray-50";
           if (isSlotActive) borderClass = "border-green-300 bg-green-50 ring-2 ring-green-100/50";
           if (matched) borderClass = "border-green-100 bg-white shadow-sm";
-          
+
           if (isChecked && matched) {
             const item = data.items[matched.index];
             const correctDefIndex = data.definitions.findIndex(d => d.id === item.answer);
@@ -217,8 +217,8 @@ export const Vocabulary: React.FC<Props> = ({
           }
 
           return (
-            <div 
-              key={def.id} 
+            <div
+              key={def.id}
               onClick={() => handleDefSelect(defIdx)}
               className={`group flex items-start gap-2 p-2 md:p-4 md:gap-4 rounded-xl border-2 transition-all cursor-pointer ${borderClass}`}
             >
@@ -234,7 +234,7 @@ export const Vocabulary: React.FC<Props> = ({
                 )}
               </div>
               {shouldShowAudioControls() && (
-                <button 
+                <button
                   onClick={(e) => {
                     e.stopPropagation();
                     toggleTTS(1.0, def.text);
@@ -256,7 +256,7 @@ export const Vocabulary: React.FC<Props> = ({
             <div className="flex flex-col">
               <span className="text-lg font-black" translate="no">{data.items[selectedWordIndex].label}</span>
             </div>
-            <button 
+            <button
               onClick={() => setSelectedWordIndex(null)}
               className="bg-white/20 hover:bg-white/40 p-1.5 rounded-lg transition-colors"
             >
@@ -269,28 +269,29 @@ export const Vocabulary: React.FC<Props> = ({
       {/* Action Buttons */}
       <div className="mt-10 flex flex-wrap justify-center gap-4">
         {!isChecked ? (
-          <Button 
-            onClick={() => checkAnswers()} 
-            className="px-10 py-4 rounded-full font-black text-base shadow-xl"
+          <Button
+            onClick={() => checkAnswers()}
+            variant='primary'
+            size="sm"
             disabled={Object.keys(savedAnswers).length === 0}
           >
-            Check Answers
+            <Check size={20} className="mr-2" /> Check Answers
           </Button>
         ) : (
           <>
             {score < data.items.length && (
-              <Button 
-                onClick={handleRetry} 
+              <Button
+                onClick={handleRetry}
                 variant="primary"
-                className="px-8 py-3 rounded-full font-black text-lg shadow-md"
+                className="p-2 rounded-full font-black text-lg shadow-md"
               >
-                <RefreshCw className="w-5 h-5 mr-2" /> Fix Mistakes
+                <RefreshCw className="w-5 h-5 mr-2" /> Continue
               </Button>
             )}
-            <Button 
-              onClick={handleFullReset} 
-              variant="secondary"
-              className="px-8 py-3 rounded-full font-black text-lg border-2"
+            <Button
+              onClick={handleFullReset}
+              variant="danger"
+              className="p-2 rounded-full font-black text-lg border-2"
             >
               Reset Activity
             </Button>

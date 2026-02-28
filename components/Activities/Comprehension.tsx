@@ -30,7 +30,7 @@ export const Comprehension: React.FC<Props> = ({
   toggleTTS,
   ttsState,
   lessonId,
-  title = "Reading Comprehension",
+  title = "Reading Questions",
   showReferenceText = true
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -128,7 +128,7 @@ export const Comprehension: React.FC<Props> = ({
       <div className="flex justify-between items-center mb-2">
         <h2 className="text-xl font-black text-green-900 uppercase tracking-tight">{title}</h2>
         <span className="bg-green-50 text-green-700 px-3 py-1 rounded-full font-bold text-sm">
-          Question {currentIndex + 1} of {data.questions.length}
+          Score {currentIndex + 1} of {data.questions.length}
         </span>
       </div>
 

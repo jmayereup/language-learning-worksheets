@@ -255,19 +255,21 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
       showBack={false}
     >
       {/* Worksheet Actions */}
-      <WorksheetExportActions
-        lesson={lesson}
-        displayTitle={displayTitle}
-        studentName={studentName}
-        studentId={studentId}
-        homeroom={homeroom}
-      />
+      <div className="hidden sm:flex">
+        <WorksheetExportActions
+          lesson={lesson}
+          displayTitle={displayTitle}
+          studentName={studentName}
+          studentId={studentId}
+          homeroom={homeroom}
+        />
+      </div>
       {/* Media Section */}
-      <LessonMedia 
-        videoUrl={lesson.videoUrl} 
-        imageUrl={lesson.imageUrl} 
-        isVideoLesson={lesson.isVideoLesson} 
-        title={displayTitle} 
+      <LessonMedia
+        videoUrl={lesson.videoUrl}
+        imageUrl={lesson.imageUrl}
+        isVideoLesson={lesson.isVideoLesson}
+        title={displayTitle}
       />
 
       <div className="print:hidden">
@@ -480,7 +482,7 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
           </section>
 
           <section>
-            <h2 className="text-sm font-bold mb-1 bg-gray-100 px-2 py-1">3. Reading Comprehension</h2>
+            <h2 className="text-sm font-bold mb-1 bg-gray-100 px-2 py-1">3. Reading Questions</h2>
             <div className="space-y-1">
               {standardContent.activities.comprehension.questions.map((q, i) => (
                 <div key={i} className="flex justify-between items-center border-b border-gray-100 pb-1">

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ScrambledItem } from '../../types';
-import { normalizeString, speakText, shouldShowAudioControls, selectElementText, seededShuffle } from '../../utils/textUtils';
+import { normalizeString, shouldShowAudioControls, seededShuffle } from '../../utils/textUtils';
 import { Button } from '../UI/Button';
-import { ChevronLeft, RefreshCw, Volume2, Turtle, SkipForward, Settings2 } from 'lucide-react';
+import { RefreshCw, SkipForward } from 'lucide-react';
 import { AudioControls } from '../UI/AudioControls';
 
 interface Props {
@@ -177,9 +177,12 @@ export const Scrambled: React.FC<Props> = ({
   return (
     <section className="bg-white p-2 sm:p-4 rounded-xl sm:shadow-sm sm:border sm:border-gray-100 mb-2 relative">
       <div className="space-y-4 mb-2">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center justify-between w-full">
             <h2 className="text-xl font-black text-green-900 uppercase tracking-tight">Scrambled Sentences</h2>
+            <span className="bg-green-50 text-green-700 px-3 py-1 rounded-full font-bold text-sm">
+              Score {currentIndex + 1} of {data.length}
+            </span>
           </div>
 
           <div className="flex justify-between gap-3">
@@ -307,9 +310,6 @@ export const Scrambled: React.FC<Props> = ({
       </div>
 
       <div className="flex items-center justify-end mt-6 pt-6 border-t border-gray-100">
-        <span className="font-medium text-gray-500 mr-auto">
-          {currentIndex + 1} / {data.length}
-        </span>
 
         <div className="flex gap-2">
           {!isCorrectState && (
