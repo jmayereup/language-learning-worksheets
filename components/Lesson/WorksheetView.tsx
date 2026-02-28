@@ -13,6 +13,7 @@ import { CollapsibleActivity } from '../UI/CollapsibleActivity';
 import { WorksheetExportActions } from '../UI/WorksheetExportActions';
 import { VideoExploration } from '../UI/VideoExploration';
 import { LessonMedia } from '../UI/LessonMedia';
+import { useWorksheetScores } from '../../hooks/useWorksheetScores';
 
 interface WorksheetViewProps {
   lesson: ParsedLesson & { content: StandardLessonContent };
@@ -104,119 +105,17 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
       window.open(`https://translate.google.com/?sl=${sourceLang}&text=${encodeURIComponent(text)}&op=translate`, '_blank');
     }
   };
-  const vocabScore = useMemo(() => {
-    let score = 0;
-    const vocabData = standardContent.activities.vocabulary;
-    vocabData.items.forEach((item, idx) => {
-      const userAnswer = answers.vocabulary[`vocab_${idx}`] || '';
-      const correctDefIndex = vocabData.definitions.findIndex(d => d.id === item.answer);
-      const correctChar = String.fromCharCode(97 + correctDefIndex);
-      if (userAnswer.toLowerCase() === correctChar) score++;
-    });
-    return score;
-  }, [standardContent, answers.vocabulary]);
 
-  const fillScore = useMemo(() => {
-    let score = 0;
-    const fillData = standardContent.activities.fillInTheBlanks;
-    fillData.forEach((item, idx) => {
-      if (normalizeString(answers.fillBlanks[idx] || '') === normalizeString(item.answer)) score++;
-    });
-    return score;
-  }, [standardContent, answers.fillBlanks]);
-  const compScore = useMemo(() => {
-    let score = 0;
-    const compData = standardContent.activities.comprehension;
-    compData.questions.forEach((q, idx) => {
-      if ((answers.comprehension[idx] || '').toLowerCase() === q.answer.toLowerCase()) score++;
-    });
-    return score;
-  }, [standardContent, answers.comprehension]);
-
-  const scrambledScore = useMemo(() => {
-    let score = 0;
-    const scrambledData = standardContent.activities.scrambled;
-    scrambledData.forEach((item, idx) => {
-      if (normalizeString(answers.scrambled[idx] || '') === normalizeString(item.answer)) score++;
-    });
-    return score;
-  }, [standardContent, answers.scrambled]);
-
-
-
-  const calculateReportData = (): ReportData => {
-    const pills: ReportScorePill[] = [];
-    let totalScore = 0;
-    let maxScore = 0;
-
-    // 1. Vocabulary
-    let vocabScore = 0;
-    const vocabData = standardContent.activities.vocabulary;
-    vocabData.items.forEach((item, idx) => {
-      const userAnswer = answers.vocabulary[`vocab_${idx}`] || '';
-      const correctDefIndex = vocabData.definitions.findIndex(d => d.id === item.answer);
-      const correctChar = String.fromCharCode(97 + correctDefIndex);
-      if (userAnswer.toLowerCase() === correctChar) vocabScore++;
-    });
-    pills.push({ label: 'Vocabulary', score: vocabScore, total: vocabData.items.length });
-    totalScore += vocabScore;
-    maxScore += vocabData.items.length;
-
-    // 2. Fill in Blanks
-    let fillScore = 0;
-    const fillData = standardContent.activities.fillInTheBlanks;
-    fillData.forEach((item, idx) => {
-      if (normalizeString(answers.fillBlanks[idx] || '') === normalizeString(item.answer)) fillScore++;
-    });
-    pills.push({ label: 'Fill Blanks', score: fillScore, total: fillData.length });
-    totalScore += fillScore;
-    maxScore += fillData.length;
-
-    // 3. Comprehension
-    let compScore = 0;
-    const compData = standardContent.activities.comprehension;
-    compData.questions.forEach((q, idx) => {
-      if ((answers.comprehension[idx] || '').toLowerCase() === q.answer.toLowerCase()) compScore++;
-    });
-    pills.push({ label: 'Comprehension', score: compScore, total: compData.questions.length });
-    totalScore += compScore;
-    maxScore += compData.questions.length;
-
-    // 4. Scrambled
-    let scrambledScore = 0;
-    const scrambledData = standardContent.activities.scrambled;
-    scrambledData.forEach((item, idx) => {
-      if (normalizeString(answers.scrambled[idx] || '') === normalizeString(item.answer)) scrambledScore++;
-    });
-    pills.push({ label: 'Scrambled', score: scrambledScore, total: scrambledData.length });
-    totalScore += scrambledScore;
-    maxScore += scrambledData.length;
-
-    // Written Expressions
-    const writtenResponses: ReportWrittenResponse[] = standardContent.activities.writtenExpression.questions.map((q, i) => ({
-      question: q.text,
-      answer: answers.writing[i] || ''
-    }));
-
-    const now = new Date();
-    const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
-
-    return {
-      title: displayTitle,
-      nickname: studentName,
-      studentId: studentId,
-      homeroom: homeroom,
-      finishTime: `${dateStr}, ${timeStr}`,
-      totalScore,
-      maxScore,
-      pills,
-      writtenResponses
-    };
-  };
+  const {
+    vocabScore,
+    fillScore,
+    compScore,
+    scrambledScore,
+    calculateReportData
+  } = useWorksheetScores(standardContent, answers);
 
   const handleFinishClick = () => {
-    onFinish(calculateReportData());
+    onFinish(calculateReportData(displayTitle, studentName, studentId, homeroom));
   };
 
 
