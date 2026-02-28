@@ -7,11 +7,18 @@ export const BrowserSupportWarning: React.FC = () => {
     useEffect(() => {
         const checkSupport = () => {
             const ua = navigator.userAgent.toLowerCase();
-            const isInApp = ua.includes("wv") || ua.includes("webview") ||
+            const isAndroidUserAgent = /android/i.test(ua);
+            
+            // On iOS, WKWebView (used by FB/IG/Messenger) supports SpeechSynthesis.
+            // On Android, in-app browsers often have broken TTS.
+            const isProblematicInApp = isAndroidUserAgent && (
                 ua.includes("instagram") || ua.includes("facebook") ||
                 ua.includes("messenger") || ua.includes("fb_iab") ||
                 ua.includes("fban") || ua.includes("fbav") ||
-                ua.includes("line");
+                ua.includes("line")
+            );
+
+            const isInApp = ua.includes("wv") || ua.includes("webview") || isProblematicInApp;
 
             const hasSpeech = 'speechSynthesis' in window;
 
@@ -19,7 +26,7 @@ export const BrowserSupportWarning: React.FC = () => {
                 setIsVisible(true);
             }
 
-            setIsAndroid(/android/i.test(ua));
+            setIsAndroid(isAndroidUserAgent);
         };
 
         checkSupport();

@@ -68,12 +68,19 @@ export const speakText = (text: string, language: string, rate: number = 1.0, vo
 export const shouldShowAudioControls = (): boolean => {
   const ua = navigator.userAgent.toLowerCase();
 
-  // 1. Block known in-app browsers and WebViews
-  if (ua.includes("wv") || ua.includes("webview") ||
+  const isAndroidUserAgent = /android/i.test(ua);
+  
+  // On iOS, WKWebView (used by FB/IG/Messenger) supports SpeechSynthesis.
+  // On Android, in-app browsers often have broken TTS.
+  const isProblematicInApp = isAndroidUserAgent && (
     ua.includes("instagram") || ua.includes("facebook") ||
     ua.includes("messenger") || ua.includes("fb_iab") ||
     ua.includes("fban") || ua.includes("fbav") ||
-    ua.includes("line")) {
+    ua.includes("line")
+  );
+
+  // Block known in-app browsers and WebViews
+  if (ua.includes("wv") || ua.includes("webview") || isProblematicInApp) {
     return false;
   }
 

@@ -144,12 +144,18 @@ Use the User Agent to identify known in-app browsers and verify `speechSynthesis
 _shouldShowAudioControls() {
   const ua = navigator.userAgent.toLowerCase();
 
-  // Block known in-app browsers and WebViews
-  if (ua.includes("wv") || ua.includes("webview") ||
+  const isAndroidUserAgent = /android/i.test(ua);
+  
+  // On iOS, WKWebView (used by FB/IG/Messenger) supports SpeechSynthesis.
+  // On Android, in-app browsers often have broken TTS.
+  const isProblematicInApp = isAndroidUserAgent && (
     ua.includes("instagram") || ua.includes("facebook") ||
     ua.includes("messenger") || ua.includes("fb_iab") ||
     ua.includes("fban") || ua.includes("fbav") ||
-    ua.includes("line")) {
+    ua.includes("line")
+  );
+
+  if (ua.includes("wv") || ua.includes("webview") || isProblematicInApp) {
     return false;
   }
 
