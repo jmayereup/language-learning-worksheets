@@ -46,9 +46,7 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
   const [reportData, setReportData] = useState<ReportData | null>(null);
   
   const [isNameLocked, setIsNameLocked] = useState(false);
-  const [showExamples, setShowExamples] = useState(false);
   const passageRef = React.useRef<HTMLDivElement>(null);
-  const [isMobile, setIsMobile] = useState(false);
   const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
   const [resetKey, setResetKey] = useState(0);
 
@@ -79,13 +77,7 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
     setSubmissionStatus
   } = useTeacherSubmission();
 
-  const displayTitle = lesson.title || (isStandard ? (lesson.content as StandardLessonContent).title : (isFocused ? (lesson.content as FocusedReaderContent).title : (lesson.content as InformationGapContent).topic));
 
-  // Simple Effect for Mobile styling/logic
-  useEffect(() => {
-    const mobile = /android|iphone|ipad|ipod/i.test(navigator.userAgent.toLowerCase());
-    setIsMobile(mobile);
-  }, []);
 
   const handleReset = () => {
     if (window.confirm('Are you sure you want to clear all your progress? This cannot be undone.')) {

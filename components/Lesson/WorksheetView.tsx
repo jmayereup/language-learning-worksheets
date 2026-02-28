@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from 'react';
-import { Video } from 'lucide-react';
 import { ParsedLesson, StandardLessonContent, UserAnswers, ReportData, ReportScorePill, ReportWrittenResponse, CompletionStates } from '../../types';
 import { normalizeString, seededShuffle } from '../../utils/textUtils';
 import { GenericLessonLayout } from './GenericLessonLayout';
@@ -13,6 +12,8 @@ import { VoiceSelectorModal } from '../UI/VoiceSelectorModal';
 import { LessonFooter } from './LessonFooter';
 import { CollapsibleActivity } from '../UI/CollapsibleActivity';
 import { WorksheetExportActions } from '../UI/WorksheetExportActions';
+import { VideoExploration } from '../UI/VideoExploration';
+import { LessonMedia } from '../UI/LessonMedia';
 
 interface WorksheetViewProps {
   lesson: ParsedLesson & { content: StandardLessonContent };
@@ -67,8 +68,6 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
   setAudioPreference,
   passageRef,
 }) => {
-  const [showExamples, setShowExamples] = useState(false);
-  const isStandard = true; // By definition in this component
   const standardContent = lesson.content;
   const displayTitle = lesson.title || standardContent.title;
 
@@ -222,29 +221,6 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
   };
 
 
-  const renderVideoExploration = () => {
-    if (lesson.isVideoLesson || !lesson.videoUrl) return null;
-
-    return (
-      <section className="bg-white p-6 rounded-xl shadow-sm border border-green-100 mb-8 max-w-4xl mx-auto text-center animate-fade-in print:hidden">
-        <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-4">
-          <Video className="w-6 h-6 text-green-600" />
-        </div>
-        <h2 className="text-2xl font-bold text-green-900 mb-2">Explore Further</h2>
-        <p className="text-gray-600 mb-6 text-lg">
-          Want to learn more about this topic? Watch this video to dive deeper!
-        </p>
-        <a
-          href={lesson.videoUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 bg-green-600 text-white px-8 py-3 rounded-full font-bold hover:bg-green-700 transform hover:scale-105 transition-all shadow-md"
-        >
-          Watch Video on YouTube
-        </a>
-      </section>
-    );
-  };
 
 
 
@@ -287,27 +263,12 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
         homeroom={homeroom}
       />
       {/* Media Section */}
-      <div className="max-w-4xl mx-auto space-y-6 mb-6 print:hidden">
-        {lesson.isVideoLesson && lesson.videoUrl && (
-          <div className="relative pt-[56.25%] rounded-2xl overflow-hidden bg-black shadow-lg border border-green-100 animate-fade-in group">
-            <iframe
-              className="absolute top-0 left-0 w-full h-full"
-              src={lesson.videoUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
-              allowFullScreen
-            />
-          </div>
-        )}
-
-        {lesson.imageUrl && (
-          <div className="w-full flex justify-center">
-            <img
-              src={lesson.imageUrl}
-              alt="Lesson topic"
-              className="w-full h-auto max-h-[500px] object-contain rounded-2xl shadow-lg bg-white p-4 border border-green-100 animate-fade-in"
-            />
-          </div>
-        )}
-      </div>
+      <LessonMedia 
+        videoUrl={lesson.videoUrl} 
+        imageUrl={lesson.imageUrl} 
+        isVideoLesson={lesson.isVideoLesson} 
+        title={displayTitle} 
+      />
 
       <div className="print:hidden">
         <ReadingPassage
@@ -452,7 +413,7 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
         />
 
         <div className="mt-8">
-          {renderVideoExploration()}
+          <VideoExploration videoUrl={lesson.videoUrl} isVideoLesson={lesson.isVideoLesson} />
         </div>
       </div>
 

@@ -7,6 +7,7 @@ import { GenericLessonLayout } from './GenericLessonLayout';
 import { VoiceSelectorModal } from '../UI/VoiceSelectorModal';
 import { ReadingPassage } from '../Activities/ReadingPassage';
 import { LessonFooter } from './LessonFooter';
+import { LessonMedia } from '../UI/LessonMedia';
 
 interface InformationGapViewProps {
   lesson: ParsedLesson & { content: InformationGapContent };
@@ -145,15 +146,10 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
     return (
       <div className="max-w-4xl mx-auto py-12 px-4 animate-fade-in">
         <div className="text-center mb-12">
-          {lesson.imageUrl && (
-            <div className="mb-8">
-              <img 
-                src={lesson.imageUrl} 
-                alt={mainTitle} 
-                className="max-h-64 mx-auto rounded-3xl shadow-lg object-contain bg-white p-4 border border-gray-100"
-              />
-            </div>
-          )}
+          <LessonMedia 
+            imageUrl={lesson.imageUrl} 
+            title={mainTitle} 
+          />
           
           <div className="flex justify-center gap-2 mb-6">
             <span className="bg-green-100 text-green-800 px-4 py-1.5 rounded-full text-sm font-black uppercase tracking-wider border border-green-200">

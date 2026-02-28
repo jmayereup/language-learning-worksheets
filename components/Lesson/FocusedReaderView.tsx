@@ -11,6 +11,7 @@ import { Vocabulary } from '../Activities/Vocabulary';
 import { ReadingPassage } from '../Activities/ReadingPassage';
 import { Comprehension } from '../Activities/Comprehension';
 import { CollapsibleActivity } from '../UI/CollapsibleActivity';
+import { LessonMedia } from '../UI/LessonMedia';
 
 interface FocusedReaderViewProps {
   lesson: ParsedLesson & { content: FocusedReaderContent };
@@ -221,15 +222,10 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
       isNameLocked={isNameLocked}
     >
       <div className="max-w-4xl mx-auto px-1 sm:px-4 py-4 sm:py-8 space-y-2">
-        {lesson.imageUrl && (
-          <div className="w-full flex justify-center mb-6">
-            <img
-              src={lesson.imageUrl}
-              alt="Lesson topic"
-              className="w-full h-auto max-h-[400px] object-contain rounded-2xl shadow-lg bg-white p-4 border border-green-100 animate-fade-in"
-            />
-          </div>
-        )}
+        <LessonMedia 
+          imageUrl={lesson.imageUrl} 
+          title={lesson.title || content.title} 
+        />
 
 
         {/* Navigation Dots */}
