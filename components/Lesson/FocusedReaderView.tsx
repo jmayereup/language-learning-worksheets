@@ -108,7 +108,11 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
 
 
   return (
-    <div className="space-y-4">
+    <div 
+      className="space-y-4"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       <div className="max-w-4xl mx-auto px-1 sm:px-4 py-4 sm:py-8 space-y-2">
         <LessonMedia 
           imageUrl={lesson.imageUrl} 

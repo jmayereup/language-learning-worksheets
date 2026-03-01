@@ -282,16 +282,18 @@ export const Scrambled: React.FC<Props> = ({
         </div>
 
         {/* Result Message */}
-        {isChecked && !isCorrectState && (
-          <div className="mb-6 text-center animate-fade-in text-lg">
-            <p className="text-red-600 font-bold mb-1">Incorrect. Try again.</p>
-          </div>
-        )}
-        {isCorrectState && (
-          <div className="mb-6 text-center animate-fade-in text-lg">
-            <p className="text-green-600 font-bold mb-1">Correct!</p>
-          </div>
-        )}
+        <div className="min-h-[40px] flex items-center justify-center mb-6">
+          {isChecked && !isCorrectState && (
+            <div className="text-center animate-fade-in text-lg">
+              <p className="text-red-600 font-bold">Incorrect. Try again.</p>
+            </div>
+          )}
+          {isCorrectState && (
+            <div className="text-center animate-fade-in text-lg">
+              <p className="text-green-600 font-bold">Correct!</p>
+            </div>
+          )}
+        </div>
 
         {/* Word Bank (Scramble Mode Only) */}
         {activityMode === 'scramble' && (

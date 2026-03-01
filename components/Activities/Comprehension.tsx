@@ -151,8 +151,8 @@ export const Comprehension: React.FC<Props> = ({
         )}
 
         {/* Question Column */}
-        <div className={showReferenceText ? "order-1 lg:order-2 flex flex-col justify-center" : "flex flex-col justify-center"}>
-          <div className="mb-6 min-h-[100px]">
+        <div className={showReferenceText ? "order-1 lg:order-2 flex flex-col" : "flex flex-col"}>
+          <div className="mb-6 min-h-[120px]">
             <div className="flex items-start gap-4 mb-4">
               <p className="text-base md:text-lg font-black text-gray-900 flex-1 leading-tight tracking-tight selectable-text" translate="no">
                 {currentQuestion.text || currentQuestion.question}
@@ -247,12 +247,14 @@ export const Comprehension: React.FC<Props> = ({
               )}
             </div>
 
-            {isChecked && !isCorrect && (
-              <div className="mt-6 p-4 bg-red-50 rounded-xl border border-red-100 text-center font-bold text-red-700 animate-fade-in text-base flex items-center justify-center gap-3">
-                <XCircle className="w-5 h-5" />
-                Correct answer: <span className="underline decoration-2">{currentQuestion.answer}</span>
-              </div>
-            )}
+            <div className="min-h-[60px] flex items-center justify-center">
+              {isChecked && !isCorrect && (
+                <div className="w-full p-4 bg-red-50 rounded-xl border border-red-100 text-center font-bold text-red-700 animate-fade-in text-base flex items-center justify-center gap-3">
+                  <XCircle className="w-5 h-5" />
+                  Correct answer: <span className="underline decoration-2">{currentQuestion.answer}</span>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Navigation - Only show if incorrect or explicitly checked */}
