@@ -204,21 +204,21 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
 
     return (
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-            <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+            <div className="p-4 md:p-6 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gray-50/50">
                 <div className="flex items-center gap-3">
-                    <div className="bg-green-600 p-2 rounded-lg">
-                        <FileJson className="w-5 h-5 text-white" />
+                    <div className="bg-green-600 p-2 rounded-lg shrink-0">
+                        <FileJson className="w-4 h-4 md:w-5 md:h-5 text-white" />
                     </div>
                     <div>
-                        <h2 className="text-lg font-black text-gray-900">{lessonId ? 'Edit Worksheet' : 'Create New Worksheet'}</h2>
-                        <p className="text-xs text-gray-500 font-medium">{lessonId ? `Editing ID: ${lessonId}` : 'Define your worksheet properties and content'}</p>
+                        <h2 className="text-base md:text-lg font-black text-gray-900 leading-tight">{lessonId ? 'Edit Worksheet' : 'Create New Worksheet'}</h2>
+                        <p className="text-[10px] md:text-xs text-gray-500 font-medium">{lessonId ? `Editing ID: ${lessonId}` : 'Define your worksheet properties and content'}</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" onClick={handlePreview} className="gap-2 border-green-200 text-green-700 hover:bg-green-50">
+                    <Button variant="outline" size="sm" onClick={handlePreview} className="flex-1 sm:flex-none gap-2 border-green-200 text-green-700 hover:bg-green-50 text-xs">
                         <Eye className="w-4 h-4" /> Preview
                     </Button>
-                    <Button variant="outline" size="sm" onClick={onCancel} className="gap-2">
+                    <Button variant="outline" size="sm" onClick={onCancel} className="flex-1 sm:flex-none gap-2 text-xs">
                         <X className="w-4 h-4" /> Cancel
                     </Button>
                 </div>
@@ -227,7 +227,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
             <form onSubmit={handleSubmit} className="p-8">
                 {error && (
                     <div className="mb-8 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3 text-red-700">
-                        <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                        <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                         <p className="text-sm font-bold">{error}</p>
                     </div>
                 )}
@@ -327,7 +327,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                                                 : 'bg-white border-gray-200 text-gray-600 hover:border-green-300 hover:bg-green-50'
                                         }`}
                                     >
-                                        <TagIcon className="w-3 h-3" />
+                                        <TagIcon className="w-4 h-4" />
                                         {tag}
                                         {selectedTags.includes(tag) && <Check className="w-3 h-3" />}
                                     </button>
@@ -383,7 +383,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                                         htmlFor="image-upload"
                                         className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-white border-2 border-dashed border-gray-300 rounded-xl hover:border-green-500 hover:bg-green-50 cursor-pointer transition-all text-gray-600 font-bold text-sm"
                                     >
-                                        <ImageIcon className="w-5 h-5" />
+                                        <ImageIcon className="w-4 h-4" />
                                         {imageFile ? imageFile.name : 'Upload Image (JPG/PNG)'}
                                     </label>
                                 </div>
@@ -404,7 +404,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                                     htmlFor="audio-upload"
                                     className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-white border-2 border-dashed border-gray-300 rounded-xl hover:border-blue-500 hover:bg-blue-50 cursor-pointer transition-all text-gray-600 font-bold text-sm"
                                 >
-                                    <Music className="w-5 h-5" />
+                                    <Music className="w-4 h-4" />
                                     {audioFile ? audioFile.name : 'Upload Audio (MP3)'}
                                 </label>
                             </div>
@@ -455,7 +455,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                                 onClick={() => setShowVisualEditor(true)}
                                 className="text-[10px] font-bold flex items-center gap-1.5"
                             >
-                                <Layout className="w-3 h-3" /> Visual Editor
+                                <Layout className="w-4 h-4" /> Visual Editor
                             </Button>
                             <Button 
                                 type="button" 
@@ -464,7 +464,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                                 onClick={handlePasteFromClipboard}
                                 className="text-[10px] font-bold flex items-center gap-1.5 border-blue-200 text-blue-700 hover:bg-blue-50"
                             >
-                                <ClipboardPaste className="w-3 h-3" /> Paste from Clipboard
+                                <ClipboardPaste className="w-4 h-4" /> Paste from Clipboard
                             </Button>
                             <a 
                                 href={lessonType === 'information-gap' 
@@ -477,7 +477,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                                 rel="noopener noreferrer"
                                 className="text-[10px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 bg-blue-50 px-2 py-1 rounded-md border border-blue-100 transition-colors"
                             >
-                                <Info className="w-3 h-3" /> Get JSON from Gemini
+                                <Info className="w-4 h-4" /> Get JSON from Gemini
                             </a>
                         </div>
                     </div>
@@ -520,15 +520,15 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                     </Modal>
                 </div>
 
-                <div className="flex justify-end gap-3 pt-6 border-t border-gray-100">
-                    <Button variant="outline" onClick={onCancel} type="button" className="px-8">
+                <div className="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t border-gray-100">
+                    <Button variant="outline" onClick={onCancel} type="button" className="px-8 order-3 sm:order-1">
                         Cancel
                     </Button>
-                    <Button type="button" onClick={handlePreview} className="px-8 border-green-200 text-green-700 bg-green-50 hover:bg-green-100">
-                        <Eye className="w-5 h-5 mr-2" /> Preview
+                    <Button type="button" onClick={handlePreview} className="px-8 border-green-200 text-green-700 bg-green-50 hover:bg-green-100 order-2">
+                        <Eye className="w-4 h-4 mr-2" /> Preview
                     </Button>
-                    <Button type="submit" isLoading={loading} className="px-12 py-3 rounded-xl shadow-lg shadow-green-200">
-                        <Save className="w-5 h-5 mr-2" /> {lessonId ? 'Update Worksheet' : 'Create Worksheet'}
+                    <Button type="submit" isLoading={loading} className="px-12 py-3 rounded-xl shadow-lg shadow-green-200 order-1 sm:order-3">
+                        <Save className="w-4 h-4 mr-2" /> {lessonId ? 'Update Worksheet' : 'Create Worksheet'}
                     </Button>
                 </div>
             </form>

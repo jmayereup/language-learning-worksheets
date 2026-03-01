@@ -3,7 +3,7 @@ import { VocabularyActivity } from '../../types';
 import { Button } from '../UI/Button';
 import { Volume2, RefreshCw, XCircle, Check } from 'lucide-react';
 import { shouldShowAudioControls, seededShuffle } from '../../utils/textUtils';
-import { VocabularyList } from '../UI/VocabularyList';
+  import { VocabularyList } from '../UI/VocabularyList';
 
 interface Props {
   data: VocabularyActivity;
