@@ -8,9 +8,10 @@ import { LayoutDashboard, LogOut, ArrowLeft, Plus } from 'lucide-react';
 
 interface AdminDashboardProps {
     onBack: () => void;
+    onPreview: (lesson: any) => void;
 }
 
-export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
+export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, onPreview }) => {
     const [isLoggedIn, setIsLoggedIn] = useState(isAuthenticated());
     const [adminView, setAdminView] = useState<'list' | 'add' | 'edit'>('list');
     const [editingLessonId, setEditingLessonId] = useState<string | null>(null);
@@ -82,7 +83,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
                                 <Plus className="w-5 h-5" /> Add New Worksheet
                             </Button>
                         </div>
-                        <LessonList onEdit={handleEditLesson} />
+                        <LessonList onEdit={handleEditLesson} onPreview={onPreview} />
                     </>
                 )}
 
@@ -91,6 +92,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
                         lessonId={editingLessonId} 
                         onSave={handleBackToList} 
                         onCancel={handleBackToList} 
+                        onPreview={onPreview}
                     />
                 )}
             </main>

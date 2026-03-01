@@ -3,7 +3,7 @@ import { fetchLessonById, createLesson, updateLesson } from '../../services/pock
 import { LANGUAGE_OPTIONS, LEVEL_OPTIONS, TAG_OPTIONS, LESSON_TYPE_OPTIONS } from '../../types';
 import { triggerRebuild } from '../../services/deploy';
 import { Button } from '../UI/Button';
-import { Save, X, AlertCircle, FileJson, Info, Globe, Layers, Tag as TagIcon, Video, Check, Image as ImageIcon, Music, Layout, ClipboardPaste } from 'lucide-react';
+import { Save, X, AlertCircle, FileJson, Info, Globe, Layers, Tag as TagIcon, Video, Check, Image as ImageIcon, Music, Layout, ClipboardPaste, Eye } from 'lucide-react';
 import { Modal } from '../UI/Modal';
 import { JSONKeyValueEditor } from './JSONKeyValueEditor';
 
@@ -13,12 +13,14 @@ interface LessonEditorProps {
     lessonId: string | null;
     onSave: () => void;
     onCancel: () => void;
+    onPreview: (lesson: any) => void;
 }
 
-export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, onCancel }) => {
+export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, onCancel, onPreview }) => {
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(!!lessonId);
     const [error, setError] = useState<string | null>(null);
+    const [lessonData, setLessonData] = useState<any>(null); // Store original lesson data if available
 
     // Form fields
     const [title, setTitle] = useState('');
@@ -40,6 +42,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
             const loadLesson = async () => {
                 try {
                     const lesson = await fetchLessonById(lessonId);
+                    setLessonData(lesson);
                     setTitle(lesson.title || '');
                     setLanguage(lesson.language);
                     setLevel(lesson.level);
@@ -49,6 +52,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                     setLessonType(lesson.lessonType || 'worksheet');
                     setJsonContent(JSON.stringify(lesson.content, null, 2));
                     setSeo(lesson.seo || '');
+                    if (lesson.imageUrl) setImagePreview(lesson.imageUrl);
                 } catch (err) {
                     setError('Failed to load lesson for editing');
                 } finally {
@@ -75,6 +79,31 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
             }
         }
     }, [jsonContent, seo]);
+
+    const handlePreview = () => {
+        try {
+            const parsedContent = JSON.parse(jsonContent);
+            const tempLesson = {
+                id: lessonId || 'preview',
+                title,
+                language,
+                level,
+                tags: selectedTags,
+                videoUrl,
+                isVideoLesson,
+                lessonType,
+                seo,
+                content: parsedContent,
+                imageUrl: imagePreview,
+                audioFileUrl: lessonData?.audioFileUrl, // Keep existing if not changed, file upload preview for audio is harder
+                created: lessonData?.created || new Date().toISOString(),
+                updated: new Date().toISOString()
+            };
+            onPreview(tempLesson);
+        } catch (e) {
+            setError('Cannot preview: Invalid JSON content.');
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -185,9 +214,14 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                         <p className="text-xs text-gray-500 font-medium">{lessonId ? `Editing ID: ${lessonId}` : 'Define your worksheet properties and content'}</p>
                     </div>
                 </div>
-                <Button variant="outline" size="sm" onClick={onCancel} className="gap-2">
-                    <X className="w-4 h-4" /> Cancel
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" onClick={handlePreview} className="gap-2 border-green-200 text-green-700 hover:bg-green-50">
+                        <Eye className="w-4 h-4" /> Preview
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={onCancel} className="gap-2">
+                        <X className="w-4 h-4" /> Cancel
+                    </Button>
+                </div>
             </div>
 
             <form onSubmit={handleSubmit} className="p-8">
@@ -489,6 +523,9 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                 <div className="flex justify-end gap-3 pt-6 border-t border-gray-100">
                     <Button variant="outline" onClick={onCancel} type="button" className="px-8">
                         Cancel
+                    </Button>
+                    <Button type="button" onClick={handlePreview} className="px-8 border-green-200 text-green-700 bg-green-50 hover:bg-green-100">
+                        <Eye className="w-5 h-5 mr-2" /> Preview
                     </Button>
                     <Button type="submit" isLoading={loading} className="px-12 py-3 rounded-xl shadow-lg shadow-green-200">
                         <Save className="w-5 h-5 mr-2" /> {lessonId ? 'Update Worksheet' : 'Create Worksheet'}

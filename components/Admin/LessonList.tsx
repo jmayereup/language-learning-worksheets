@@ -2,16 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { fetchAllLessons, deleteLesson, getCurrentUser } from '../../services/pocketbase';
 import { triggerRebuild } from '../../services/deploy';
 import { Button } from '../UI/Button';
-import { Edit, Trash2, ExternalLink, RefreshCw, Layers, Globe, Calendar } from 'lucide-react';
+import { Edit, Trash2, ExternalLink, RefreshCw, Layers, Globe, Calendar, Eye, Search } from 'lucide-react';
 
 interface LessonListProps {
     onEdit: (id: string) => void;
+    onPreview: (lesson: any) => void;
 }
 
-export const LessonList: React.FC<LessonListProps> = ({ onEdit }) => {
+export const LessonList: React.FC<LessonListProps> = ({ onEdit, onPreview }) => {
     const [lessons, setLessons] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [searchQuery, setSearchQuery] = useState('');
     const currentUser = getCurrentUser();
 
     const loadLessons = async () => {
@@ -62,10 +64,28 @@ export const LessonList: React.FC<LessonListProps> = ({ onEdit }) => {
         );
     }
 
+    const filteredLessons = lessons.filter(lesson => 
+        lesson.title.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     return (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-            <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+        <div className="space-y-4">
+            <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                    <Search className="h-4 w-4 text-gray-400 group-focus-within:text-green-500 transition-colors" />
+                </div>
+                <input
+                    type="text"
+                    placeholder="Search worksheets by title..."
+                    className="block w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all shadow-sm"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                />
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
                     <thead>
                         <tr className="bg-gray-50 border-b border-gray-200">
                             <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest">Worksheet</th>
@@ -75,7 +95,7 @@ export const LessonList: React.FC<LessonListProps> = ({ onEdit }) => {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                        {lessons.map((lesson) => (
+                        {filteredLessons.map((lesson) => (
                             <tr key={lesson.id} className="hover:bg-green-50/30 transition-colors group">
                                 <td className="px-6 py-5">
                                     <div className="flex items-center gap-4">
@@ -117,8 +137,17 @@ export const LessonList: React.FC<LessonListProps> = ({ onEdit }) => {
                                         <Button 
                                             variant="outline" 
                                             size="sm" 
+                                            onClick={() => onPreview(lesson)}
+                                            title="Preview Worksheet"
+                                            className="p-2 h-9 w-9 text-green-600 border-green-200 hover:bg-green-50"
+                                        >
+                                            <Eye className="w-4 h-4" />
+                                        </Button>
+                                        <Button 
+                                            variant="outline" 
+                                            size="sm" 
                                             onClick={() => window.open(`/?lesson=${lesson.id}`, '_blank')}
-                                            title="View Worksheet"
+                                            title="View Public Worksheet"
                                             className="p-2 h-9 w-9"
                                         >
                                             <ExternalLink className="w-4 h-4" />
@@ -152,11 +181,17 @@ export const LessonList: React.FC<LessonListProps> = ({ onEdit }) => {
                     </tbody>
                 </table>
             </div>
-            {lessons.length === 0 && (
-                <div className="p-12 text-center text-gray-500">
-                    No worksheets found in the registry.
+            {filteredLessons.length === 0 && (
+                <div className="p-12 text-center">
+                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-50 mb-3">
+                        <Search className="w-6 h-6 text-gray-300" />
+                    </div>
+                    <p className="text-gray-500 font-medium">
+                        {searchQuery ? `No worksheets matching "${searchQuery}"` : 'No worksheets found in the registry.'}
+                    </p>
                 </div>
             )}
         </div>
+    </div>
     );
 };

@@ -3,7 +3,7 @@ import { fetchLessons, fetchLessonById } from './services/pocketbase';
 import { ParsedLesson, LANGUAGE_OPTIONS, LEVEL_OPTIONS, TAG_OPTIONS } from './types';
 import { LessonView } from './components/Lesson/LessonView';
 import { Button } from './components/UI/Button';
-import { BookOpen, Search, FlaskConical, Video, Feather, FileText, X, Eye } from 'lucide-react';
+import { BookOpen, Search, FlaskConical, Video, Feather, FileText, X, LogIn } from 'lucide-react';
 import { BrowserSupportWarning } from './components/UI/BrowserSupportWarning';
 import { AdminDashboard } from './components/Admin/AdminDashboard';
 import { WebComponentPreview } from './components/Lesson/WebComponentPreview';
@@ -157,44 +157,49 @@ const App: React.FC = () => {
                         </a>
                         <span className="hidden md:block font-bold text-gray-700">Worksheets</span>
                     </div>
-                    {view === 'lesson' && (
-                        <div className="flex items-center gap-3">
-                            <div className="hidden sm:block text-sm font-medium text-green-600 bg-green-50 px-3 py-1 rounded-full truncate sm:max-w-[200px] md:max-w-[300px]">
-                                {currentLesson?.title}
-                            </div>
-                            <Button
-                                size="sm"
-                                variant="secondary"
-                                onClick={() => {
-                                    navigator.clipboard.writeText(window.location.href);
-                                    alert('Link copied to clipboard!');
-                                }}
-                                className="hidden sm:inline-flex"
-                            >
-                                Share
-                            </Button>
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => setShowPreview(true)}
-                                className="hidden md:inline-flex gap-2"
-                            >
-                                <Eye className="w-4 h-4" /> Preview
-                            </Button>
+                    <div className="flex items-center gap-3">
+                        {view === 'lesson' && (
+                            <>
+                                <div className="hidden sm:block text-sm font-medium text-green-600 bg-green-50 px-3 py-1 rounded-full truncate sm:max-w-[200px] md:max-w-[300px]">
+                                    {currentLesson?.title}
+                                </div>
+                                <Button
+                                    size="sm"
+                                    variant="secondary"
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(window.location.href);
+                                        alert('Link copied to clipboard!');
+                                    }}
+                                    className="hidden sm:inline-flex"
+                                >
+                                    Share
+                                </Button>
+
+                                <button 
+                                    onClick={() => {
+                                        handleViewChange('home');
+                                        try {
+                                            localStorage.removeItem(`lesson-progress-${currentLesson?.id}`);
+                                        } catch (e) {}
+                                    }}
+                                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
+                                    title="Close Lesson"
+                                >
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </>
+                        )}
+                        
+                        {view !== 'admin' && (
                             <button 
-                                onClick={() => {
-                                    handleViewChange('home');
-                                    try {
-                                        localStorage.removeItem(`lesson-progress-${currentLesson?.id}`);
-                                    } catch (e) {}
-                                }}
-                                className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
-                                title="Close Lesson"
+                                onClick={() => handleViewChange('admin')}
+                                className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all"
+                                title="Admin UI"
                             >
-                                <X className="w-6 h-6" />
+                                <LogIn className="w-5 h-5" />
                             </button>
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </div>
             </nav>
 
@@ -343,7 +348,13 @@ const App: React.FC = () => {
                         </div>
                     </div>
                 ) : view === 'admin' ? (
-                    <AdminDashboard onBack={() => handleViewChange('home')} />
+                    <AdminDashboard 
+                        onBack={() => handleViewChange('home')} 
+                        onPreview={(lesson) => {
+                            setCurrentLesson(lesson);
+                            setShowPreview(true);
+                        }}
+                    />
                 ) : (
                     currentLesson && <LessonView lesson={currentLesson} />
                 )}

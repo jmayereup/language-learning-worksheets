@@ -9,7 +9,7 @@ interface WebComponentPreviewProps {
 }
 
 export const WebComponentPreview: React.FC<WebComponentPreviewProps> = ({ lesson, onClose }) => {
-  const [activeTab, setActiveTab] = useState<'code' | 'preview'>('code');
+  const [activeTab, setActiveTab] = useState<'code' | 'preview'>('preview');
   const [copied, setCopied] = useState(false);
 
   // Minimal lesson data for the embed script
