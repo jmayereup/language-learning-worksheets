@@ -76,7 +76,8 @@ export class TJPocketBaseWorksheet extends HTMLElement {
       if (this.root) {
         this.root.render(
           <React.StrictMode>
-              <BrowserSupportWarning />
+            {/*Implemented warning in astro instead with fallback html*/}
+              {/* <BrowserSupportWarning /> */}
               {lessonData && <LessonView lesson={lessonData} />}
           </React.StrictMode>
         );
