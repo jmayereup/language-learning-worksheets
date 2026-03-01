@@ -144,7 +144,7 @@ const App: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen font-sans print:min-h-0 print:bg-white">
+        <div className="tj-worksheet-wrapper min-h-screen font-sans print:min-h-0 print:bg-white bg-gray-50 text-gray-800">
             <BrowserSupportWarning />
             {/* Navbar - Hidden on print */}
             <nav className="bg-white border-b border-gray-200 sticky top-0 z-50 print:hidden">
