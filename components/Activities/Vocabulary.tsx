@@ -18,6 +18,7 @@ interface Props {
   lessonId: string;
   title?: string;
   hasActivityToggle?: boolean;
+  limitToFive?: boolean;
 }
 
 export const Vocabulary: React.FC<Props> = ({
@@ -29,7 +30,8 @@ export const Vocabulary: React.FC<Props> = ({
   toggleTTS,
   lessonId,
   title = "Vocabulary Matching",
-  hasActivityToggle = false
+  hasActivityToggle = false,
+  limitToFive = false
 }) => {
   const [mode, setMode] = useState<'matching' | 'list'>(hasActivityToggle ? 'list' : 'matching');
   const [shuffledWordIndices, setShuffledWordIndices] = useState<number[]>([]);
@@ -48,8 +50,8 @@ export const Vocabulary: React.FC<Props> = ({
     let wordIndices = data.items.map((_, i) => i);
     let defIndices = data.definitions.map((_, i) => i);
 
-    if (hasActivityToggle && mode === 'matching') {
-      // Choose a subset of 5 words for matching mode in focused reader
+    if (limitToFive && mode === 'matching') {
+      // Choose a subset of 5 words for matching mode
       const allShuffledIndices = seededShuffle(wordIndices, `${lessonId}-vocab-subset-seed`);
       wordIndices = allShuffledIndices.slice(0, 5);
       
@@ -66,7 +68,7 @@ export const Vocabulary: React.FC<Props> = ({
       
       // Re-shuffle definitions for matching
       defIndices = seededShuffle(defIndices, `${lessonId}-vocab-defs-subset`);
-    } else if (!hasActivityToggle) {
+    } else if (!limitToFive) {
       wordIndices = seededShuffle(wordIndices, `${lessonId}-vocab-words`);
       defIndices = seededShuffle(defIndices, `${lessonId}-vocab-defs`);
     }
@@ -101,7 +103,7 @@ export const Vocabulary: React.FC<Props> = ({
 
     // Auto-check if all words are matched
     const matchedCount = Object.keys(newAnswers).filter(k => k.startsWith('vocab_')).length;
-    if (matchedCount === data.items.length) {
+    if (matchedCount === shuffledWordIndices.length) {
       setTimeout(() => {
         checkAnswers(newAnswers);
       }, 500); // Small delay for visual consistency
@@ -110,7 +112,8 @@ export const Vocabulary: React.FC<Props> = ({
 
   const checkAnswers = (currentAnswers = savedAnswers) => {
     let correctCount = 0;
-    data.items.forEach((item, idx) => {
+    shuffledWordIndices.forEach((idx) => {
+      const item = data.items[idx];
       const userAnswer = currentAnswers[`vocab_${idx}`] || '';
       const correctDefIndex = data.definitions.findIndex(d => d.id === item.answer);
       const correctChar = String.fromCharCode(97 + correctDefIndex);
@@ -128,7 +131,8 @@ export const Vocabulary: React.FC<Props> = ({
   const handleRetry = () => {
     // Keep only correct matches
     const newAnswers: Record<string, string> = {};
-    data.items.forEach((item, idx) => {
+    shuffledWordIndices.forEach((idx) => {
+      const item = data.items[idx];
       const userAnswer = savedAnswers[`vocab_${idx}`] || '';
       const correctDefIndex = data.definitions.findIndex(d => d.id === item.answer);
       const correctChar = String.fromCharCode(97 + correctDefIndex);
@@ -341,7 +345,7 @@ export const Vocabulary: React.FC<Props> = ({
           </Button>
         ) : (
           <>
-            {score < data.items.length && (
+            {score < shuffledWordIndices.length && (
               <Button
                 onClick={handleRetry}
                 variant="primary"

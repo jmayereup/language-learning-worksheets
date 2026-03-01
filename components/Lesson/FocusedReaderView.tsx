@@ -89,7 +89,7 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
     comprehensionScore,
     isComprehensionCompleted,
     calculateReportData
-  } = useFocusedReaderScores(content, answers, currentPartIndex);
+  } = useFocusedReaderScores(content, answers, currentPartIndex, lesson.id);
 
 
   return (
@@ -187,6 +187,7 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
                 title={`Page ${currentPart.part_number} Vocabulary`}
                 savedIsChecked={isVocabCompleted}
                 hasActivityToggle={true}
+                limitToFive={true}
               />
             </CollapsibleActivity>
           </section>

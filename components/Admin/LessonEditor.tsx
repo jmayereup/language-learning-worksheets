@@ -107,7 +107,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         // Ensure at least one tag is selected
         if (selectedTags.length === 0) {
             setError('Please select at least one tag.');
@@ -140,7 +140,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
             formData.append('lessonType', lessonType);
             formData.append('seo', seo);
             formData.append('content', JSON.stringify(parsedContent));
-            
+
             if (imageFile) {
                 formData.append('image', imageFile);
             }
@@ -153,10 +153,10 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
             } else {
                 await createLesson(formData);
             }
-            
+
             // Trigger Cloudflare rebuild
             triggerRebuild();
-            
+
             onSave();
         } catch (err: any) {
             setError(err.message || 'Failed to save lesson');
@@ -215,10 +215,11 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" onClick={handlePreview} className="flex-1 sm:flex-none gap-2 border-green-200 text-green-700 hover:bg-green-50 text-xs">
+                    <Button variant="secondary" size="sm" onClick={handlePreview} className="flex-1 sm:flex-none gap-2 border-green-200 text-green-700 hover:bg-green-50 text-xs">
+
                         <Eye className="w-4 h-4" /> Preview
                     </Button>
-                    <Button variant="outline" size="sm" onClick={onCancel} className="flex-1 sm:flex-none gap-2 text-xs">
+                    <Button variant="secondary" size="sm" onClick={onCancel} className="flex-1 sm:flex-none gap-2 text-xs">
                         <X className="w-4 h-4" /> Cancel
                     </Button>
                 </div>
@@ -315,17 +316,16 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                                         key={tag}
                                         type="button"
                                         onClick={() => {
-                                            setSelectedTags(prev => 
-                                                prev.includes(tag) 
-                                                    ? prev.filter(t => t !== tag) 
+                                            setSelectedTags(prev =>
+                                                prev.includes(tag)
+                                                    ? prev.filter(t => t !== tag)
                                                     : [...prev, tag]
                                             );
                                         }}
-                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
-                                            selectedTags.includes(tag)
+                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${selectedTags.includes(tag)
                                                 ? 'bg-green-600 border-green-700 text-white shadow-sm'
                                                 : 'bg-white border-gray-200 text-gray-600 hover:border-green-300 hover:bg-green-50'
-                                        }`}
+                                            }`}
                                     >
                                         <TagIcon className="w-4 h-4" />
                                         {tag}
@@ -448,32 +448,32 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                             <FileJson className="w-4 h-4" /> Worksheet JSON Content
                         </label>
                         <div className="flex items-center gap-2">
-                            <Button 
-                                type="button" 
-                                variant="outline" 
-                                size="sm" 
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
                                 onClick={() => setShowVisualEditor(true)}
                                 className="text-[10px] font-bold flex items-center gap-1.5"
                             >
                                 <Layout className="w-4 h-4" /> Visual Editor
                             </Button>
-                            <Button 
-                                type="button" 
-                                variant="outline" 
-                                size="sm" 
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
                                 onClick={handlePasteFromClipboard}
                                 className="text-[10px] font-bold flex items-center gap-1.5 border-blue-200 text-blue-700 hover:bg-blue-50"
                             >
                                 <ClipboardPaste className="w-4 h-4" /> Paste from Clipboard
                             </Button>
-                            <a 
-                                href={lessonType === 'information-gap' 
+                            <a
+                                href={lessonType === 'information-gap'
                                     ? "https://gemini.google.com/gem/1bdsM9tYk1Qb4lcCsnPVOTK1FR_37HYnX?usp=sharing"
                                     : lessonType === 'focused-reading'
-                                        ? "https://gemini.google.com/gem/1ZcCIp-jD0vhJk_nZziTbmGv0eVz-vfHV?usp=sharing" 
+                                        ? "https://gemini.google.com/gem/1ZcCIp-jD0vhJk_nZziTbmGv0eVz-vfHV?usp=sharing"
                                         : "https://gemini.google.com/gem/1a183ceHi_da5ac9scUQ3AXs0A5-TcOtn?usp=sharing"
                                 }
-                                target="_blank" 
+                                target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-[10px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 bg-blue-50 px-2 py-1 rounded-md border border-blue-100 transition-colors"
                             >
@@ -489,19 +489,19 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                         spellCheck={false}
                     />
 
-                    <Modal 
-                        isOpen={showVisualEditor} 
-                        onClose={() => setShowVisualEditor(false)} 
+                    <Modal
+                        isOpen={showVisualEditor}
+                        onClose={() => setShowVisualEditor(false)}
                         title="Worksheet Content Editor"
                     >
                         {(() => {
                             try {
                                 const data = JSON.parse(jsonContent);
                                 return (
-                                    <JSONKeyValueEditor 
-                                        initialData={data} 
-                                        onApply={handleVisualEditorApply} 
-                                        onCancel={() => setShowVisualEditor(false)} 
+                                    <JSONKeyValueEditor
+                                        initialData={data}
+                                        onApply={handleVisualEditorApply}
+                                        onCancel={() => setShowVisualEditor(false)}
                                     />
                                 );
                             } catch (e) {
@@ -521,13 +521,13 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                 </div>
 
                 <div className="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t border-gray-100">
-                    <Button variant="outline" onClick={onCancel} type="button" className="px-8 order-3 sm:order-1">
+                    <Button variant="secondary" onClick={onCancel} type="button" className="px-8 order-3 sm:order-1">
                         Cancel
                     </Button>
-                    <Button type="button" onClick={handlePreview} className="px-8 border-green-200 text-green-700 bg-green-50 hover:bg-green-100 order-2">
+                    <Button variant="outline" type="button" onClick={handlePreview} className="px-8 border-green-200 text-green-700 hover:bg-green-50 order-2">
                         <Eye className="w-4 h-4 mr-2" /> Preview
                     </Button>
-                    <Button type="submit" isLoading={loading} className="px-12 py-3 rounded-xl shadow-lg shadow-green-200 order-1 sm:order-3">
+                    <Button variant="success" size="lg" type="submit" isLoading={loading} className="px-12 order-1 sm:order-3 shadow-lg shadow-green-100">
                         <Save className="w-4 h-4 mr-2" /> {lessonId ? 'Update Worksheet' : 'Create Worksheet'}
                     </Button>
                 </div>

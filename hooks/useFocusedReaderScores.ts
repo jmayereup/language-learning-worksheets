@@ -5,39 +5,56 @@ import {
   ReportData, 
   ReportScorePill 
 } from '../types';
+import { seededShuffle } from '../utils/textUtils';
 
 export const useFocusedReaderScores = (
   content: FocusedReaderContent, 
   answers: UserAnswers,
-  currentPartIndex: number
+  currentPartIndex: number,
+  lessonId: string
 ) => {
   const currentPart = content.parts[currentPartIndex];
 
   const vocabScore = useMemo(() => {
     let score = 0;
     const vocabExplanations = currentPart.vocabulary_explanations || {};
+    const words = Object.keys(vocabExplanations);
+    const wordIndices = words.map((_, i) => i);
+    
+    // Replicate subsetting logic from Vocabulary.tsx
+    const partLessonId = `${lessonId}-part-${currentPartIndex}`;
+    const allShuffledIndices = seededShuffle(wordIndices, `${partLessonId}-vocab-subset-seed`);
+    const subsetIndices = allShuffledIndices.slice(0, 5);
+    
     const vocabAnswers = answers.vocabulary || {};
-    Object.keys(vocabExplanations).forEach((word, index) => {
+    subsetIndices.forEach((index) => {
       const answerKey = `vocab_${currentPartIndex}_${index}`;
       const userAnswer = vocabAnswers[answerKey] || '';
       const correctChar = String.fromCharCode(97 + index);
       if (userAnswer.toLowerCase() === correctChar) score++;
     });
     return score;
-  }, [currentPart, currentPartIndex, answers.vocabulary]);
+  }, [currentPart, currentPartIndex, answers.vocabulary, lessonId]);
 
   const isVocabCompleted = useMemo(() => {
     const vocabExplanations = currentPart.vocabulary_explanations || {};
-    const vocabCount = Object.keys(vocabExplanations).length;
-    if (vocabCount === 0) return false;
+    const words = Object.keys(vocabExplanations);
+    const wordIndices = words.map((_, i) => i);
+    
+    // Replicate subsetting logic
+    const partLessonId = `${lessonId}-part-${currentPartIndex}`;
+    const allShuffledIndices = seededShuffle(wordIndices, `${partLessonId}-vocab-subset-seed`);
+    const subsetIndices = allShuffledIndices.slice(0, 5);
+    
+    if (subsetIndices.length === 0) return false;
     
     const vocabAnswers = answers.vocabulary || {};
     let matchedCount = 0;
-    Object.keys(vocabExplanations).forEach((_, index) => {
+    subsetIndices.forEach((index) => {
       if (vocabAnswers[`vocab_${currentPartIndex}_${index}`]) matchedCount++;
     });
-    return matchedCount === vocabCount;
-  }, [currentPart, currentPartIndex, answers.vocabulary]);
+    return matchedCount === subsetIndices.length;
+  }, [currentPart, currentPartIndex, answers.vocabulary, lessonId]);
 
   const comprehensionScore = useMemo(() => {
     let score = 0;
@@ -85,12 +102,19 @@ export const useFocusedReaderScores = (
 
       // Vocabulary score
       const vocabExplanations = part.vocabulary_explanations || {};
-      const vocabCount = Object.keys(vocabExplanations).length;
-      if (vocabCount > 0) {
+      const words = Object.keys(vocabExplanations);
+      const wordIndices = words.map((_, i) => i);
+      
+      if (wordIndices.length > 0) {
+        // Replicate subsetting logic
+        const partLessonId = `${lessonId}-part-${pIdx}`;
+        const allShuffledIndices = seededShuffle(wordIndices, `${partLessonId}-vocab-subset-seed`);
+        const subsetIndices = allShuffledIndices.slice(0, 5);
+        
         let partVocabScore = 0;
         const vocabAnswers = answers.vocabulary || {};
         
-        Object.keys(vocabExplanations).forEach((word, index) => {
+        subsetIndices.forEach((index) => {
           const answerKey = `vocab_${pIdx}_${index}`;
           const userAnswer = vocabAnswers[answerKey] || '';
           const correctChar = String.fromCharCode(97 + index);
@@ -102,10 +126,10 @@ export const useFocusedReaderScores = (
         pills.push({
           label: `Part ${part.part_number} Vocab`,
           score: partVocabScore,
-          total: vocabCount
+          total: subsetIndices.length
         });
         totalScore += partVocabScore;
-        maxOverallScore += vocabCount;
+        maxOverallScore += subsetIndices.length;
       }
     });
 

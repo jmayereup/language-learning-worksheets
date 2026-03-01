@@ -208,7 +208,7 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
               toggleTTS={toggleTTS}
               ttsState={ttsState}
               lessonId={lesson.id}
-              hasActivityToggle={false}
+              limitToFive={false}
             />
           </CollapsibleActivity>
         </section>
