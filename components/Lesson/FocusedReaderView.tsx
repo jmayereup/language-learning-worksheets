@@ -1,10 +1,8 @@
-import React, { useState, useMemo } from 'react';
-import { ParsedLesson, FocusedReaderContent, UserAnswers, ReportData, ReportScorePill } from '../../types';
-import { speakText } from '../../utils/textUtils';
-import { AudioControls } from '../UI/AudioControls';
+import React, { useState } from 'react';
+import { ParsedLesson, FocusedReaderContent, UserAnswers, ReportData } from '../../types';
 import { VoiceSelectorModal } from '../UI/VoiceSelectorModal';
 import { LessonFooter } from './LessonFooter';
-import { HelpCircle, ChevronRight, ChevronLeft, CheckCircle2, MessageSquare, XCircle } from 'lucide-react';
+import { ChevronRight, ChevronLeft, CheckCircle2 } from 'lucide-react';
 import { Button } from '../UI/Button';
 import { Vocabulary } from '../Activities/Vocabulary';
 import { ReadingPassage } from '../Activities/ReadingPassage';
@@ -82,19 +80,6 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
       setCurrentPartIndex(currentPartIndex - 1);
     }
     setTouchStart(null);
-  };
-
-  const updateAnswers = (partIdx: number, questionIdx: number, answer: string) => {
-    // Prevent changing answer if already set
-    if (answers.focusedReader?.[partIdx]?.[questionIdx]) return;
-
-    setAnswers(prev => {
-      const focusedReader = { ...(prev.focusedReader || {}) };
-      const partAnswers = { ...(focusedReader[partIdx] || {}) };
-      partAnswers[questionIdx] = answer;
-      focusedReader[partIdx] = partAnswers;
-      return { ...prev, focusedReader };
-    });
   };
 
 
