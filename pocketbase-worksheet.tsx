@@ -1,26 +1,33 @@
 import { createRoot } from 'react-dom/client';
 import React from 'react';
 import { LessonView } from './components/Lesson/LessonView';
-import './index.css'; // Ensure tailwind is imported
+import styles from './index.css?inline';
 
 export class TJPocketBaseWorksheet extends HTMLElement {
   private root: any = null;
   private mountPoint: HTMLDivElement | null = null;
+
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+  }
 
   connectedCallback() {
     this.render();
   }
 
   render() {
+    if (!this.shadowRoot) return;
+
     // Try to find a script tag first
     let jsonContent = '';
+    // Check light DOM for the script tag
     const scriptTag = this.querySelector('script[type="application/json"]');
     
     if (scriptTag) {
       jsonContent = scriptTag.textContent || '';
     } else {
-      // Fallback to text content
-      // If we already have a mountPoint, we shouldn't look at textContent again as it might have changed or been cleared
+      // Fallback to text content of the element itself (light DOM)
       if (!this.mountPoint) {
         jsonContent = this.textContent || '';
       }
@@ -59,13 +66,17 @@ export class TJPocketBaseWorksheet extends HTMLElement {
       }
 
       if (!this.mountPoint) {
-        // Clear the element's content only once
-        this.innerHTML = '';
+        // Clear shadow root and inject styles
+        this.shadowRoot.innerHTML = '';
+        
+        const styleElement = document.createElement('style');
+        styleElement.textContent = styles;
+        this.shadowRoot.appendChild(styleElement);
         
         // Create a mount point for React
         this.mountPoint = document.createElement('div');
         this.mountPoint.className = 'tj-worksheet-wrapper';
-        this.appendChild(this.mountPoint);
+        this.shadowRoot.appendChild(this.mountPoint);
       }
 
       if (!this.root && this.mountPoint) {
@@ -75,16 +86,14 @@ export class TJPocketBaseWorksheet extends HTMLElement {
       if (this.root) {
         this.root.render(
           <React.StrictMode>
-            {/*Implemented warning in astro instead with fallback html*/}
-              {/* <BrowserSupportWarning /> */}
-              {lessonData && <LessonView lesson={lessonData} />}
+            {lessonData && <LessonView lesson={lessonData} />}
           </React.StrictMode>
         );
       }
     } catch (e) {
       console.error('TJ Worksheet: Failed to parse JSON content or render component', e);
-      if (!this.mountPoint) {
-        this.innerHTML = `<div style="color: red; padding: 1rem; border: 1px solid red;">TJ Worksheet Error: Failed to load worksheet data. Check console for details.</div>`;
+      if (!this.mountPoint && this.shadowRoot) {
+        this.shadowRoot.innerHTML = `<div style="color: red; padding: 1rem; border: 1px solid red;">TJ Worksheet Error: Failed to load worksheet data. Check console for details.</div>`;
       }
     }
   }

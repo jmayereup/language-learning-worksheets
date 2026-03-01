@@ -1,22 +1,14 @@
-@layer theme, base, components, utilities;
-
-/* Theme variables remain global as they attach to :root/:host and don't pollute visually */
-@import "tailwindcss/theme" layer(theme);
-
-.tj-worksheet-wrapper {
-    /* Manually bring over essential document-level resets from preflight */
-    line-height: 1.5;
-    -webkit-text-size-adjust: 100%;
-    font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
-    
-    /* Scope preflight and utilities to our wrapper */
-    @import "tailwindcss/preflight" layer(base);
-    @import "tailwindcss/utilities" layer(utilities);
-}
+@import "tailwindcss";
 
 @theme {
     --color-primary: #2563eb;
     --color-primary-hover: #1d4ed8;
+}
+
+@layer prose {
+    .tj-worksheet-wrapper {
+        padding-inline: 0;
+    }
 }
 
 /* @layer utilities {

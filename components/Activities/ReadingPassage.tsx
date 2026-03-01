@@ -159,10 +159,10 @@ export const ReadingPassage: React.FC<ReadingPassageProps> = ({
 
         // Add highlighted vocabulary word
         result.push(
-          <span key={`vocab-${start}`} className="inline-block">
+          <span key={`vocab-${start}`} className="inline-block px-0">
             <span 
               onClick={() => handleWordClick(word)}
-              className="cursor-pointer font-bold text-green-700 border-b-2 border-dotted border-green-400 hover:bg-green-50 px-0.5 rounded transition-all"
+              className="cursor-pointer border-b-2 border-dotted font-semibold border-green-600 hover:bg-green-50 px-0 rounded transition-all"
             >
               {word}
             </span>
@@ -181,8 +181,8 @@ export const ReadingPassage: React.FC<ReadingPassageProps> = ({
   };
 
   return (
-    <section className={`bg-white p-2 sm:p-4 rounded-xl sm:shadow-sm sm:border sm:border-gray-100 mb-2 relative ${className}`}>
-      <div className="flex justify-between items-center mb-2">
+    <section className={`bg-white p-1 sm:p-2 rounded-xl sm:shadow-sm sm:border sm:border-gray-100 mb-2 relative ${className}`}>
+      <div className="flex justify-between items-center mb-2 px-1">
         <div translate="no">
           <h2 className="text-xl font-black text-green-900 uppercase tracking-tight">{title}</h2>
         </div>
@@ -200,21 +200,22 @@ export const ReadingPassage: React.FC<ReadingPassageProps> = ({
         </div>
       </div>
 
-      <p className="text-gray-500 mb-4 text-sm font-medium">Read the text carefully. Tap any word to hear its pronunciation.</p>
+      <p className="text-gray-500 mb-4 text-xs sm:text-sm font-medium px-1">Read the text carefully. Tap any word to hear its pronunciation.</p>
 
-      <div className="mx-0 sm:mx-1">
+      <div className="mx-0">
         <div
           ref={passageRef}
-          className="prose max-w-none text-base leading-relaxed text-gray-800 bg-transparent p-0 sm:bg-gray-50 sm:p-4 rounded-lg sm:border sm:border-gray-100"
+          className="prose max-w-none justify-baseline text-base leading-relaxed text-gray-800 bg-transparent p-0 rounded-lg"
           translate="no"
+          style={{ paddingInline: 0 }}
         >
           {renderTextWithVocabulary()}
         </div>
         
         {showHighlightHelp && Object.keys(vocabularyExplanations).length > 0 && (
-          <div className="mt-4 pt-4 border-t border-gray-100 flex items-center gap-2 text-green-600 font-bold italic">
+          <div className="mt-4 pt-4 border-t text-green-700 flex items-center gap-2 font-bold italic">
             <HelpCircle className="w-5 h-5" />
-            <span>Highlighted words are in the vocabulary activity below!</span>
+            <span>Underlined words are in the vocabulary activity below!</span>
           </div>
         )}
       </div>

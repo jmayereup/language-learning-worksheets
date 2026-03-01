@@ -3,6 +3,7 @@ import { VocabularyActivity } from '../../types';
 import { Button } from '../UI/Button';
 import { Volume2, RefreshCw, XCircle, Check } from 'lucide-react';
 import { shouldShowAudioControls, seededShuffle } from '../../utils/textUtils';
+import { VocabularyList } from '../UI/VocabularyList';
 
 interface Props {
   data: VocabularyActivity;
@@ -16,6 +17,7 @@ interface Props {
   ttsState: { status: 'playing' | 'paused' | 'stopped', rate: number };
   lessonId: string;
   title?: string;
+  hasActivityToggle?: boolean;
 }
 
 export const Vocabulary: React.FC<Props> = ({
@@ -26,8 +28,10 @@ export const Vocabulary: React.FC<Props> = ({
   onComplete,
   toggleTTS,
   lessonId,
-  title = "Vocabulary Matching"
+  title = "Vocabulary Matching",
+  hasActivityToggle = false
 }) => {
+  const [mode, setMode] = useState<'matching' | 'list'>(hasActivityToggle ? 'list' : 'matching');
   const [shuffledWordIndices, setShuffledWordIndices] = useState<number[]>([]);
   const [shuffledDefIndices, setShuffledDefIndices] = useState<number[]>([]);
   const [isChecked, setIsChecked] = useState(savedIsChecked);
@@ -41,11 +45,35 @@ export const Vocabulary: React.FC<Props> = ({
 
   useEffect(() => {
     // Shuffle words and definitions once on mount
-    const wordIndices = data.items.map((_, i) => i);
-    const defIndices = data.definitions.map((_, i) => i);
-    setShuffledWordIndices(seededShuffle(wordIndices, `${lessonId}-vocab-words`));
-    setShuffledDefIndices(seededShuffle(defIndices, `${lessonId}-vocab-defs`));
-  }, [data, lessonId]);
+    let wordIndices = data.items.map((_, i) => i);
+    let defIndices = data.definitions.map((_, i) => i);
+
+    if (hasActivityToggle && mode === 'matching') {
+      // Choose a subset of 5 words for matching mode in focused reader
+      const allShuffledIndices = seededShuffle(wordIndices, `${lessonId}-vocab-subset-seed`);
+      wordIndices = allShuffledIndices.slice(0, 5);
+      
+      // Definitions need to be filtered to only include those for the selected words
+      const selectedAnswers = wordIndices.map(idx => data.items[idx].answer);
+      defIndices = data.definitions
+        .filter(d => selectedAnswers.includes(d.id))
+        .map((_, i) => {
+          // We need the original index in data.definitions to map correctly to characters
+          const originalDef = data.definitions.findIndex(d => d.id === selectedAnswers[i]);
+          return originalDef;
+        })
+        .filter(idx => idx !== -1);
+      
+      // Re-shuffle definitions for matching
+      defIndices = seededShuffle(defIndices, `${lessonId}-vocab-defs-subset`);
+    } else if (!hasActivityToggle) {
+      wordIndices = seededShuffle(wordIndices, `${lessonId}-vocab-words`);
+      defIndices = seededShuffle(defIndices, `${lessonId}-vocab-defs`);
+    }
+
+    setShuffledWordIndices(wordIndices);
+    setShuffledDefIndices(defIndices);
+  }, [data, lessonId, mode, hasActivityToggle]);
 
   const handleWordSelect = (wordIndex: number) => {
     if (isChecked) return;
@@ -136,16 +164,54 @@ export const Vocabulary: React.FC<Props> = ({
 
   return (
     <section className="bg-white p-2 sm:p-4 rounded-xl sm:shadow-sm sm:border sm:border-gray-100 mb-2 relative">
-      <div className="flex justify-between items-center mb-2">
-        <h2 className="text-xl font-black text-green-900 uppercase tracking-tight">{title}</h2>
-        {isChecked && (
-          <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full font-bold text-sm">
-            Score: {score} / {data.items.length}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+        <div className="flex items-center justify-between w-full">
+          <h2 className="text-xl font-black text-green-900 uppercase tracking-tight">{title}</h2>
+          {isChecked && mode === 'matching' && (
+            <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full font-bold text-sm">
+              Score: {score} / {shuffledWordIndices.length}
+            </div>
+          )}
+        </div>
+
+        {hasActivityToggle && (
+          <div className="flex bg-gray-100 p-1 rounded-lg self-end sm:self-auto">
+            <button
+              onClick={() => {
+                setMode('list');
+                setIsChecked(false);
+              }}
+              className={`px-3 py-1 text-sm font-medium rounded-md transition-all ${
+                mode === 'list'
+                  ? 'bg-white text-green-700 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              List
+            </button>
+            <button
+              onClick={() => setMode('matching')}
+              className={`px-3 py-1 text-sm font-medium rounded-md transition-all ${
+                mode === 'matching'
+                  ? 'bg-white text-green-700 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Matching
+            </button>
           </div>
         )}
       </div>
 
-      <p className="text-gray-500 mb-4 text-sm font-medium">Tap a word and then tap its definition to match. Click "Check" when finished.</p>
+      {mode === 'list' ? (
+        <VocabularyList 
+          items={data.items} 
+          definitions={data.definitions} 
+          toggleTTS={toggleTTS} 
+        />
+      ) : (
+        <>
+          <p className="text-gray-500 mb-4 text-sm font-medium">Tap a word and then tap its definition to match. Click "Check" when finished.</p>
 
       {/* Words Grid - Compact */}
       <div className="mb-8">
@@ -294,6 +360,8 @@ export const Vocabulary: React.FC<Props> = ({
           </>
         )}
       </div>
+        </>
+      )}
     </section>
   );
 };

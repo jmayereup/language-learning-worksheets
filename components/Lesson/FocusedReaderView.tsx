@@ -197,6 +197,7 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
                 lessonId={`${lesson.id}-part-${currentPartIndex}`}
                 title={`Page ${currentPart.part_number} Vocabulary`}
                 savedIsChecked={isVocabCompleted}
+                hasActivityToggle={true}
               />
             </CollapsibleActivity>
           </section>
