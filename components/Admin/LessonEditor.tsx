@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { fetchLessonById, createLesson, updateLesson } from '../../services/pocketbase';
+import { LANGUAGE_OPTIONS, LEVEL_OPTIONS, TAG_OPTIONS, LESSON_TYPE_OPTIONS } from '../../types';
 import { triggerRebuild } from '../../services/deploy';
 import { Button } from '../UI/Button';
 import { Save, X, AlertCircle, FileJson, Info, Globe, Layers, Tag as TagIcon, Video, Check, Image as ImageIcon, Music, Layout, ClipboardPaste } from 'lucide-react';
 import { Modal } from '../UI/Modal';
 import { JSONKeyValueEditor } from './JSONKeyValueEditor';
 
-const TAG_OPTIONS = ['science', 'video', 'general', 'fable', 'M1-2'];
+
 
 interface LessonEditorProps {
     lessonId: string | null;
@@ -225,11 +226,9 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                                         className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none appearance-none"
                                     >
                                         <option value="" disabled>Select language...</option>
-                                        <option value="English">English</option>
-                                        <option value="Spanish">Spanish</option>
-                                        <option value="Thai">Thai</option>
-                                        <option value="French">French</option>
-                                        <option value="German">German</option>
+                                        {LANGUAGE_OPTIONS.map(opt => (
+                                            <option key={opt} value={opt}>{opt}</option>
+                                        ))}
                                     </select>
                                 </div>
                             </div>
@@ -246,10 +245,9 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                                         className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none appearance-none"
                                     >
                                         <option value="" disabled>Select level...</option>
-                                        <option value="A1">A1 (Beginner)</option>
-                                        <option value="A2">A2 (Elementary)</option>
-                                        <option value="B1">B1 (Intermediate)</option>
-                                        <option value="B2">B2 (Upper Int)</option>
+                                        {LEVEL_OPTIONS.map(opt => (
+                                            <option key={opt} value={opt}>{opt}</option>
+                                        ))}
                                     </select>
                                 </div>
                             </div>
@@ -268,9 +266,9 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                                     className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none appearance-none"
                                 >
                                     <option value="" disabled>Select lesson type...</option>
-                                    <option value="worksheet">Worksheet (Standard)</option>
-                                    <option value="information-gap">Information-Gap</option>
-                                    <option value="focused-reading">Focused Reading</option>
+                                    {LESSON_TYPE_OPTIONS.map(opt => (
+                                        <option key={opt} value={opt}>{opt.charAt(0).toUpperCase() + opt.slice(1).replace('-', ' ')}</option>
+                                    ))}
                                 </select>
                             </div>
                         </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { fetchLessons, fetchLessonById } from './services/pocketbase';
-import { ParsedLesson } from './types';
+import { ParsedLesson, LANGUAGE_OPTIONS, LEVEL_OPTIONS, TAG_OPTIONS } from './types';
 import { LessonView } from './components/Lesson/LessonView';
 import { Button } from './components/UI/Button';
 import { BookOpen, Search, FlaskConical, Video, Feather, FileText, X, Eye } from 'lucide-react';
@@ -215,9 +215,9 @@ const App: React.FC = () => {
                                         onChange={(e) => setLanguage(e.target.value)}
                                         className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 bg-white"
                                     >
-                                        <option value="English">English</option>
-                                        <option value="Spanish">Spanish</option>
-                                        <option value="Thai">Thai</option>
+                                        {LANGUAGE_OPTIONS.map(opt => (
+                                            <option key={opt} value={opt}>{opt}</option>
+                                        ))}
                                     </select>
                                 </div>
                                 <div>
@@ -228,9 +228,9 @@ const App: React.FC = () => {
                                         className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 bg-white"
                                     >
                                         <option value="All">All Levels</option>
-                                        <option value="A1">A1 (Beginner)</option>
-                                        <option value="A2">A2 (Elementary)</option>
-                                        <option value="B1">B1 (Intermediate)</option>
+                                        {LEVEL_OPTIONS.map(opt => (
+                                            <option key={opt} value={opt}>{opt}</option>
+                                        ))}
                                     </select>
                                 </div>
                                 <div>
@@ -241,11 +241,9 @@ const App: React.FC = () => {
                                         className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 bg-white"
                                     >
                                         <option value="All">All Categories</option>
-                                        <option value="science">Science</option>
-                                        <option value="general">General</option>
-                                        <option value="video">Video</option>
-                                        <option value="fable">Fable</option>
-                                        <option value="M1-2">M1-2 Science Course</option>
+                                        {TAG_OPTIONS.map(opt => (
+                                            <option key={opt} value={opt}>{opt.charAt(0).toUpperCase() + opt.slice(1).replace('-', ' ')}</option>
+                                        ))}
                                     </select>
                                 </div>
                             </div>

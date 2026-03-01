@@ -1,3 +1,11 @@
+import React from 'react';
+import { 
+  WorksheetsLanguageOptions, 
+  WorksheetsLevelOptions, 
+  WorksheetsTagsOptions, 
+  WorksheetsLessonTypeOptions 
+} from './pocketbase-types';
+
 export interface VocabularyItem {
   label: string;
   answer: string; // references a definition ID
@@ -105,25 +113,31 @@ export interface StandardLessonContent {
 
 export type LessonContent = StandardLessonContent | InformationGapContent | InformationGapActivity[] | FocusedReaderContent;
 
+// Options for UI lookups derived from PocketBase enums
+export const LANGUAGE_OPTIONS = Object.values(WorksheetsLanguageOptions);
+export const LEVEL_OPTIONS = Object.values(WorksheetsLevelOptions);
+export const TAG_OPTIONS = Object.values(WorksheetsTagsOptions);
+export const LESSON_TYPE_OPTIONS = Object.values(WorksheetsLessonTypeOptions);
+
 export interface LessonRecord {
   id: string;
   collectionId: string;
   collectionName: string;
   created: string;
   updated: string;
-  language: string;
-  level: string;
+  language: WorksheetsLanguageOptions;
+  level: WorksheetsLevelOptions;
   image: string;
   videoUrl: string;
   isVideoLesson: boolean;
-  lessonType?: string; // e.g. "information-gap"
-  title?: string; // Added field
-  tags?: string[]; // Added field
-  content: LessonContent | string; // PB returns JSON or string depending on parse
-  audioFile?: string; // Added field
-  creatorId?: string; // Added field
-  seo?: string; // Added field
-  description?: string; // Added field
+  lessonType: WorksheetsLessonTypeOptions;
+  title?: string;
+  tags?: WorksheetsTagsOptions[];
+  content: LessonContent | string;
+  audioFile?: string;
+  creatorId?: string;
+  seo?: string;
+  description?: string;
 }
 
 export interface ParsedLesson extends Omit<LessonRecord, 'content'> {
@@ -174,7 +188,7 @@ export interface ReportData {
   writtenResponses?: ReportWrittenResponse[];
 }
 
-declare global {
+declare module 'react' {
   namespace JSX {
     interface IntrinsicElements {
       'tj-pocketbase-worksheet': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
