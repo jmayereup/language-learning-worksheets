@@ -3,6 +3,11 @@
 @theme {
     --color-primary: #2563eb;
     --color-primary-hover: #1d4ed8;
+    --font-noto: "Noto Serif Thai", serif;
+}
+
+body {
+    font-family: "Noto Serif Thai", serif;
 }
 
 @layer prose {

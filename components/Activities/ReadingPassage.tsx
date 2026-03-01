@@ -87,7 +87,7 @@ export const ReadingPassage: React.FC<ReadingPassageProps> = ({
             <span
               key={`${segmentKeyPrefix}-th-${j}`}
               onClick={() => handleWordClick(s.segment)}
-              className="cursor-pointer hover:text-green-600 hover:bg-green-50 rounded px-0.5 transition-colors"
+              className="cursor-pointer hover:text-green-600 hover:bg-green-50 transition-colors"
             >
               {s.segment}
             </span>
@@ -111,7 +111,7 @@ export const ReadingPassage: React.FC<ReadingPassageProps> = ({
                 <span
                   key={k}
                   onClick={() => handleWordClick(sub)}
-                  className="cursor-pointer hover:text-green-600 hover:bg-green-50 rounded px-0.5 transition-colors"
+                  className="cursor-pointer hover:text-green-600 hover:bg-green-50 transition-colors"
                 >
                   {sub}
                 </span>
@@ -159,7 +159,7 @@ export const ReadingPassage: React.FC<ReadingPassageProps> = ({
 
         // Add highlighted vocabulary word
         result.push(
-          <span key={`vocab-${start}`} className="inline-block px-0">
+          <span key={`vocab-${start}`}>
             <span 
               onClick={() => handleWordClick(word)}
               className="cursor-pointer border-b-2 border-dotted font-semibold border-green-600 hover:bg-green-50 px-0 rounded transition-all"
@@ -205,15 +205,14 @@ export const ReadingPassage: React.FC<ReadingPassageProps> = ({
       <div className="mx-0">
         <div
           ref={passageRef}
-          className="prose max-w-none justify-baseline text-base leading-relaxed text-gray-800 bg-transparent p-0 rounded-lg"
+          className="max-w-none justify-baseline text-lg leading-loose text-gray-800 bg-transparent"
           translate="no"
-          style={{ paddingInline: 0 }}
         >
           {renderTextWithVocabulary()}
         </div>
         
         {showHighlightHelp && Object.keys(vocabularyExplanations).length > 0 && (
-          <div className="mt-4 pt-4 border-t text-green-700 flex items-center gap-2 font-bold italic">
+          <div className="prose mt-4 pt-4 border-t text-green-700 flex items-center gap-2 font-bold italic">
             <HelpCircle className="w-5 h-5" />
             <span>Underlined words are in the vocabulary activity below!</span>
           </div>
