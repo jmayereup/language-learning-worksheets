@@ -1,6 +1,7 @@
 import { createRoot } from 'react-dom/client';
 import React from 'react';
 import { LessonView } from './components/Lesson/LessonView';
+import { ErrorBoundary } from './components/UI/ErrorBoundary';
 import styles from './index.css?inline';
 
 export class TJPocketBaseWorksheet extends HTMLElement {
@@ -98,7 +99,9 @@ export class TJPocketBaseWorksheet extends HTMLElement {
       if (this.root) {
         this.root.render(
           <React.StrictMode>
-            {lessonData && <LessonView lesson={lessonData} />}
+            <ErrorBoundary>
+              {lessonData && <LessonView lesson={lessonData} />}
+            </ErrorBoundary>
           </React.StrictMode>
         );
       }
