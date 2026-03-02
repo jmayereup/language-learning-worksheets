@@ -147,7 +147,7 @@ export const LessonList: React.FC<LessonListProps> = ({ onEdit, onPreview }) => 
                                         <Button 
                                             variant="outline" 
                                             size="icon" 
-                                            onClick={() => window.open(`/?lesson=${lesson.id}`, '_blank')}
+                                            onClick={() => window.open(`https://www.teacherjake.com/pb/${lesson.id}`, '_blank')}
                                             title="View Public Worksheet"
                                             className="p-2 h-9 w-9"
                                         >
