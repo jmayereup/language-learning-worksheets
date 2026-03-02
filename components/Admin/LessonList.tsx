@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { fetchAllLessons, deleteLesson, getCurrentUser } from '../../services/pocketbase';
 import { triggerRebuild } from '../../services/deploy';
 import { Button } from '../UI/Button';
-import { Edit, Trash2, ExternalLink, RefreshCw, Layers, Globe, Calendar, Eye, Search } from 'lucide-react';
+import { Edit, Trash2, ExternalLink, RefreshCw, Layers, Globe, Calendar, Eye, Search, FileText } from 'lucide-react';
 
 interface LessonListProps {
     onEdit: (id: string) => void;
@@ -125,6 +125,9 @@ export const LessonList: React.FC<LessonListProps> = ({ onEdit, onPreview }) => 
                                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 text-[10px] font-black border border-purple-100 uppercase">
                                             <Layers className="w-3 h-3" /> {lesson.level}
                                         </span>
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-green-50 text-green-700 text-[10px] font-black border border-green-100 uppercase">
+                                            <FileText className="w-3 h-3" /> {lesson.lessonType?.replace('-', ' ')}
+                                        </span>
                                     </div>
                                 </td>
                                 <td className="px-6 py-5">
@@ -207,6 +210,9 @@ export const LessonList: React.FC<LessonListProps> = ({ onEdit, onPreview }) => 
                                         </span>
                                         <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 text-[9px] font-black border border-purple-100 uppercase">
                                             <Layers className="w-2.5 h-2.5" /> {lesson.level}
+                                        </span>
+                                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-green-50 text-green-700 text-[9px] font-black border border-green-100 uppercase">
+                                            <FileText className="w-2.5 h-2.5" /> {lesson.lessonType?.replace('-', ' ')}
                                         </span>
                                     </div>
                                 </div>

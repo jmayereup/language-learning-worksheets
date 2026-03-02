@@ -138,6 +138,17 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
       };
     });
   }, [standardContent, lesson.id]);
+  
+  const vocabularyExplanations = useMemo(() => {
+    const map: Record<string, string> = {};
+    standardContent.activities.vocabulary.items.forEach(item => {
+      const definition = standardContent.activities.vocabulary.definitions.find(d => d.id === item.answer);
+      if (definition) {
+        map[item.label] = definition.text;
+      }
+    });
+    return map;
+  }, [standardContent.activities.vocabulary]);
 
   return (
     <div className="space-y-4">
@@ -163,6 +174,7 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
         <ReadingPassage
           text={standardContent.readingText}
           language={lesson.language}
+          vocabularyExplanations={vocabularyExplanations}
           onSlowToggle={() => toggleTTS(0.6)}
           onListenToggle={() => toggleTTS(1.0)}
           ttsStatus={ttsState.status}
@@ -171,6 +183,7 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
           onVoiceOpen={availableVoices.length > 0 ? () => setIsVoiceModalOpen(true) : undefined}
           onTranslate={handleTranslate}
           passageRef={passageRef}
+          showHighlightHelp={true}
         />
       </div>
 
