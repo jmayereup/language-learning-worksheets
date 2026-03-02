@@ -76,6 +76,7 @@ export interface InformationGapContent {
   blocks?: InformationGapBlock[]; // Optional for backward compatibility
   activities?: InformationGapActivity[];
   seo_intro?: string; // Added for SEO automation
+  references?: Record<string, string>;
 }
 
 export interface FocusedReaderQuestion {
@@ -96,6 +97,7 @@ export interface FocusedReaderContent {
   title: string;
   seo_intro: string;
   parts: FocusedReaderPart[];
+  references?: Record<string, string>;
 }
 
 export interface StandardLessonContent {
@@ -109,6 +111,7 @@ export interface StandardLessonContent {
     scrambled: ScrambledItem[];
     writtenExpression: WritingActivity;
   };
+  references?: Record<string, string>;
 }
 
 export type LessonContent = StandardLessonContent | InformationGapContent | InformationGapActivity[] | FocusedReaderContent;

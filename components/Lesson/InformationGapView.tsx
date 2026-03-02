@@ -8,6 +8,7 @@ import { ReadingPassage } from '../Activities/ReadingPassage';
 import { LessonFooter } from './LessonFooter';
 import { LessonMedia } from '../UI/LessonMedia';
 import { AudioControls } from '../UI/AudioControls';
+import { ReferenceLinks } from '../UI/ReferenceLinks';
 import { useInformationGapScores, ActivityResult } from '../../hooks/useInformationGapScores';
 
 interface InformationGapViewProps {
@@ -335,6 +336,8 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
           isLastActivity={currentActivityIndex === activities.length - 1}
         />
       </section>
+
+      <ReferenceLinks references={(content as any).references} />
 
       <LessonFooter
         studentName={studentName}

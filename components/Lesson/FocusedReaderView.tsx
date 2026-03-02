@@ -9,6 +9,7 @@ import { ReadingPassage } from '../Activities/ReadingPassage';
 import { Comprehension } from '../Activities/Comprehension';
 import { CollapsibleActivity } from '../UI/CollapsibleActivity';
 import { LessonMedia } from '../UI/LessonMedia';
+import { ReferenceLinks } from '../UI/ReferenceLinks';
 import { useFocusedReaderScores } from '../../hooks/useFocusedReaderScores';
 
 interface FocusedReaderViewProps {
@@ -250,6 +251,10 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
             </div>
           )}
         </div>
+
+        {currentPartIndex === content.parts.length - 1 && (
+          <ReferenceLinks references={content.references} />
+        )}
 
         <LessonFooter
           studentName={studentName}

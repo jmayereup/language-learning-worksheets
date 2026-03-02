@@ -161,6 +161,10 @@
           }
         ],
         "examples": "<p><strong>Examples:</strong></p><ul class='list-disc pl-5'><li>I would like to grow a garden because I love being outside.</li><li>I think making things is better because they are special and unique.</li></ul>"
+      },
+      "references": {
+        "BBC Learning English: Hobbies": "https://www.bbc.co.uk/learningenglish/english/features/6minute/ep-210415",
+        "Cambridge Dictionary: Hobby": "https://dictionary.cambridge.org/dictionary/english/hobby"
       }
     }
   },

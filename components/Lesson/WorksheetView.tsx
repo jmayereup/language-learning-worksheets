@@ -13,6 +13,7 @@ import { CollapsibleActivity } from '../UI/CollapsibleActivity';
 import { WorksheetExportActions } from '../UI/WorksheetExportActions';
 import { VideoExploration } from '../UI/VideoExploration';
 import { LessonMedia } from '../UI/LessonMedia';
+import { ReferenceLinks } from '../UI/ReferenceLinks';
 import { useWorksheetScores } from '../../hooks/useWorksheetScores';
 
 interface WorksheetViewProps {
@@ -293,6 +294,8 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
             />
           </CollapsibleActivity>
         </section>
+
+        <ReferenceLinks references={standardContent.references} />
 
         <LessonFooter
           studentName={studentName}
