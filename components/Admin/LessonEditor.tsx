@@ -194,17 +194,6 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
         }
     };
 
-    const handleCopyMinified = () => {
-        try {
-            const parsed = JSON.parse(jsonContent);
-            const minified = JSON.stringify(parsed);
-            navigator.clipboard.writeText(minified);
-            alert('Minified JSON copied to clipboard!');
-        } catch (e) {
-            setError('Cannot copy: Invalid JSON content.');
-        }
-    };
-
     const toggleMinify = () => {
         try {
             const parsed = JSON.parse(jsonContent);
@@ -466,32 +455,22 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                 </div>
 
                 <div className="mb-10">
-                    <div className="flex items-center justify-between mb-3 ml-1">
+                    <div className="flex flex-wrap items-center justify-between mb-3 ml-1">
                         <label className="text-sm font-black text-gray-700 uppercase tracking-wider flex items-center gap-2">
                             <FileJson className="w-4 h-4" /> Worksheet JSON Content
                         </label>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                             <div className="flex items-center gap-2 mr-4 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200">
-                                <label className="text-[10px] font-black text-gray-500 uppercase cursor-pointer flex items-center gap-2">
+                                <label className="text-[10px] font-black text-gray-500 cursor-pointer flex items-center gap-2">
                                     <input 
                                         type="checkbox" 
                                         checked={isMinified}
                                         onChange={toggleMinify}
                                         className="w-3.5 h-3.5 rounded text-green-600 focus:ring-green-500"
                                     />
-                                    Minify View
+                                    Check JSON
                                 </label>
                             </div>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={handleCopyMinified}
-                                className="text-[10px] font-bold flex items-center gap-1.5 border-blue-200 text-blue-700 hover:bg-blue-50"
-                                title="Copy a one-line version for native apps"
-                            >
-                                <ClipboardPaste className="w-4 h-4" /> Copy Minified
-                            </Button>
                             <Button
                                 type="button"
                                 variant="outline"
@@ -508,7 +487,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                                 onClick={handlePasteFromClipboard}
                                 className="text-[10px] font-bold flex items-center gap-1.5 border-blue-200 text-blue-700 hover:bg-blue-50"
                             >
-                                <ClipboardPaste className="w-4 h-4" /> Paste from Clipboard
+                                <ClipboardPaste className="w-4 h-4" /> Paste
                             </Button>
                             <a
                                 href={lessonType === 'information-gap'
