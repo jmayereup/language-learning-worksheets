@@ -34,6 +34,10 @@ export const useTTS = ({
   // Initialize and update voices
   useEffect(() => {
     const updateVoices = () => {
+      if (typeof window === 'undefined' || !window.speechSynthesis) {
+        return;
+      }
+      
       const langCode = getLangCode(language);
       const voices = getVoicesForLang(langCode);
       setAvailableVoices(voices);
@@ -75,6 +79,10 @@ export const useTTS = ({
   }, [language, selectedVoiceName]);
 
   const playTTS = useCallback((rate: number, text: string) => {
+    if (typeof window === 'undefined' || !window.speechSynthesis) {
+        console.warn('SpeechSynthesis not supported/available');
+        return;
+    }
     const synth = window.speechSynthesis;
 
     // If clicking the active button (same text and same rate)
@@ -118,8 +126,6 @@ export const useTTS = ({
   }, [language, selectedVoiceName, ttsState, onStartCallback]);
 
   const toggleTTS = useCallback((rate: number, overrideText?: string) => {
-    const synth = window.speechSynthesis;
-
     // Use audio file if available and preferred, but ONLY if no override text is provided
     if (!overrideText && audioFileUrl && audioPreference === 'recorded') {
       if (!audioRef.current) {
@@ -145,7 +151,9 @@ export const useTTS = ({
 
       // New start or changing rate/content
       activeContentRef.current = audioFileUrl;
-      synth.cancel(); 
+      if (typeof window !== 'undefined' && window.speechSynthesis) {
+        window.speechSynthesis.cancel(); 
+      }
       audio.pause();
       audio.currentTime = 0;
       audio.playbackRate = rate;
@@ -170,6 +178,7 @@ export const useTTS = ({
         playTTS(rate, textToSpeak);
     }
   }, [audioFileUrl, audioPreference, ttsState, onStartCallback, playTTS, defaultReadingText]);
+
 
   const handleSetSelectedVoiceName = useCallback((name: string | null) => {
     userHasSelectedVoice.current = true;
