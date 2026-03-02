@@ -39,8 +39,20 @@ export class TJPocketBaseWorksheet extends HTMLElement {
 
     try {
       let lessonData: any;
-      if (jsonContent.trim()) {
-        const rawData = JSON.parse(jsonContent.trim());
+      const trimmedContent = jsonContent.trim();
+      
+      if (trimmedContent) {
+        let rawData: any;
+        try {
+          rawData = JSON.parse(trimmedContent);
+        } catch (parseError: any) {
+          console.error('TJ Worksheet: JSON Parse Error', {
+            error: parseError.message,
+            contentSnippet: trimmedContent.substring(0, 100) + '...',
+            length: trimmedContent.length
+          });
+          throw new Error(`Invalid JSON: ${parseError.message}`);
+        }
         
         // Map PocketBase JSON structure to ParsedLesson
         lessonData = {
@@ -90,10 +102,16 @@ export class TJPocketBaseWorksheet extends HTMLElement {
           </React.StrictMode>
         );
       }
-    } catch (e) {
-      console.error('TJ Worksheet: Failed to parse JSON content or render component', e);
+    } catch (e: any) {
+      console.error('TJ Worksheet: Failed to render component', e);
       if (!this.mountPoint && this.shadowRoot) {
-        this.shadowRoot.innerHTML = `<div style="color: red; padding: 1rem; border: 1px solid red;">TJ Worksheet Error: Failed to load worksheet data. Check console for details.</div>`;
+        this.shadowRoot.innerHTML = `
+          <div style="color: #ef4444; padding: 1.5rem; border: 1px solid #fee2e2; border-radius: 0.75rem; background: #fef2f2; font-family: sans-serif;">
+            <h3 style="margin-top: 0; font-weight: 800;">Worksheet Error</h3>
+            <p style="font-size: 0.875rem;">${e.message || 'Failed to load worksheet data.'}</p>
+            <p style="font-size: 0.75rem; color: #991b1b; margin-bottom: 0;">Check the browser console for more technical details.</p>
+          </div>
+        `;
       }
     }
   }

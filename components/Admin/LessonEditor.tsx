@@ -36,6 +36,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [showVisualEditor, setShowVisualEditor] = useState(false);
     const [seo, setSeo] = useState('');
+    const [isMinified, setIsMinified] = useState(false);
 
     useEffect(() => {
         if (lessonId) {
@@ -50,7 +51,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                     setVideoUrl(lesson.videoUrl || '');
                     setIsVideoLesson(lesson.isVideoLesson || false);
                     setLessonType(lesson.lessonType || 'worksheet');
-                    setJsonContent(JSON.stringify(lesson.content, null, 2));
+                    setJsonContent(JSON.stringify(lesson.content, null, isMinified ? 0 : 2));
                     setSeo(lesson.seo || '');
                     if (lesson.imageUrl) setImagePreview(lesson.imageUrl);
                 } catch (err) {
@@ -166,7 +167,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
     };
 
     const handleVisualEditorApply = (updatedData: any) => {
-        setJsonContent(JSON.stringify(updatedData, null, 2));
+        setJsonContent(JSON.stringify(updatedData, null, isMinified ? 0 : 2));
         setShowVisualEditor(false);
     };
 
@@ -190,6 +191,28 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
             }
         } catch (err) {
             setError('Failed to read from clipboard. Please ensure you have granted permission.');
+        }
+    };
+
+    const handleCopyMinified = () => {
+        try {
+            const parsed = JSON.parse(jsonContent);
+            const minified = JSON.stringify(parsed);
+            navigator.clipboard.writeText(minified);
+            alert('Minified JSON copied to clipboard!');
+        } catch (e) {
+            setError('Cannot copy: Invalid JSON content.');
+        }
+    };
+
+    const toggleMinify = () => {
+        try {
+            const parsed = JSON.parse(jsonContent);
+            const nextMinified = !isMinified;
+            setJsonContent(JSON.stringify(parsed, null, nextMinified ? 0 : 2));
+            setIsMinified(nextMinified);
+        } catch (e) {
+            setError('Cannot toggle format: Invalid JSON content.');
         }
     };
 
@@ -448,6 +471,27 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                             <FileJson className="w-4 h-4" /> Worksheet JSON Content
                         </label>
                         <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 mr-4 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200">
+                                <label className="text-[10px] font-black text-gray-500 uppercase cursor-pointer flex items-center gap-2">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={isMinified}
+                                        onChange={toggleMinify}
+                                        className="w-3.5 h-3.5 rounded text-green-600 focus:ring-green-500"
+                                    />
+                                    Minify View
+                                </label>
+                            </div>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={handleCopyMinified}
+                                className="text-[10px] font-bold flex items-center gap-1.5 border-blue-200 text-blue-700 hover:bg-blue-50"
+                                title="Copy a one-line version for native apps"
+                            >
+                                <ClipboardPaste className="w-4 h-4" /> Copy Minified
+                            </Button>
                             <Button
                                 type="button"
                                 variant="outline"
