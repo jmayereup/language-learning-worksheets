@@ -308,7 +308,7 @@ const App: React.FC = () => {
                                                             <span className="text-[11px] text-gray-400 font-medium">#{l.id.substring(0, 4)}</span>
                                                         </div>
 
-                                                        <h3 className="font-extrabold text-[#2563eb] text-xl leading-tight mb-3 group-hover:text-green-700 transition-colors line-clamp-2 min-h-12">
+                                                        <h3 className="font-extrabold text-primary text-xl leading-tight mb-3 group-hover:text-green-700 transition-colors line-clamp-2 min-h-12">
                                                             {l.title}
                                                         </h3>
 
@@ -321,10 +321,10 @@ const App: React.FC = () => {
 
                                                     {/* Footer / Read More style */}
                                                     <div className="pt-4 mt-auto border-t border-gray-100 flex items-center justify-between">
-                                                        <span className="text-[12px] font-extrabold tracking-widest text-[#2563eb] uppercase transition-colors">
+                                                        <span className="text-[12px] font-extrabold tracking-widest text-primary uppercase transition-colors">
                                                             READ MORE
                                                         </span>
-                                                        <div className="w-10 h-10 rounded-full bg-[#f0f7ff] flex items-center justify-center text-[#2563eb] group-hover:bg-[#2563eb] group-hover:text-white shadow-sm group-hover:shadow-md transition-all duration-300">
+                                                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white shadow-sm group-hover:shadow-md transition-all duration-300">
                                                             <Search size={18} />
                                                         </div>
                                                     </div>
