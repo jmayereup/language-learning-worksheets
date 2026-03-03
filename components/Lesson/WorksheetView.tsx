@@ -330,16 +330,23 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
       {/* Print-only Layout */}
       <div className="hidden print:block" style={{ fontSize: '12px', padding: '16px 24px' }}>
         {/* Header */}
-        <div className="flex justify-between items-start border-b border-gray-300 pb-2 mb-3">
-          <div>
-            <h1 className="text-lg font-bold text-gray-900 leading-tight">{displayTitle}</h1>
-            <p className="text-xs text-gray-500">Language: {lesson.language} | Level: {lesson.level}</p>
+        <div className="mb-6">
+          <div className="flex justify-end gap-6 text-[13px] mb-4 text-gray-900 font-medium">
+            <div className="flex items-end gap-2">
+              <span>Name</span>
+              <div className="border-b border-black w-48 text-center px-2 pb-0.5">{studentName || ''}</div>
+            </div>
+            <div className="flex items-end gap-2">
+              <span>ID:</span>
+              <div className="border-b border-black w-24 text-center px-2 pb-0.5">{studentId || ''}</div>
+            </div>
+            <div className="flex items-end gap-2">
+              <span>Homeroom:</span>
+              <div className="border-b border-black w-24 text-center px-2 pb-0.5">{homeroom || ''}</div>
+            </div>
           </div>
-          <div className="text-right space-y-1 text-xs text-gray-500">
-            <div className="border-b border-gray-300 w-44 text-left">Name: <span className="font-medium text-gray-800">{studentName || ''}</span></div>
-            <div className="border-b border-gray-300 w-44 text-left">Student ID: <span className="font-medium text-gray-800">{studentId || ''}</span></div>
-            <div className="border-b border-gray-300 w-44 text-left">Homeroom: <span className="font-medium text-gray-800">{homeroom || ''}</span></div>
-          </div>
+          <h1 className="text-xl font-bold text-gray-900 leading-tight mb-1">{displayTitle}</h1>
+          <p className="text-xs text-gray-500">Language: {lesson.language} | Level: {lesson.level}</p>
         </div>
 
         <div className="space-y-3">

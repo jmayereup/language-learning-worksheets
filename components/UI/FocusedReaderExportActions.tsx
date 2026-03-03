@@ -1,17 +1,17 @@
 import React, { useState } from 'react';
 import { Printer, Copy, Check } from 'lucide-react';
-import { ParsedLesson, StandardLessonContent } from '../../types';
+import { ParsedLesson, FocusedReaderContent } from '../../types';
 import { seededShuffle } from '../../utils/textUtils';
 
-interface WorksheetExportActionsProps {
-  lesson: ParsedLesson & { content: StandardLessonContent };
+interface FocusedReaderExportActionsProps {
+  lesson: ParsedLesson & { content: FocusedReaderContent };
   displayTitle: string;
   studentName: string;
   studentId: string;
   homeroom: string;
 }
 
-export const WorksheetExportActions: React.FC<WorksheetExportActionsProps> = ({
+export const FocusedReaderExportActions: React.FC<FocusedReaderExportActionsProps> = ({
   lesson,
   displayTitle,
   studentName,
@@ -19,15 +19,59 @@ export const WorksheetExportActions: React.FC<WorksheetExportActionsProps> = ({
   homeroom,
 }) => {
   const [copySuccess, setCopySuccess] = useState(false);
-  const standardContent = lesson.content;
+  const content = lesson.content;
 
   const handleCopyForGoogleDocs = async () => {
-    const vocabItems = seededShuffle([...standardContent.activities.vocabulary.items], `${lesson.id}-print-vocab`);
-    const scrambledItems = standardContent.activities.scrambled.map((item, idx) => {
-      const words = item.answer.replace(/[.!?]+$/, '').split(/\s+/).filter((w: string) => w);
-      const shuffled = seededShuffle([...words], `${lesson.id}-print-scramble-${idx}`);
-      return { ...item, scrambledText: shuffled.join(' / ') };
-    });
+    const partsHtml = content.parts.map((part, pIndex) => {
+      const allVocabWords = Object.keys(part.vocabulary_explanations);
+      let printWords: string[] = [];
+      let printDefs: string[] = [];
+
+      if (allVocabWords.length > 0) {
+        const selectedWords = seededShuffle([...allVocabWords], `${lesson.id}-part-${pIndex}-vocab-subset-seed`).slice(0, 5);
+        printWords = seededShuffle([...selectedWords], `${lesson.id}-print-vocab-${part.part_number}`);
+        printDefs = selectedWords.map(w => part.vocabulary_explanations[w]).sort();
+      }
+
+      let vocabHtml = '';
+      if (printWords.length > 0) {
+        vocabHtml = `
+<h3 style="font-size:13px;font-weight:bold;margin:10px 0 4px">Vocabulary</h3>
+<table style="width:100%;border-collapse:collapse">
+<tr>
+<td style="width:40%;vertical-align:top;padding-right:12px">
+${printWords.map((word) => `<p style="margin:3px 0;font-size:12px">☐ &nbsp; ${word}</p>`).join('')}
+</td>
+<td style="width:60%;vertical-align:top">
+${printDefs.map((def, i) => `<p style="margin:3px 0;font-size:12px"><strong>${String.fromCharCode(97 + i)}.</strong> ${def}</p>`).join('')}
+</td>
+</tr>
+</table>`;
+      }
+
+      let questionsHtml = '';
+      if (part.questions.length > 0) {
+        questionsHtml = `
+<h3 style="font-size:13px;font-weight:bold;margin:10px 0 4px">Questions</h3>
+${part.questions.map((q, i) => {
+  if (q.type === 'True/False') {
+    return `<p style="margin:4px 0;font-size:12px">${i + 1}. ${q.question} &nbsp;&nbsp; <strong>True</strong> &nbsp; <strong>False</strong></p>`;
+  } else if (q.type === 'Multiple Choice' && q.options && q.options.length > 0) {
+    return `<div style="margin:6px 0;font-size:12px"><p style="margin:0 0 4px 0">${i + 1}. ${q.question}</p>` +
+      `<div style="padding-left:16px">${q.options.map(opt => `<p style="margin:2px 0">☐ ${opt}</p>`).join('')}</div></div>`;
+  } else {
+    return `<p style="font-size:12px;font-weight:bold;margin:4px 0 2px">${i + 1}. ${q.question}</p><p style="border-bottom:1px solid #ccc;margin:3px 0 10px">&nbsp;</p>`;
+  }
+}).join('')}`;
+      }
+
+      return `
+<h2 style="font-size:14px;font-weight:bold;background:#f3f4f6;padding:4px 6px;margin:12px 0 6px">Page ${part.part_number}</h2>
+<p style="font-size:12px;line-height:1.6;margin:0 0 10px 0">${part.text.replace(/\n/g, '<br>')}</p>
+${vocabHtml}
+${questionsHtml}
+`;
+    }).join('<hr style="border:0;border-top:1px dashed #ccc;margin:16px 0">');
 
     const html = `
 <!DOCTYPE html><html><body style="font-family:Arial,sans-serif;max-width:750px;margin:0 auto;padding:16px;font-size:13px">
@@ -41,32 +85,7 @@ Name <u>&nbsp;&nbsp;&nbsp;&nbsp;${studentName || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 
 ${lesson.imageUrl ? `<div style="text-align:center;margin:16px 0"><img src="${lesson.imageUrl}" alt="Lesson image" style="max-width:100%;height:auto;border-radius:6px" /></div>` : ''}
 
-<h2 style="font-size:13px;font-weight:bold;background:#f3f4f6;padding:4px 6px;margin:8px 0 4px">Reading Passage</h2>
-<p style="font-size:12px;line-height:1.6;margin:0">${standardContent.readingText.replace(/\n/g, '<br>')}</p>
-
-<h2 style="font-size:13px;font-weight:bold;background:#f3f4f6;padding:4px 6px;margin:10px 0 4px">1. Vocabulary Matching</h2>
-<table style="width:100%;border-collapse:collapse">
-<tr>
-<td style="width:50%;vertical-align:top;padding-right:12px">
-${vocabItems.map((item) => `<p style="margin:3px 0;font-size:12px">☐ &nbsp; ${item.label}</p>`).join('')}
-</td>
-<td style="width:50%;vertical-align:top">
-${standardContent.activities.vocabulary.definitions.map((def, i) => `<p style="margin:3px 0;font-size:12px"><strong>${String.fromCharCode(97 + i)}.</strong> ${def.text}</p>`).join('')}
-</td>
-</tr>
-</table>
-
-<h2 style="font-size:13px;font-weight:bold;background:#f3f4f6;padding:4px 6px;margin:10px 0 4px">2. Fill in the Blanks</h2>
-${standardContent.activities.fillInTheBlanks.map((item, i) => `<p style="margin:4px 0;font-size:12px">${i + 1}. ${item.before} <u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u> ${item.after}</p>`).join('')}
-
-<h2 style="font-size:13px;font-weight:bold;background:#f3f4f6;padding:4px 6px;margin:10px 0 4px">3. Reading Comprehension</h2>
-${standardContent.activities.comprehension.questions.map((q, i) => `<p style="margin:4px 0;font-size:12px">${i + 1}. ${q.text} &nbsp;&nbsp; <strong>True</strong> &nbsp; <strong>False</strong></p>`).join('')}
-
-<h2 style="font-size:13px;font-weight:bold;background:#f3f4f6;padding:4px 6px;margin:10px 0 4px">4. Scrambled Sentences</h2>
-${scrambledItems.map((item) => `<p style="color:#555;font-style:italic;margin:2px 0;font-size:12px">(${item.scrambledText})</p><p style="border-bottom:1px solid #ddd;margin:0 0 8px 0">&nbsp;</p>`).join('')}
-
-<h2 style="font-size:13px;font-weight:bold;background:#f3f4f6;padding:4px 6px;margin:10px 0 4px">5. Written Expression</h2>
-${standardContent.activities.writtenExpression.questions.map((q, i) => `<p style="font-size:12px;font-weight:medium;margin:4px 0 2px">${i + 1}. ${q.text}</p><p style="border-bottom:1px solid #ccc;margin:3px 0 10px">&nbsp;</p>`).join('')}
+${partsHtml}
 
 </body></html>`;
 

@@ -11,6 +11,8 @@ import { CollapsibleActivity } from '../UI/CollapsibleActivity';
 import { LessonMedia } from '../UI/LessonMedia';
 import { ReferenceLinks } from '../UI/ReferenceLinks';
 import { useFocusedReaderScores } from '../../hooks/useFocusedReaderScores';
+import { FocusedReaderExportActions } from '../UI/FocusedReaderExportActions';
+import { seededShuffle } from '../../utils/textUtils';
 
 interface FocusedReaderViewProps {
   lesson: ParsedLesson & { content: FocusedReaderContent };
@@ -105,7 +107,17 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="max-w-4xl mx-auto px-1 sm:px-4 py-4 sm:py-8 space-y-2">
+      <div className="hidden sm:flex">
+        <FocusedReaderExportActions
+          lesson={lesson}
+          displayTitle={lesson.title || content.title}
+          studentName={studentName}
+          studentId={studentId}
+          homeroom={homeroom}
+        />
+      </div>
+
+      <div className="max-w-4xl mx-auto px-1 sm:px-4 py-4 sm:py-8 space-y-2 print:hidden">
         <LessonMedia 
           imageUrl={lesson.imageUrl} 
           title={lesson.title || content.title} 
@@ -276,6 +288,126 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
           onFinish={() => onFinish(calculateReportData(lesson.title, studentName, studentId, homeroom))}
           onReset={onReset}
         />
+      </div>
+
+      {/* Print-only Layout */}
+      <div className="hidden print:block" style={{ fontSize: '12px', padding: '16px 24px' }}>
+        {/* Header */}
+        <div className="mb-6">
+          <div className="flex justify-end gap-6 text-[13px] mb-4 text-gray-900 font-medium">
+            <div className="flex items-end gap-2">
+              <span>Name</span>
+              <div className="border-b border-black w-48 text-center px-2 pb-0.5">{studentName || ''}</div>
+            </div>
+            <div className="flex items-end gap-2">
+              <span>ID:</span>
+              <div className="border-b border-black w-24 text-center px-2 pb-0.5">{studentId || ''}</div>
+            </div>
+            <div className="flex items-end gap-2">
+              <span>Homeroom:</span>
+              <div className="border-b border-black w-24 text-center px-2 pb-0.5">{homeroom || ''}</div>
+            </div>
+          </div>
+          <h1 className="text-xl font-bold text-gray-900 leading-tight mb-1">{lesson.title || content.title}</h1>
+          <p className="text-xs text-gray-500">Language: {lesson.language} | Level: {lesson.level}</p>
+        </div>
+
+        <div className="space-y-3">
+          {lesson.imageUrl && (
+            <div className="flex justify-center mb-4">
+              <img
+                src={lesson.imageUrl}
+                alt="Lesson topic"
+                className="max-h-36 w-auto object-contain rounded"
+              />
+            </div>
+          )}
+
+          {content.parts.map((part, pIndex) => {
+            const allVocabWords = Object.keys(part.vocabulary_explanations);
+            let printWords: string[] = [];
+            let printDefs: string[] = [];
+            
+            if (allVocabWords.length > 0) {
+              const selectedWords = seededShuffle([...allVocabWords], `${lesson.id}-part-${pIndex}-vocab-subset-seed`).slice(0, 5);
+              printWords = seededShuffle([...selectedWords], `${lesson.id}-print-vocab-${part.part_number}`);
+              printDefs = selectedWords.map(w => part.vocabulary_explanations[w]).sort();
+            }
+            
+            return (
+              <div key={pIndex} className="space-y-3 mb-6">
+                <section>
+                  <h2 className="text-sm font-bold mb-1 bg-gray-100 px-2 py-1">Page {part.part_number}</h2>
+                  <p className="text-xs leading-relaxed">{part.text}</p>
+                </section>
+                
+                {printWords.length > 0 && (
+                  <section>
+                    <h3 className="text-sm font-bold mb-1 bg-gray-50 px-2 py-1">Vocabulary</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        {printWords.map((word, i) => (
+                          <div key={i} className="flex gap-1 items-center">
+                            <span className="w-5 h-5 border border-gray-400 shrink-0 inline-block"></span>
+                            <span className="text-xs">{word}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="space-y-1">
+                        {printDefs.map((def, i) => (
+                          <div key={i} className="text-xs">
+                            <span className="font-bold">{String.fromCharCode(97 + i)}.</span> {def}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </section>
+                )}
+                
+                {part.questions.length > 0 && (
+                  <section>
+                    <h3 className="text-sm font-bold mb-1 bg-gray-50 px-2 py-1">Questions</h3>
+                    <div className="space-y-2">
+                      {part.questions.map((q, i) => (
+                        <div key={i}>
+                          {q.type === 'True/False' ? (
+                            <div className="flex justify-between items-center border-b border-gray-100 pb-1">
+                              <span className="text-xs">{i + 1}. {q.question}</span>
+                              <span className="font-bold text-xs flex gap-3 shrink-0 ml-2">
+                                <span>True</span>
+                                <span>False</span>
+                              </span>
+                            </div>
+                          ) : q.type === 'Multiple Choice' && q.options && q.options.length > 0 ? (
+                            <div className="mb-2">
+                              <span className="text-xs">{i + 1}. {q.question}</span>
+                              <div className="ml-4 space-y-1 mt-1">
+                                {q.options.map((opt, oIdx) => (
+                                  <div key={oIdx} className="flex gap-1 items-center">
+                                    <span className="w-3 h-3 border border-gray-400 rounded-full shrink-0 inline-block"></span>
+                                    <span className="text-xs">{opt}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ) : (
+                            <div>
+                              <p className="text-xs font-bold mb-1">{i + 1}. {q.question}</p>
+                              <div className="space-y-2">
+                                <div className="border-b border-gray-300 h-5"></div>
+                                <div className="border-b border-gray-300 h-5"></div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       <VoiceSelectorModal
