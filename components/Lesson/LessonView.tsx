@@ -61,6 +61,7 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
   } = useTTS({
     language: lesson.language,
     audioFileUrl: lesson.audioFileUrl,
+    defaultAudioPreference: lesson.audioFileUrl ? 'recorded' : 'tts',
     defaultReadingText: isStandard ? (lesson.content as StandardLessonContent).readingText : (isFocused ? (lesson.content as FocusedReaderContent).parts[0].text : ''),
     onStartCallback: () => {
       if (passageRef.current) {
