@@ -158,6 +158,7 @@ export interface UserAnswers {
   writing: Record<number, string>; // index -> user text
   infoGap?: Record<number, { score: number, total: number }>; // activityIndex -> result
   focusedReader?: Record<number, Record<number, string>>; // partIndex -> questionIndex -> answer
+  focusedReaderPage?: number; // current part/page index
   completionStates?: Record<string, boolean>; // sectionKey -> boolean
 }
 

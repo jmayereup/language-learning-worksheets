@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ParsedLesson, FocusedReaderContent, UserAnswers, ReportData } from '../../types';
 import { VoiceSelectorModal } from '../UI/VoiceSelectorModal';
 import { LessonFooter } from './LessonFooter';
@@ -60,13 +60,15 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
   setAudioPreference,
 }) => {
   const content = lesson.content;
-  const [currentPartIndex, setCurrentPartIndex] = useState(0);
+  const [currentPartIndex, setCurrentPartIndex] = useState(answers.focusedReaderPage || 0);
   const currentPart = content.parts[currentPartIndex];
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const readingPassageRef = useRef<HTMLDivElement>(null);
 
   const handlePageChange = (newIndex: number) => {
     setCurrentPartIndex(newIndex);
+    setAnswers(prev => ({ ...prev, focusedReaderPage: newIndex }));
+    
     setTimeout(() => {
       readingPassageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 10);
