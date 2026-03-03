@@ -88,7 +88,7 @@ ${standardContent.activities.writtenExpression.questions.map((q, i) => `<p style
       <div className="flex gap-3 justify-center">
         <button onClick={handleCopyForGoogleDocs} className={btnClass}>
           {copySuccess ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
-          {copySuccess ? 'Copied!' : 'Copy for Google Docs'}
+          {copySuccess ? 'Copied!' : 'Copy for Editing'}
         </button>
         <button onClick={() => window.print()} className={btnClass}>
           <Printer className="w-4 h-4" />

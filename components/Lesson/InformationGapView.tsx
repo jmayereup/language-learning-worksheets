@@ -10,6 +10,7 @@ import { LessonMedia } from '../UI/LessonMedia';
 import { AudioControls } from '../UI/AudioControls';
 import { ReferenceLinks } from '../UI/ReferenceLinks';
 import { useInformationGapScores, ActivityResult } from '../../hooks/useInformationGapScores';
+import { InformationGapExportActions } from '../UI/InformationGapExportActions';
 
 interface InformationGapViewProps {
   lesson: ParsedLesson & { content: InformationGapContent };
@@ -133,7 +134,17 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
     
     return (
       <div className="max-w-4xl mx-auto py-12 px-4 animate-fade-in">
-        <div className="text-center mb-12">
+        <div className="hidden sm:flex mb-8">
+          <InformationGapExportActions
+            lesson={lesson}
+            displayTitle={mainTitle}
+            studentName={studentName}
+            studentId={studentId}
+            homeroom={homeroom}
+          />
+        </div>
+
+        <div className="text-center mb-12 print:hidden">
           <LessonMedia 
             imageUrl={lesson.imageUrl} 
             title={mainTitle} 
@@ -157,7 +168,7 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
           <p className="text-lg text-gray-600 font-medium max-w-xl mx-auto">{mainDesc}</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-2xl mx-auto mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-2xl mx-auto mb-12 print:hidden">
           {[1, 2].map((playerNum) => (
             <button
               key={playerNum}
@@ -173,7 +184,7 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
           ))}
         </div>
 
-        <div className="flex flex-col items-center p-6 bg-green-50 rounded-2xl border border-green-100 max-w-lg mx-auto">
+        <div className="flex flex-col items-center p-6 bg-green-50 rounded-2xl border border-green-100 max-w-lg mx-auto print:hidden">
           <label className="flex items-center gap-4 cursor-pointer group">
             <div className="relative inline-flex items-center">
               <input 
@@ -189,6 +200,71 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
               <span className="text-gray-500 text-sm font-medium">Listen to partner info via TTS</span>
             </div>
           </label>
+        </div>
+
+        {/* Print-only Layout */}
+        <div className="hidden print:block" style={{ fontSize: '12px', padding: '16px 24px' }}>
+          {[1, 2].map((playerNum) => (
+            <div key={playerNum} className={playerNum === 2 ? 'break-before-page' : ''}>
+              {/* Header */}
+              <div className="mb-6">
+                <div className="flex justify-end gap-6 text-[13px] mb-4 text-gray-900 font-medium">
+                  <div className="flex items-end gap-2">
+                    <span>Name</span>
+                    <div className="border-b border-black w-48 text-center px-2 pb-0.5">{studentName || ''}</div>
+                  </div>
+                  <div className="flex items-end gap-2">
+                    <span>ID:</span>
+                    <div className="border-b border-black w-24 text-center px-2 pb-0.5">{studentId || ''}</div>
+                  </div>
+                  <div className="flex items-end gap-2">
+                    <span>Homeroom:</span>
+                    <div className="border-b border-black w-24 text-center px-2 pb-0.5">{homeroom || ''}</div>
+                  </div>
+                </div>
+                <h1 className="text-xl font-bold text-gray-900 leading-tight mb-1">{mainTitle} - Player {playerNum}</h1>
+                <p className="text-xs text-gray-500">Language: {lesson.language} | Level: {lesson.level} | Role: Player {playerNum}</p>
+              </div>
+
+              {/* Removed Image block */}
+
+              {activities.map((activity, aIndex) => {
+                const pTextBlocks = activity.blocks.filter((b: any) => b.text_holder_id === playerNum);
+                const pQuestions = activity.blocks.flatMap((b: any) => b.questions).filter((q: any) => q.asker_id === playerNum);
+                const activityTitle = activities.length > 1 ? `Activity ${aIndex + 1}: ${activity.topic || ''}` : '';
+
+                return (
+                  <div key={aIndex} className="mb-4">
+                    {activityTitle && <h2 className="text-sm font-bold mt-2 mb-2 border-b border-gray-300 pb-1">{activityTitle}</h2>}
+                    
+                    {pTextBlocks.length > 0 && (
+                      <div className="mb-4">
+                        <h3 className="text-[13px] font-bold bg-gray-100 border-y border-gray-200 px-3 py-1.5 mb-2">Your Secret Information</h3>
+                        <div className="text-[13px] leading-relaxed space-y-2 px-1">
+                          {pTextBlocks.map((b: any, i: number) => (
+                            <p key={i}>{b.text}</p>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {pQuestions.length > 0 && (
+                      <div className="mb-4">
+                        <h3 className="text-[13px] font-bold bg-gray-100 border-y border-gray-200 px-3 py-1.5 mb-2">Questions to Ask Your Partner</h3>
+                        <div className="space-y-3 px-1">
+                          {pQuestions.map((q: any, i: number) => (
+                            <div key={i}>
+                              <p className="text-[13px] font-bold mb-0">{i + 1}. {q.question}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
         </div>
       </div>
     );
