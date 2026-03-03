@@ -263,12 +263,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
             </div>
 
             <form onSubmit={handleSubmit} className="p-8">
-                {error && (
-                    <div className="mb-8 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3 text-red-700">
-                        <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                        <p className="text-sm font-bold">{error}</p>
-                    </div>
-                )}
+
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
                     <div className="space-y-6">
@@ -360,8 +355,8 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                                             );
                                         }}
                                         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${selectedTags.includes(tag)
-                                                ? 'bg-green-600 border-green-700 text-white shadow-sm'
-                                                : 'bg-white border-gray-200 text-gray-600 hover:border-green-300 hover:bg-green-50'
+                                            ? 'bg-green-600 border-green-700 text-white shadow-sm'
+                                            : 'bg-white border-gray-200 text-gray-600 hover:border-green-300 hover:bg-green-50'
                                             }`}
                                     >
                                         <TagIcon className="w-4 h-4" />
@@ -498,8 +493,8 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                         <div className="flex flex-wrap items-center gap-2">
                             <div className="flex items-center gap-2 mr-4 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200">
                                 <label className="text-[10px] font-black text-gray-500 cursor-pointer flex items-center gap-2">
-                                    <input 
-                                        type="checkbox" 
+                                    <input
+                                        type="checkbox"
                                         checked={isMinified}
                                         onChange={toggleMinify}
                                         className="w-3.5 h-3.5 rounded text-green-600 focus:ring-green-500"
@@ -547,6 +542,12 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                         className="w-full h-[500px] p-6 bg-gray-900 text-green-400 font-mono text-sm leading-relaxed rounded-2xl focus:ring-2 focus:ring-green-500 outline-none border-none shadow-inner"
                         spellCheck={false}
                     />
+                    {error && (
+                        <div className="my-2 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3 text-red-700">
+                            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                            <p className="text-sm font-bold">{error}</p>
+                        </div>
+                    )}
 
                     <Modal
                         isOpen={showVisualEditor}
@@ -579,7 +580,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                     </Modal>
                 </div>
 
-                <div className="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t border-gray-100">
+                <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-gray-100">
                     <Button variant="secondary" onClick={onCancel} type="button" className="px-8 order-3 sm:order-1">
                         Cancel
                     </Button>
