@@ -194,6 +194,31 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
         }
     };
 
+    const handlePasteImageFromClipboard = async () => {
+        try {
+            const items = await navigator.clipboard.read();
+            let foundImage = false;
+            for (const item of items) {
+                const imageType = item.types.find(type => type.startsWith('image/'));
+                if (imageType) {
+                    const blob = await item.getType(imageType);
+                    const file = new File([blob], `pasted-image-${Date.now()}.${imageType.split('/')[1]}`, { type: imageType });
+                    setImageFile(file);
+                    const reader = new FileReader();
+                    reader.onloadend = () => setImagePreview(reader.result as string);
+                    reader.readAsDataURL(file);
+                    foundImage = true;
+                    break;
+                }
+            }
+            if (!foundImage) {
+                setError('No image found in clipboard.');
+            }
+        } catch (err) {
+            setError('Failed to paste image. Please ensure you have granted permission.');
+        }
+    };
+
     const toggleMinify = () => {
         try {
             const parsed = JSON.parse(jsonContent);
@@ -391,13 +416,24 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
                                         className="hidden"
                                         id="image-upload"
                                     />
-                                    <label
-                                        htmlFor="image-upload"
-                                        className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-white border-2 border-dashed border-gray-300 rounded-xl hover:border-green-500 hover:bg-green-50 cursor-pointer transition-all text-gray-600 font-bold text-sm"
-                                    >
-                                        <ImageIcon className="w-4 h-4" />
-                                        {imageFile ? imageFile.name : 'Upload Image (JPG/PNG)'}
-                                    </label>
+                                    <div className="flex gap-2">
+                                        <label
+                                            htmlFor="image-upload"
+                                            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white border-2 border-dashed border-gray-300 rounded-xl hover:border-green-500 hover:bg-green-50 cursor-pointer transition-all text-gray-600 font-bold text-sm"
+                                        >
+                                            <ImageIcon className="w-4 h-4" />
+                                            <span className="truncate">{imageFile ? imageFile.name : 'Upload Image (JPG/PNG)'}</span>
+                                        </label>
+                                        <Button
+                                            type="button"
+                                            variant="secondary"
+                                            onClick={handlePasteImageFromClipboard}
+                                            className="px-4 py-3 h-auto"
+                                            title="Paste image from clipboard"
+                                        >
+                                            <ClipboardPaste className="w-5 h-5 shrink-0" />
+                                        </Button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
