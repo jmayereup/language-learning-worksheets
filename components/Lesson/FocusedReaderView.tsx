@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { ParsedLesson, FocusedReaderContent, UserAnswers, ReportData } from '../../types';
 import { VoiceSelectorModal } from '../UI/VoiceSelectorModal';
 import { LessonFooter } from './LessonFooter';
@@ -63,6 +63,14 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
   const [currentPartIndex, setCurrentPartIndex] = useState(0);
   const currentPart = content.parts[currentPartIndex];
   const [touchStart, setTouchStart] = useState<number | null>(null);
+  const readingPassageRef = useRef<HTMLDivElement>(null);
+
+  const handlePageChange = (newIndex: number) => {
+    setCurrentPartIndex(newIndex);
+    setTimeout(() => {
+      readingPassageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 10);
+  };
 
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStart(e.targetTouches[0].pageX);
@@ -72,13 +80,13 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
     if (!touchStart) return;
     const touchEnd = e.changedTouches[0].pageX;
     const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > 50;
-    const isRightSwipe = distance < -50;
+    const isLeftSwipe = distance > 100;
+    const isRightSwipe = distance < -100;
 
     if (isLeftSwipe && currentPartIndex < content.parts.length - 1) {
-      setCurrentPartIndex(currentPartIndex + 1);
+      handlePageChange(currentPartIndex + 1);
     } else if (isRightSwipe && currentPartIndex > 0) {
-      setCurrentPartIndex(currentPartIndex - 1);
+      handlePageChange(currentPartIndex - 1);
     }
     setTouchStart(null);
   };
@@ -94,11 +102,7 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
 
 
   return (
-    <div 
-      className="space-y-4"
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-    >
+    <div className="space-y-4">
       <div className="max-w-4xl mx-auto px-1 sm:px-4 py-4 sm:py-8 space-y-2">
         <LessonMedia 
           imageUrl={lesson.imageUrl} 
@@ -111,29 +115,32 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
           {content.parts.map((_, idx) => (
             <button
               key={idx}
-              onClick={() => setCurrentPartIndex(idx)}
+              onClick={() => handlePageChange(idx)}
               className={`h-3 rounded-full transition-all duration-300 ${
                 currentPartIndex === idx ? 'w-8 bg-blue-600' : 'w-3 bg-blue-200 hover:bg-blue-300'
               }`}
-              title={`Go to Part ${idx + 1}`}
+              title={`Go to Page ${idx + 1}`}
             />
           ))}
         </div>
 
-        <ReadingPassage
-          text={currentPart.text}
-          language={lesson.language}
-          title={`Page ${currentPart.part_number}`}
-          vocabularyExplanations={currentPart.vocabulary_explanations}
-          onSlowToggle={() => toggleTTS(0.6, currentPart.text)}
-          onListenToggle={() => toggleTTS(1.0, currentPart.text)}
-          ttsStatus={ttsState.status}
-          currentRate={ttsState.rate}
-          hasVoices={availableVoices.length > 0}
-          onVoiceOpen={availableVoices.length > 0 ? () => setIsVoiceModalOpen(true) : undefined}
-          showHighlightHelp={true}
-          className="animate-slide-up"
-        />
+        <div ref={readingPassageRef} className="scroll-mt-6" />
+        <div onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+          <ReadingPassage
+            text={currentPart.text}
+            language={lesson.language}
+            title={`Page ${currentPart.part_number}`}
+            vocabularyExplanations={currentPart.vocabulary_explanations}
+            onSlowToggle={() => toggleTTS(0.6, currentPart.text)}
+            onListenToggle={() => toggleTTS(1.0, currentPart.text)}
+            ttsStatus={ttsState.status}
+            currentRate={ttsState.rate}
+            hasVoices={availableVoices.length > 0}
+            onVoiceOpen={availableVoices.length > 0 ? () => setIsVoiceModalOpen(true) : undefined}
+            showHighlightHelp={true}
+            className="animate-slide-up"
+          />
+        </div>
 
         {/* Vocabulary Section */}
         {Object.keys(currentPart.vocabulary_explanations).length > 0 && (
@@ -230,24 +237,24 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
         <div className="flex justify-between items-center">
           <Button
             variant="secondary"
-            onClick={() => setCurrentPartIndex(Math.max(0, currentPartIndex - 1))}
+            onClick={() => handlePageChange(Math.max(0, currentPartIndex - 1))}
             disabled={currentPartIndex === 0}
             className="flex items-center gap-2"
           >
-            <ChevronLeft className="w-5 h-5" /> Previous Part
+            <ChevronLeft className="w-5 h-5" /> Previous Page
           </Button>
 
           {currentPartIndex < content.parts.length - 1 ? (
             <Button
               variant="primary"
-              onClick={() => setCurrentPartIndex(currentPartIndex + 1)}
+              onClick={() => handlePageChange(currentPartIndex + 1)}
               className="flex items-center gap-2"
             >
-              Next Part <ChevronRight className="w-5 h-5" />
+              Next Page <ChevronRight className="w-5 h-5" />
             </Button>
           ) : (
             <div className="text-green-600 font-black animate-bounce flex items-center gap-2">
-              <CheckCircle2 className="w-6 h-6" /> All Parts Read!
+              <CheckCircle2 className="w-6 h-6" /> All Pages Read!
             </div>
           )}
         </div>
