@@ -1,6 +1,6 @@
-import React, { useMemo, useState } from 'react';
-import { ParsedLesson, StandardLessonContent, UserAnswers, ReportData, ReportScorePill, ReportWrittenResponse, CompletionStates } from '../../types';
-import { normalizeString, seededShuffle } from '../../utils/textUtils';
+import React, { useMemo } from 'react';
+import { ParsedLesson, StandardLessonContent, UserAnswers, ReportData, CompletionStates } from '../../types';
+import { seededShuffle } from '../../utils/textUtils';
 import { Vocabulary } from '../Activities/Vocabulary';
 import { FillInBlanks } from '../Activities/FillInBlanks';
 import { Comprehension } from '../Activities/Comprehension';

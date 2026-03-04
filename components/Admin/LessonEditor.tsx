@@ -11,12 +11,13 @@ import { JSONKeyValueEditor } from './JSONKeyValueEditor';
 
 interface LessonEditorProps {
     lessonId: string | null;
+    initialData?: any;
     onSave: () => void;
     onCancel: () => void;
     onPreview: (lesson: any) => void;
 }
 
-export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, onCancel, onPreview }) => {
+export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialData, onSave, onCancel, onPreview }) => {
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(!!lessonId);
     const [error, setError] = useState<string | null>(null);
@@ -62,10 +63,36 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
             };
             loadLesson();
         } else {
-            // New lesson starts with empty JSON content
-            setJsonContent('');
+            // New lesson starts with empty JSON content or initial data from props
+            if (initialData) {
+                try {
+                    setTitle(initialData.title || '');
+                    setLessonType(initialData.lessonType || '');
+                    
+                    const newJsonContent = initialData.content ? JSON.stringify(initialData.content, null, isMinified ? 0 : 2) : '';
+                    
+                    setJsonContent(newJsonContent);
+                    setLanguage(initialData.language || '');
+                    setLevel(initialData.level || '');
+                    setSeo(initialData.seo || '');
+                } catch (e) {
+                    console.error("Failed to parse init data in LessonEditor", e);
+                    setJsonContent('');
+                }
+            } else {
+                setJsonContent('');
+                setTitle('');
+                setLessonType('');
+                setLanguage('');
+                setLevel('');
+                setSelectedTags([]);
+                setVideoUrl('');
+                setIsVideoLesson(false);
+                setSeo('');
+                setImagePreview(null);
+            }
         }
-    }, [lessonId]);
+    }, [lessonId, initialData]);
 
     // Automatically sync SEO from jsonContent if empty
     useEffect(() => {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ParsedLesson, StandardLessonContent, InformationGapContent, FocusedReaderContent, LessonContent, ReportData } from '../../types';
+import { ParsedLesson, StandardLessonContent, InformationGapContent, FocusedReaderContent, LessonContent, ReportData, WordBlasterContent } from '../../types';
 import { selectElementText } from '../../utils/textUtils';
 import { Loader } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -7,9 +7,11 @@ import { useTTS } from '../../hooks/useTTS';
 import { useLessonProgress } from '../../hooks/useLessonProgress';
 import { ReportCard } from '../UI/ReportCard';
 
+
 const InformationGapView = React.lazy(() => import('./InformationGapView').then(m => ({ default: m.InformationGapView })));
 const WorksheetView = React.lazy(() => import('./WorksheetView').then(m => ({ default: m.WorksheetView })));
 const FocusedReaderView = React.lazy(() => import('./FocusedReaderView').then(m => ({ default: m.FocusedReaderView })));
+const WordBlasterView = React.lazy(() => import('../Activities/WordBlasterView').then(m => ({ default: m.WordBlasterView })));
 
 interface Props {
   lesson: ParsedLesson;
@@ -23,9 +25,14 @@ const isFocusedReader = (content: LessonContent): content is FocusedReaderConten
   return content !== null && typeof content === 'object' && 'parts' in content && Array.isArray((content as any).parts);
 };
 
+const isWordBlaster = (content: LessonContent): content is WordBlasterContent => {
+  return content !== null && typeof content === 'object' && 'words' in content && Array.isArray((content as any).words);
+};
+
 export const LessonView: React.FC<Props> = ({ lesson }) => {
   const isStandard = isStandardLesson(lesson.content);
   const isFocused = isFocusedReader(lesson.content);
+  const isBlaster = isWordBlaster(lesson.content);
 
   const {
     answers,
@@ -111,7 +118,7 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
     }, 200);
   };
 
-  const displayTitle = lesson.title || (isStandard ? (lesson.content as StandardLessonContent).title : (isFocused ? (lesson.content as FocusedReaderContent).title : (lesson.content as InformationGapContent).topic)) || 'Lesson';
+  const displayTitle = lesson.title || (isStandard ? (lesson.content as StandardLessonContent).title : (isFocused ? (lesson.content as FocusedReaderContent).title : (isBlaster ? "Word Blaster" : (lesson.content as InformationGapContent).topic))) || 'Lesson';
 
   return (
     <div className="bg-white max-w-4xl mx-auto pb-4 px-1 py-4 sm:px-6 tj-printable-worksheet">
@@ -173,6 +180,13 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
               setIsVoiceModalOpen={setIsVoiceModalOpen}
               audioPreference={audioPreference}
               setAudioPreference={setAudioPreference}
+            />
+          ) : lesson.lessonType === 'word-blaster' ? (
+            <WordBlasterView
+              key={`word-blaster-${resetKey}`}
+              lesson={{...lesson, content: lesson.content as WordBlasterContent}}
+              onFinish={handleFinish}
+              onReset={handleReset}
             />
           ) : (
             <WorksheetView

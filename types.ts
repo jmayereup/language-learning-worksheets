@@ -6,6 +6,16 @@ import {
   WorksheetsLessonTypeOptions 
 } from './pocketbase-types';
 
+export interface VocabWord {
+  word: string;
+  definition: string;
+  sourceLessonId: string;
+}
+
+export interface WordBlasterContent {
+  words: VocabWord[];
+}
+
 export interface VocabularyItem {
   label: string;
   answer: string; // references a definition ID
@@ -114,7 +124,7 @@ export interface StandardLessonContent {
   references?: Record<string, string>;
 }
 
-export type LessonContent = StandardLessonContent | InformationGapContent | InformationGapActivity[] | FocusedReaderContent;
+export type LessonContent = StandardLessonContent | InformationGapContent | InformationGapActivity[] | FocusedReaderContent | WordBlasterContent;
 
 // Options for UI lookups derived from PocketBase enums
 export const LANGUAGE_OPTIONS = Object.values(WorksheetsLanguageOptions);

@@ -238,6 +238,7 @@ export enum WorksheetsLessonTypeOptions {
 	"worksheet" = "worksheet",
 	"information-gap" = "information-gap",
 	"focused-reading" = "focused-reading",
+	"word-blaster" = "word-blaster",
 }
 export type WorksheetsRecord<Tcontent = unknown> = {
 	audioFile?: FileNameString

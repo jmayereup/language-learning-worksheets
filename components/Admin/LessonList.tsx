@@ -2,18 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { fetchAllLessons, deleteLesson, getCurrentUser } from '../../services/pocketbase';
 import { triggerRebuild } from '../../services/deploy';
 import { Button } from '../UI/Button';
-import { Edit, Trash2, ExternalLink, RefreshCw, Layers, Globe, Calendar, Eye, Search, FileText } from 'lucide-react';
+import { Edit, Trash2, ExternalLink, RefreshCw, Layers, Globe, Calendar, Eye, Search, FileText, CheckSquare, Square, Rocket } from 'lucide-react';
+import { extractVocabularyFromLessons } from '../../utils/vocabularyExtractor';
 
 interface LessonListProps {
     onEdit: (id: string) => void;
     onPreview: (lesson: any) => void;
+    onAddNew: (initialData?: any) => void;
 }
 
-export const LessonList: React.FC<LessonListProps> = ({ onEdit, onPreview }) => {
+export const LessonList: React.FC<LessonListProps> = ({ onEdit, onPreview, onAddNew }) => {
     const [lessons, setLessons] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
+    const [selectedLessonIds, setSelectedLessonIds] = useState<Set<string>>(new Set());
+    const [isBuilding, setIsBuilding] = useState(false);
     const currentUser = getCurrentUser();
 
     const loadLessons = async () => {
@@ -43,6 +47,62 @@ export const LessonList: React.FC<LessonListProps> = ({ onEdit, onPreview }) => 
             } catch (err) {
                 alert('Failed to delete lesson');
             }
+        }
+    };
+
+    const toggleSelection = (id: string) => {
+        setSelectedLessonIds(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) {
+                next.delete(id);
+            } else {
+                next.add(id);
+            }
+            return next;
+        });
+    };
+
+    const handleBuildWordBlaster = async () => {
+        if (selectedLessonIds.size === 0) return;
+        setIsBuilding(true);
+        try {
+            const selectedLessons = lessons.filter(l => selectedLessonIds.has(l.id));
+
+            const vocabWords = await extractVocabularyFromLessons(selectedLessons);
+            
+            // Calculate Highest Level
+            const levelOrder = ['A1', 'A2', 'B1', 'B2'];
+            let maxLevel = 'A1';
+            let maxLevelIndex = -1;
+            
+            selectedLessons.forEach(l => {
+                const index = levelOrder.indexOf(l.level);
+                if (index > maxLevelIndex) {
+                    maxLevelIndex = index;
+                    maxLevel = l.level;
+                }
+            });
+            
+            // Generate SEO string
+            const lessonTitles = selectedLessons.map(l => l.title).join(', ');
+            const generatedSeo = `A vocabulary review game covering words from the following worksheets: ${lessonTitles}.`;
+            
+            const initialData = {
+                title: 'New Word Blaster Game',
+                lessonType: 'word-blaster',
+                language: lessons.find(l => l.id === selectedLessons[0]?.id)?.language || 'English',
+                level: maxLevel,
+                seo: generatedSeo,
+                content: { words: vocabWords }
+            };
+
+            // Navigate to editor by signaling to AdminDashboard
+            onAddNew(initialData);
+        } catch (error) {
+            console.error('Error building Word Blaster lesson', error);
+            alert('Failed to generate Word Blaster content.');
+        } finally {
+            setIsBuilding(false);
         }
     };
 
@@ -83,12 +143,35 @@ export const LessonList: React.FC<LessonListProps> = ({ onEdit, onPreview }) => 
                 />
             </div>
 
+            {selectedLessonIds.size > 0 && (
+                <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 flex items-center justify-between shadow-sm animate-in slide-in-from-top-4">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-indigo-100 text-indigo-700 rounded-lg">
+                            <CheckSquare className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <div className="font-bold text-indigo-900">{selectedLessonIds.size} worksheet{selectedLessonIds.size > 1 ? 's' : ''} selected</div>
+                            <div className="text-sm text-indigo-600">Select multiple worksheets to combine their vocabulary into a new game.</div>
+                        </div>
+                    </div>
+                    <Button 
+                        onClick={handleBuildWordBlaster}
+                        disabled={isBuilding}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white gap-2 border-transparent"
+                    >
+                        {isBuilding ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Rocket className="w-4 h-4" />}
+                        {isBuilding ? 'Building...' : 'Build Word Blaster'}
+                    </Button>
+                </div>
+            )}
+
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
                 {/* Desktop view: Table */}
                 <div className="hidden md:block overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                     <thead>
                         <tr className="bg-gray-50 border-b border-gray-200">
+                            <th className="px-6 py-4 w-12 text-center text-xs font-black text-gray-500 uppercase tracking-widest">Select</th>
                             <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest">Worksheet</th>
                             <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest">Details</th>
                             <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest">Created</th>
@@ -97,7 +180,19 @@ export const LessonList: React.FC<LessonListProps> = ({ onEdit, onPreview }) => 
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                         {filteredLessons.map((lesson) => (
-                            <tr key={lesson.id} className="hover:bg-green-50/30 transition-colors group">
+                            <tr key={lesson.id} className={`hover:bg-green-50/30 transition-colors group ${selectedLessonIds.has(lesson.id) ? 'bg-indigo-50/20' : ''}`}>
+                                <td className="px-6 py-5 text-center">
+                                    <button 
+                                        onClick={() => toggleSelection(lesson.id)}
+                                        className="text-gray-400 hover:text-indigo-600 transition-colors"
+                                    >
+                                        {selectedLessonIds.has(lesson.id) ? (
+                                            <CheckSquare className="w-5 h-5 text-indigo-600" />
+                                        ) : (
+                                            <Square className="w-5 h-5" />
+                                        )}
+                                    </button>
+                                </td>
                                 <td className="px-6 py-5">
                                     <div className="flex items-center gap-4">
                                         <div className="w-16 h-10 rounded-lg bg-gray-100 overflow-hidden shrink-0 border border-gray-200">
@@ -189,8 +284,18 @@ export const LessonList: React.FC<LessonListProps> = ({ onEdit, onPreview }) => 
                 {/* Mobile view: Cards */}
                 <div className="md:hidden divide-y divide-gray-100">
                     {filteredLessons.map((lesson) => (
-                        <div key={lesson.id} className="p-4 space-y-4 hover:bg-green-50/20 transition-colors">
+                        <div key={lesson.id} className={`p-4 space-y-4 hover:bg-green-50/20 transition-colors ${selectedLessonIds.has(lesson.id) ? 'bg-indigo-50/20' : ''}`}>
                             <div className="flex items-start gap-3">
+                                <button 
+                                    onClick={() => toggleSelection(lesson.id)}
+                                    className="mt-1 text-gray-400 hover:text-indigo-600 transition-colors shrink-0"
+                                >
+                                    {selectedLessonIds.has(lesson.id) ? (
+                                        <CheckSquare className="w-6 h-6 text-indigo-600" />
+                                    ) : (
+                                        <Square className="w-6 h-6" />
+                                    )}
+                                </button>
                                 <div className="w-20 h-14 rounded-lg bg-gray-100 overflow-hidden shrink-0 border border-gray-200 shadow-sm">
                                     {lesson.imageUrl ? (
                                         <img src={lesson.imageUrl} alt="" className="w-full h-full object-cover" />
