@@ -8,9 +8,10 @@ import { extractVocabularyFromLessons } from '../../utils/vocabularyExtractor';
 interface LessonListProps {
     onEdit: (id: string) => void;
     onPreview: (lesson: any) => void;
+    onAddNew: (initialData?: any) => void;
 }
 
-export const LessonList: React.FC<LessonListProps> = ({ onEdit, onPreview }) => {
+export const LessonList: React.FC<LessonListProps> = ({ onEdit, onPreview, onAddNew }) => {
     const [lessons, setLessons] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -66,21 +67,23 @@ export const LessonList: React.FC<LessonListProps> = ({ onEdit, onPreview }) => 
         setIsBuilding(true);
         try {
             const selectedLessons = lessons.filter(l => selectedLessonIds.has(l.id));
+            console.log('Selected Lessons for extraction:', selectedLessons);
+
             const vocabWords = await extractVocabularyFromLessons(selectedLessons);
+            console.log('Extracted vocab words:', vocabWords);
             
             const initialData = {
-                title: "Word Blaster Custom Lesson",
-                lessonType: "word-blaster",
-                content: JSON.stringify({ words: vocabWords }, null, 2),
-                language: selectedLessons[0]?.language || 'English',
-                level: 'All'
+                title: 'New Word Blaster Game',
+                lessonType: 'word-blaster',
+                language: lessons.find(l => l.id === selectedLessons[0]?.id)?.language || 'English',
+                level: 'All', // Combined levels
+                content: { words: vocabWords }
             };
 
-            // Store the initial data in localStorage or session to pass to the editor
-            sessionStorage.setItem('wordblaster_init', JSON.stringify(initialData));
-            
-            // Navigate to editor
-            window.location.hash = '#/admin/editor?init=wordblaster';
+            console.log('Final Payload being passed to AdminDashboard:', initialData);
+
+            // Navigate to editor by signaling to AdminDashboard
+            onAddNew(initialData);
         } catch (error) {
             console.error('Error building Word Blaster lesson', error);
             alert('Failed to generate Word Blaster content.');

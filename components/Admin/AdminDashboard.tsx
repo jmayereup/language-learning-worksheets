@@ -15,6 +15,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, onPrevie
     const [isLoggedIn, setIsLoggedIn] = useState(isAuthenticated());
     const [adminView, setAdminView] = useState<'list' | 'add' | 'edit'>('list');
     const [editingLessonId, setEditingLessonId] = useState<string | null>(null);
+    const [editorInitData, setEditorInitData] = useState<any>(null);
 
     const handleLoginSuccess = () => {
         setIsLoggedIn(true);
@@ -27,16 +28,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, onPrevie
 
     const handleEditLesson = (id: string) => {
         setEditingLessonId(id);
+        setEditorInitData(null);
         setAdminView('edit');
     };
 
-    const handleAddNew = () => {
+    const handleAddNew = (initialData?: any) => {
         setEditingLessonId(null);
+        setEditorInitData(initialData || null);
         setAdminView('add');
     };
 
     const handleBackToList = () => {
         setEditingLessonId(null);
+        setEditorInitData(null);
         setAdminView('list');
     };
 
@@ -83,13 +87,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, onPrevie
                                 <Plus className="w-5 h-5" /> Add New Worksheet
                             </Button>
                         </div>
-                        <LessonList onEdit={handleEditLesson} onPreview={onPreview} />
+                        <LessonList onEdit={handleEditLesson} onPreview={onPreview} onAddNew={handleAddNew} />
                     </>
                 )}
 
                 {(adminView === 'add' || adminView === 'edit') && (
                     <LessonEditor 
                         lessonId={editingLessonId} 
+                        initialData={editorInitData}
                         onSave={handleBackToList} 
                         onCancel={handleBackToList} 
                         onPreview={onPreview}

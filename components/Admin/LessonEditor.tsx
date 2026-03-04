@@ -11,12 +11,13 @@ import { JSONKeyValueEditor } from './JSONKeyValueEditor';
 
 interface LessonEditorProps {
     lessonId: string | null;
+    initialData?: any;
     onSave: () => void;
     onCancel: () => void;
     onPreview: (lesson: any) => void;
 }
 
-export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, onCancel, onPreview }) => {
+export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialData, onSave, onCancel, onPreview }) => {
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(!!lessonId);
     const [error, setError] = useState<string | null>(null);
@@ -62,27 +63,38 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
             };
             loadLesson();
         } else {
-            // New lesson starts with empty JSON content or initial data from session
-            const initDataStr = sessionStorage.getItem('wordblaster_init');
-            if (initDataStr) {
+            // New lesson starts with empty JSON content or initial data from props
+            if (initialData) {
                 try {
-                    const initData = JSON.parse(initDataStr);
-                    setTitle(initData.title || '');
-                    setLessonType(initData.lessonType || '');
-                    setJsonContent(initData.content || '');
-                    setLanguage(initData.language || '');
-                    setLevel(initData.level || '');
-                    // Clear it so it doesn't persistently load
-                    sessionStorage.removeItem('wordblaster_init');
+                    console.log('Parsed initData in LessonEditor from props:', initialData);
+                    
+                    setTitle(initialData.title || '');
+                    setLessonType(initialData.lessonType || '');
+                    
+                    const newJsonContent = initialData.content ? JSON.stringify(initialData.content, null, isMinified ? 0 : 2) : '';
+                    console.log('Setting jsonContent to:', newJsonContent ? 'string of length ' + newJsonContent.length : 'empty string');
+                    
+                    setJsonContent(newJsonContent);
+                    setLanguage(initialData.language || '');
+                    setLevel(initialData.level || '');
                 } catch (e) {
-                    console.error("Failed to parse init data", e);
+                    console.error("Failed to parse init data in LessonEditor", e);
                     setJsonContent('');
                 }
             } else {
                 setJsonContent('');
+                setTitle('');
+                setLessonType('');
+                setLanguage('');
+                setLevel('');
+                setSelectedTags([]);
+                setVideoUrl('');
+                setIsVideoLesson(false);
+                setSeo('');
+                setImagePreview(null);
             }
         }
-    }, [lessonId]);
+    }, [lessonId, initialData]);
 
     // Automatically sync SEO from jsonContent if empty
     useEffect(() => {
