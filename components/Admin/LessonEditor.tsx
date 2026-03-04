@@ -62,8 +62,25 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, onSave, on
             };
             loadLesson();
         } else {
-            // New lesson starts with empty JSON content
-            setJsonContent('');
+            // New lesson starts with empty JSON content or initial data from session
+            const initDataStr = sessionStorage.getItem('wordblaster_init');
+            if (initDataStr) {
+                try {
+                    const initData = JSON.parse(initDataStr);
+                    setTitle(initData.title || '');
+                    setLessonType(initData.lessonType || '');
+                    setJsonContent(initData.content || '');
+                    setLanguage(initData.language || '');
+                    setLevel(initData.level || '');
+                    // Clear it so it doesn't persistently load
+                    sessionStorage.removeItem('wordblaster_init');
+                } catch (e) {
+                    console.error("Failed to parse init data", e);
+                    setJsonContent('');
+                }
+            } else {
+                setJsonContent('');
+            }
         }
     }, [lessonId]);
 

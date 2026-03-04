@@ -7,10 +7,9 @@ import { BookOpen, Search, FlaskConical, Video, Feather, FileText, X, LogIn } fr
 import { BrowserSupportWarning } from './components/UI/BrowserSupportWarning';
 import { AdminDashboard } from './components/Admin/AdminDashboard';
 import { WebComponentPreview } from './components/Lesson/WebComponentPreview';
-import { WordBlasterView } from './components/Activities/WordBlasterView';
 
 const App: React.FC = () => {
-    const [view, setView] = useState<'home' | 'lesson' | 'admin' | 'word-blaster'>('home');
+    const [view, setView] = useState<'home' | 'lesson' | 'admin'>('home');
     const [currentLesson, setCurrentLesson] = useState<ParsedLesson | null>(null);
     const [showPreview, setShowPreview] = useState(false);
 
@@ -41,8 +40,6 @@ const App: React.FC = () => {
 
             if (viewParam === 'admin') {
                 setView('admin');
-            } else if (viewParam === 'word-blaster') {
-                setView('word-blaster');
             } else if (lessonId && (!currentLesson || currentLesson.id !== lessonId)) {
                 handleSelectLesson(lessonId);
             } else if (!lessonId && view === 'lesson') {
@@ -116,14 +113,12 @@ const App: React.FC = () => {
         }
     };
 
-    const handleViewChange = (newView: 'home' | 'lesson' | 'admin' | 'word-blaster') => {
+    const handleViewChange = (newView: 'home' | 'lesson' | 'admin') => {
         setView(newView);
         if (newView === 'home') {
             updateURL({ lesson: '', view: '', language, level, category: tag });
         } else if (newView === 'admin') {
             updateURL({ lesson: '', view: 'admin' });
-        } else if (newView === 'word-blaster') {
-            updateURL({ lesson: '', view: 'word-blaster' });
         }
     };
 
@@ -363,8 +358,6 @@ const App: React.FC = () => {
                             setShowPreview(true);
                         }}
                     />
-                ) : view === 'word-blaster' ? (
-                    <WordBlasterView worksheetIds={['rjg7ivpn8dtvu66', '7gxekx6akgok7c9']} />
                 ) : (
                     currentLesson && <LessonView lesson={currentLesson} />
                 )}

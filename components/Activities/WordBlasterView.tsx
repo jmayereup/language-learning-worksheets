@@ -1,17 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { fetchLessonById } from '../../services/pocketbase';
 import { WordBlasterGame, VocabWord } from './WordBlasterGame';
-import { Trophy, AlertCircle, Loader2, Zap } from 'lucide-react';
-import { ParsedLesson } from '../../types';
+import { Trophy, AlertCircle, Zap } from 'lucide-react';
+import { ParsedLesson, WordBlasterContent } from '../../types';
 
 interface Props {
-  worksheetIds: string[];
+  lesson: ParsedLesson;
+  onFinish?: (data: any) => void;
+  onReset?: () => void;
 }
 
-export const WordBlasterView: React.FC<Props> = ({ worksheetIds }) => {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [words, setWords] = useState<VocabWord[]>([]);
+export const WordBlasterView: React.FC<Props> = ({ lesson, onFinish, onReset }) => {
+  const content = lesson.content as WordBlasterContent;
+  const [words, setWords] = useState<VocabWord[]>(content.words || []);
   const [highScore, setHighScore] = useState(0);
   const [newHighScore, setNewHighScore] = useState(false);
 
@@ -23,62 +24,6 @@ export const WordBlasterView: React.FC<Props> = ({ worksheetIds }) => {
       setHighScore(parseInt(savedScore, 10));
     }
   }, []);
-
-  useEffect(() => {
-    const loadVocabulary = async () => {
-      setLoading(true);
-      setError(null);
-      
-      try {
-        let allWords: VocabWord[] = [];
-        
-        for (const id of worksheetIds) {
-          const lesson: ParsedLesson = await fetchLessonById(id);
-          const content = lesson.content;
-          
-          if ('activities' in content && !Array.isArray(content.activities) && 'vocabulary' in content.activities) { // StandardLessonContent
-            const standardActivities = content.activities as Record<string, any>;
-            if (standardActivities.vocabulary?.items) {
-              const { items, definitions } = standardActivities.vocabulary;
-              items.forEach((item: any) => {
-                const def = definitions.find((d: any) => d.id === item.answer);
-                if (def) {
-                  allWords.push({
-                    word: item.label,
-                    definition: def.text,
-                    sourceLessonId: id
-                  });
-                }
-              });
-            }
-          } else if ('parts' in content && content.parts) { // FocusedReaderContent
-            content.parts.forEach(part => {
-              const vocabMap = part.vocabulary_explanations || {};
-              Object.entries(vocabMap).forEach(([word, definition]) => {
-                allWords.push({ word, definition, sourceLessonId: id });
-              });
-            });
-          }
-        }
-        
-        // Remove duplicates based on word
-        const uniqueWords = Array.from(new Map(allWords.map(w => [w.word.toLowerCase(), w])).values());
-        
-        setWords(uniqueWords);
-      } catch (err) {
-        console.error("Failed to load vocabulary for Word Blaster", err);
-        setError("Could not load worksheets to extract vocabulary.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    if (worksheetIds.length > 0) {
-      loadVocabulary();
-    } else {
-      setLoading(false);
-    }
-  }, [worksheetIds]);
 
   const handleFinishGame = (score: number) => {
     if (score > highScore) {
@@ -107,27 +52,28 @@ export const WordBlasterView: React.FC<Props> = ({ worksheetIds }) => {
         }
       } catch (e) {}
 
-      // Reset animation after a few seconds
-      setTimeout(() => setNewHighScore(false), 5000);
+      // Fire the onFinish callback if provided
+      if (onFinish) {
+        onFinish({
+            title: lesson.title || 'Word Blaster Game',
+            nickname: 'Player', // Assuming the component tracks this or is not full report
+            studentId: 'N/A',
+            homeroom: 'N/A',
+            finishTime: new Date().toISOString(),
+            totalScore: score,
+            maxScore: score, // Need a way to track total max depending on mode
+            pills: [{ label: 'High Score', score: Math.max(score, highScore), total: Math.max(score, highScore) }],
+        });
+      }
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center p-20 min-h-[60vh]">
-        <Loader2 className="w-12 h-12 text-indigo-500 animate-spin mb-4" />
-        <h2 className="text-xl font-bold text-indigo-900">Loading Power Words...</h2>
-        <p className="text-indigo-400 mt-2 text-sm max-w-sm text-center">We're extracting the perfect vocabulary mix for your game.</p>
-      </div>
-    );
-  }
-
-  if (error) {
+  if (!words || words.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center p-20 min-h-[60vh] bg-red-50/50 rounded-3xl m-4 border border-red-100">
         <AlertCircle className="w-16 h-16 text-red-400 mb-4" />
-        <h2 className="text-2xl font-bold text-red-900 mb-2">Oops!</h2>
-        <p className="text-red-700">{error}</p>
+        <h2 className="text-2xl font-bold text-red-900 mb-2">No Words Found</h2>
+        <p className="text-red-700">There is no vocabulary data mapped to this lesson.</p>
       </div>
     );
   }
@@ -172,11 +118,9 @@ export const WordBlasterView: React.FC<Props> = ({ worksheetIds }) => {
         </div>
         
         {/* Extracted Stats */}
-        {!loading && !error && words.length > 0 && (
-          <p className="text-center text-slate-400 mt-8 font-medium text-sm">
-            Playing with <span className="font-bold text-slate-500">{words.length}</span> unique power words extracted from selected worksheets.
-          </p>
-        )}
+        <p className="text-center text-slate-400 mt-8 font-medium text-sm">
+          Playing with <span className="font-bold text-slate-500">{words.length}</span> unique power words extracted from selected worksheets.
+        </p>
       </div>
     </div>
   );
