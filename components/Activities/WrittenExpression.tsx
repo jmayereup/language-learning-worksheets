@@ -22,9 +22,11 @@ export const WrittenExpression: React.FC<Props> = ({
   return (
     <section className="bg-white p-2 sm:p-4 rounded-xl shadow-sm border border-green-100 relative mb-2">
       <div className="flex justify-between items-center mb-2">
-        <h2 className="text-xl font-black text-green-900 uppercase tracking-tight">Written Expression</h2>
+        <h2 className="text-xl font-black text-green-900 uppercase tracking-tight">Writing and Speaking</h2>
       </div>
-      <p className="text-gray-500 mb-4 text-sm font-medium">Write a short response for each of the following questions.</p>
+      <p className="text-gray-500 mb-1 text-sm font-medium">Discuss the questions with a partner.</p>
+      <p className="text-gray-500 mb-1 text-sm font-medium">Write your answers in the blanks below.</p>
+      <p className="text-gray-500 mb-1 text-sm font-medium">Practice asking and answering the questions with a partner.</p>
       
       <div className="space-y-8">
         {data.questions.map((q, i) => (
