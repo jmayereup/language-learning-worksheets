@@ -66,17 +66,15 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
             // New lesson starts with empty JSON content or initial data from props
             if (initialData) {
                 try {
-                    console.log('Parsed initData in LessonEditor from props:', initialData);
-                    
                     setTitle(initialData.title || '');
                     setLessonType(initialData.lessonType || '');
                     
                     const newJsonContent = initialData.content ? JSON.stringify(initialData.content, null, isMinified ? 0 : 2) : '';
-                    console.log('Setting jsonContent to:', newJsonContent ? 'string of length ' + newJsonContent.length : 'empty string');
                     
                     setJsonContent(newJsonContent);
                     setLanguage(initialData.language || '');
                     setLevel(initialData.level || '');
+                    setSeo(initialData.seo || '');
                 } catch (e) {
                     console.error("Failed to parse init data in LessonEditor", e);
                     setJsonContent('');

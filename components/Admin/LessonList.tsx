@@ -67,20 +67,34 @@ export const LessonList: React.FC<LessonListProps> = ({ onEdit, onPreview, onAdd
         setIsBuilding(true);
         try {
             const selectedLessons = lessons.filter(l => selectedLessonIds.has(l.id));
-            console.log('Selected Lessons for extraction:', selectedLessons);
 
             const vocabWords = await extractVocabularyFromLessons(selectedLessons);
-            console.log('Extracted vocab words:', vocabWords);
+            
+            // Calculate Highest Level
+            const levelOrder = ['A1', 'A2', 'B1', 'B2'];
+            let maxLevel = 'A1';
+            let maxLevelIndex = -1;
+            
+            selectedLessons.forEach(l => {
+                const index = levelOrder.indexOf(l.level);
+                if (index > maxLevelIndex) {
+                    maxLevelIndex = index;
+                    maxLevel = l.level;
+                }
+            });
+            
+            // Generate SEO string
+            const lessonTitles = selectedLessons.map(l => l.title).join(', ');
+            const generatedSeo = `A vocabulary review game covering words from the following worksheets: ${lessonTitles}.`;
             
             const initialData = {
                 title: 'New Word Blaster Game',
                 lessonType: 'word-blaster',
                 language: lessons.find(l => l.id === selectedLessons[0]?.id)?.language || 'English',
-                level: 'All', // Combined levels
+                level: maxLevel,
+                seo: generatedSeo,
                 content: { words: vocabWords }
             };
-
-            console.log('Final Payload being passed to AdminDashboard:', initialData);
 
             // Navigate to editor by signaling to AdminDashboard
             onAddNew(initialData);
