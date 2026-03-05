@@ -151,8 +151,10 @@ export const useFocusedReaderScores = (
 
   return {
     vocabScore,
+    vocabTotal: isVocabCompleted ? vocabScore : (currentPart.vocabulary_explanations ? Math.min(5, Object.keys(currentPart.vocabulary_explanations).length) : 0),
     isVocabCompleted,
     comprehensionScore,
+    comprehensionTotal: currentPart.questions?.length || 0,
     isComprehensionCompleted,
     calculateReportData
   };

@@ -99,8 +99,10 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
 
   const {
     vocabScore,
+    vocabTotal,
     isVocabCompleted,
     comprehensionScore,
+    comprehensionTotal,
     isComprehensionCompleted,
     calculateReportData
   } = useFocusedReaderScores(content, answers, currentPartIndex, lesson.id);
@@ -165,7 +167,8 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
             <CollapsibleActivity
               isCompleted={isVocabCompleted}
               title={`Page ${currentPart.part_number} Vocabulary`}
-              score={`${vocabScore}/${Object.keys(currentPart.vocabulary_explanations).length}`}
+              score={`${vocabScore}/${vocabTotal}`}
+              isPerfectScore={vocabScore === vocabTotal && vocabTotal > 0}
             >
               <Vocabulary 
                 data={{
@@ -224,7 +227,8 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
             <CollapsibleActivity
               isCompleted={isComprehensionCompleted}
               title={`Page ${currentPart.part_number} Questions`}
-              score={`${comprehensionScore}/${currentPart.questions.length}`}
+              score={`${comprehensionScore}/${comprehensionTotal}`}
+              isPerfectScore={comprehensionScore === comprehensionTotal && comprehensionTotal > 0}
             >
               <Comprehension
                 data={{ questions: currentPart.questions }}

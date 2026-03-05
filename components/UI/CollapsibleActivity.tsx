@@ -6,49 +6,74 @@ interface CollapsibleActivityProps {
   title: string;
   children: React.ReactNode;
   score?: string;
+  isPerfectScore?: boolean;
 }
+
+const playFanfare = () => {
+  try {
+    const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    
+    osc.type = 'square';
+    // Success fanfare: C5 -> E5 -> G5 -> C6
+    const startTime = ctx.currentTime;
+    osc.frequency.setValueAtTime(523.25, startTime); // C5
+    osc.frequency.setValueAtTime(659.25, startTime + 0.1); // E5
+    osc.frequency.setValueAtTime(783.99, startTime + 0.2); // G5
+    osc.frequency.setValueAtTime(1046.50, startTime + 0.3); // C6
+    
+    gain.gain.setValueAtTime(0.15, startTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.6);
+    
+    osc.start(startTime);
+    osc.stop(startTime + 0.6);
+  } catch (e) {
+    console.warn('Audio play failed', e);
+  }
+};
 
 export const CollapsibleActivity: React.FC<CollapsibleActivityProps> = ({
   isCompleted,
   title,
   children,
-  score
+  score,
+  isPerfectScore = false
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [hasAutoCollapsed, setHasAutoCollapsed] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const lastHeightRef = useRef<number>(0);
   const isAdjustingRef = useRef<boolean>(false);
+  const hasPlayedFanfare = useRef(false);
 
   useEffect(() => {
     if (!isCompleted) {
       setIsCollapsed(false);
-      setHasAutoCollapsed(false);
+      hasPlayedFanfare.current = false;
       return;
     }
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        // Only auto-collapse if it moves out of view at the top 
-        // AND we haven't auto-collapsed it yet (to allow manual expansion)
-        if (!entry.isIntersecting && entry.boundingClientRect.top < 0 && !hasAutoCollapsed) {
-          if (containerRef.current) {
-            lastHeightRef.current = containerRef.current.offsetHeight;
-            isAdjustingRef.current = true;
-          }
-          setIsCollapsed(true);
-          setHasAutoCollapsed(true);
+    if (isCompleted && isPerfectScore && !hasPlayedFanfare.current) {
+      hasPlayedFanfare.current = true;
+      playFanfare();
+      
+      // Brief delay to let the fanfare start before collapsing
+      const timer = setTimeout(() => {
+        if (containerRef.current) {
+          lastHeightRef.current = containerRef.current.offsetHeight;
+          isAdjustingRef.current = true;
         }
-      },
-      { threshold: 0 }
-    );
+        setIsCollapsed(true);
+      }, 600);
 
-    if (containerRef.current) {
-      observer.observe(containerRef.current);
+      return () => clearTimeout(timer);
     }
-
-    return () => observer.disconnect();
-  }, [isCompleted, hasAutoCollapsed]);
+  }, [isCompleted, isPerfectScore]);
 
   // Handle scroll compensation to prevent "jerking" when height changes above viewport
   React.useLayoutEffect(() => {

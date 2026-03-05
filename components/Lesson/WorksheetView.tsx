@@ -210,6 +210,7 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
             isCompleted={completionStates.vocabularyChecked}
             title="Vocabulary Matching"
             score={`${vocabScore}/${standardContent.activities.vocabulary.items.length}`}
+            isPerfectScore={vocabScore === standardContent.activities.vocabulary.items.length}
           >
             <Vocabulary
               data={standardContent.activities.vocabulary}
@@ -232,6 +233,7 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
             isCompleted={completionStates.fillBlanksChecked}
             title="Fill in the Blanks"
             score={`${fillScore}/${standardContent.activities.fillInTheBlanks.length}`}
+            isPerfectScore={fillScore === standardContent.activities.fillInTheBlanks.length}
           >
             <FillInBlanks
               data={standardContent.activities.fillInTheBlanks}
@@ -255,6 +257,7 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
             isCompleted={completionStates.comprehensionCompleted}
             title="Comprehension Check"
             score={`${compScore}/${standardContent.activities.comprehension.questions.length}`}
+            isPerfectScore={compScore === standardContent.activities.comprehension.questions.length}
           >
             <Comprehension
               data={standardContent.activities.comprehension}
@@ -278,6 +281,7 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
             isCompleted={completionStates.scrambledCompleted}
             title="Scrambled Sentences"
             score={`${scrambledScore}/${standardContent.activities.scrambled.length}`}
+            isPerfectScore={scrambledScore === standardContent.activities.scrambled.length}
           >
             <Scrambled
               data={standardContent.activities.scrambled}
