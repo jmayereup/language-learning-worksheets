@@ -11,7 +11,7 @@ import { ReportCard } from '../UI/ReportCard';
 const InformationGapView = React.lazy(() => import('./InformationGapView').then(m => ({ default: m.InformationGapView })));
 const WorksheetView = React.lazy(() => import('./WorksheetView').then(m => ({ default: m.WorksheetView })));
 const FocusedReaderView = React.lazy(() => import('./FocusedReaderView').then(m => ({ default: m.FocusedReaderView })));
-const WordBlasterView = React.lazy(() => import('../Activities/WordBlasterView').then(m => ({ default: m.WordBlasterView })));
+const WordBlasterView = React.lazy(() => import('./WordBlasterView').then(m => ({ default: m.WordBlasterView })));
 
 interface Props {
   lesson: ParsedLesson;
@@ -29,10 +29,24 @@ const isWordBlaster = (content: LessonContent): content is WordBlasterContent =>
   return content !== null && typeof content === 'object' && 'words' in content && Array.isArray((content as any).words);
 };
 
+const isInformationGapLesson = (content: LessonContent): content is InformationGapContent => {
+  if (Array.isArray(content)) return true;
+  return content !== null && typeof content === 'object' && ('topic' in content || 'player_count' in content || ('activities' in content && Array.isArray((content as any).activities)));
+};
+
 export const LessonView: React.FC<Props> = ({ lesson }) => {
   const isStandard = isStandardLesson(lesson.content);
   const isFocused = isFocusedReader(lesson.content);
   const isBlaster = isWordBlaster(lesson.content);
+  const isInfoGap = isInformationGapLesson(lesson.content);
+
+  // Determine effective lesson type to handle previews where the dropdown hasn't been saved yet
+  const effectiveLessonType = 
+    isBlaster ? 'word-blaster' :
+    isFocused ? 'focused-reading' :
+    isInfoGap ? 'information-gap' :
+    isStandard ? 'standard' :
+    lesson.lessonType;
 
   const {
     answers,
@@ -131,7 +145,7 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
 
       <main>
         <React.Suspense fallback={<div className="flex items-center justify-center p-20"><Loader className="w-8 h-8 animate-spin text-green-600" /></div>}>
-          {lesson.lessonType === 'information-gap' ? (
+          {effectiveLessonType === 'information-gap' ? (
             <InformationGapView 
               key={`info-gap-${resetKey}`}
               lesson={{...lesson, content: lesson.content as InformationGapContent}} 
@@ -156,7 +170,7 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
               answers={answers}
               setAnswers={setAnswers}
             />
-          ) : lesson.lessonType === 'focused-reading' ? (
+          ) : effectiveLessonType === 'focused-reading' ? (
             <FocusedReaderView
               key={`focused-reader-${resetKey}`}
               lesson={{...lesson, content: lesson.content as FocusedReaderContent}}
@@ -181,7 +195,7 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
               audioPreference={audioPreference}
               setAudioPreference={setAudioPreference}
             />
-          ) : lesson.lessonType === 'word-blaster' ? (
+          ) : effectiveLessonType === 'word-blaster' ? (
             <WordBlasterView
               key={`word-blaster-${resetKey}`}
               lesson={{...lesson, content: lesson.content as WordBlasterContent}}

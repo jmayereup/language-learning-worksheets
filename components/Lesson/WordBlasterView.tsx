@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { fetchLessonById } from '../../services/pocketbase';
-import { WordBlasterGame, VocabWord } from './WordBlasterGame';
+import { WordBlasterGame, VocabWord } from '../Activities/WordBlasterGame';
 import { Trophy, AlertCircle, Zap } from 'lucide-react';
 import { ParsedLesson, WordBlasterContent } from '../../types';
 
@@ -10,7 +9,7 @@ interface Props {
   onReset?: () => void;
 }
 
-export const WordBlasterView: React.FC<Props> = ({ lesson, onFinish, onReset }) => {
+export const WordBlasterView: React.FC<Props> = ({ lesson, onFinish }) => {
   const content = lesson.content as WordBlasterContent;
   const [words, setWords] = useState<VocabWord[]>(content.words || []);
   const [highScore, setHighScore] = useState(0);
