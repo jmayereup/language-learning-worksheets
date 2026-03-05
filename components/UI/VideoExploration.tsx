@@ -22,7 +22,7 @@ export const VideoExploration: React.FC<VideoExplorationProps> = ({ videoUrl, is
         href={videoUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center gap-2 bg-green-50 text-white px-8 py-3 rounded-full font-bold hover:bg-green-700 transform hover:scale-105 transition-all shadow-md"
+        className="inline-flex items-center gap-2 bg-green-800 text-white px-8 py-3 rounded-full font-bold hover:bg-green-700 transform hover:scale-105 transition-all shadow-md"
       >
         Watch Video on YouTube
       </a>

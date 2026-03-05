@@ -10,6 +10,7 @@ import { Comprehension } from '../Activities/Comprehension';
 import { CollapsibleActivity } from '../UI/CollapsibleActivity';
 import { LessonMedia } from '../UI/LessonMedia';
 import { ReferenceLinks } from '../UI/ReferenceLinks';
+import { VideoExploration } from '../UI/VideoExploration';
 import { useFocusedReaderScores } from '../../hooks/useFocusedReaderScores';
 import { FocusedReaderExportActions } from '../UI/FocusedReaderExportActions';
 import { seededShuffle } from '../../utils/textUtils';
@@ -119,7 +120,9 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
 
       <div className="max-w-4xl mx-auto px-1 sm:px-4 py-4 sm:py-8 space-y-2 print:hidden">
         <LessonMedia 
+          videoUrl={lesson.videoUrl}
           imageUrl={lesson.imageUrl} 
+          isVideoLesson={lesson.isVideoLesson}
           title={lesson.title || content.title} 
         />
 
@@ -288,6 +291,10 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
           onFinish={() => onFinish(calculateReportData(lesson.title, studentName, studentId, homeroom))}
           onReset={onReset}
         />
+
+        <div className="mt-8">
+          <VideoExploration videoUrl={lesson.videoUrl} isVideoLesson={lesson.isVideoLesson} />
+        </div>
       </div>
 
       {/* Print-only Layout */}
