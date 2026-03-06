@@ -2,7 +2,7 @@ import { createRoot } from 'react-dom/client';
 import React from 'react';
 import { LessonView } from './components/Lesson/LessonView';
 import { ErrorBoundary } from './components/UI/ErrorBoundary';
-import './index.css';
+import styles from './index.css?inline';
 
 export class TJPocketBaseWorksheet extends HTMLElement {
   private root: any = null;
@@ -82,12 +82,8 @@ export class TJPocketBaseWorksheet extends HTMLElement {
         // Clear shadow root and inject styles
         this.shadowRoot.innerHTML = '';
         
-        const styleElement = document.createElement('link');
-        styleElement.rel = 'stylesheet';
-        // When used via CDN or on a page, this assumes the CSS is available at the expected path
-        // For standalone HTML it uses the absolute path to the CDN where this script comes from
-        // If it's running locally or relative, we use the relative path it was built to
-        styleElement.href = document.querySelector('link[href*="language-learning-worksheets.css"]')?.getAttribute('href') || 'language-learning-worksheets.css';
+        const styleElement = document.createElement('style');
+        styleElement.textContent = styles;
         this.shadowRoot.appendChild(styleElement);
         
         // Create a mount point for React
