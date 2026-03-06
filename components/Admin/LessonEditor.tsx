@@ -253,8 +253,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
                 isVideoLesson,
                 lessonType,
                 seo,
-                content: parsedContent,
-                isStandalone: true
+                content: parsedContent
             }, null, 2);
 
             return `<!-- TJ Worksheet Embed -->

@@ -15,15 +15,13 @@ if (container) {
   root.render(
     <React.StrictMode>
       <ErrorBoundary>
-        <div style={{ maxWidth: '900px', margin: '0 auto', padding: '20px' }}>
-          <LessonEditor 
-              lessonId={null} 
-              isStandalone={true}
-              onSave={() => {}} 
-              onCancel={() => {}} 
-              onPreview={() => {}} 
-          />
-        </div>
+        <LessonEditor 
+            lessonId={null} 
+            isStandalone={true}
+            onSave={() => {}} 
+            onCancel={() => {}} 
+            onPreview={() => {}} 
+        />
       </ErrorBoundary>
     </React.StrictMode>
   );

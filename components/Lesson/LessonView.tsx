@@ -247,7 +247,6 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
         <ReportCard 
           data={reportData} 
           onClose={() => setShowReportCard(false)} 
-          isStandalone={lesson.isStandalone}
         />
       )}
 

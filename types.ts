@@ -157,7 +157,6 @@ export interface ParsedLesson extends Omit<LessonRecord, 'content'> {
   content: LessonContent;
   imageUrl?: string;
   audioFileUrl?: string;
-  isStandalone?: boolean;
 }
 
 // State for User Answers

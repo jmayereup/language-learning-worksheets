@@ -7,7 +7,6 @@ import { useTeacherSubmission } from '../../hooks/useTeacherSubmission';
 interface Props {
   data: ReportData;
   onClose: () => void;
-  isStandalone?: boolean;
 }
 
 const ScorePill = ({ label, score, total }: { label: string, score: number, total: number }) => (
@@ -19,7 +18,7 @@ const ScorePill = ({ label, score, total }: { label: string, score: number, tota
   </div>
 );
 
-export const ReportCard: React.FC<Props> = ({ data, onClose, isStandalone = false }) => {
+export const ReportCard: React.FC<Props> = ({ data, onClose }) => {
   const {
     isSubmitting,
     submissionStatus,
@@ -111,51 +110,49 @@ export const ReportCard: React.FC<Props> = ({ data, onClose, isStandalone = fals
             </div>
           )}
 
-          {!isStandalone && (
-            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-6">
-              <h3 className="font-bold text-gray-800 text-sm mb-3">Submit to Teacher</h3>
-              
-              {submissionStatus === 'success' ? (
-                <div className="flex items-center gap-2 text-green-700 bg-green-50 p-3 rounded-lg border border-green-200 animate-fade-in">
-                  <CheckCircle className="w-5 h-5 shrink-0" />
-                  <p className="text-sm font-bold">{submissionMessage}</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <input
-                    type="text"
-                    placeholder="Enter 4-digit Teacher Code"
-                    value={teacherCode}
-                    onChange={(e) => setTeacherCode(e.target.value)}
-                    disabled={isSubmitting}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-400 focus:outline-none text-sm transition-all"
-                  />
+          <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-6">
+            <h3 className="font-bold text-gray-800 text-sm mb-3">Submit to Teacher</h3>
+            
+            {submissionStatus === 'success' ? (
+              <div className="flex items-center gap-2 text-green-700 bg-green-50 p-3 rounded-lg border border-green-200 animate-fade-in">
+                <CheckCircle className="w-5 h-5 shrink-0" />
+                <p className="text-sm font-bold">{submissionMessage}</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <input
+                  type="text"
+                  placeholder="Enter 4-digit Teacher Code"
+                  value={teacherCode}
+                  onChange={(e) => setTeacherCode(e.target.value)}
+                  disabled={isSubmitting}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-400 focus:outline-none text-sm transition-all"
+                />
 
-                  {submissionStatus === 'error' && (
-                    <div className="flex items-start gap-2 text-red-700 text-xs bg-red-50 p-3 rounded-lg border border-red-100">
-                      <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                      <p className="font-medium">{submissionMessage}</p>
-                    </div>
+                {submissionStatus === 'error' && (
+                  <div className="flex items-start gap-2 text-red-700 text-xs bg-red-50 p-3 rounded-lg border border-red-100">
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                    <p className="font-medium">{submissionMessage}</p>
+                  </div>
+                )}
+
+                <Button
+                  onClick={handleSubmitScore}
+                  disabled={isSubmitting || !teacherCode.trim()}
+                  className="w-full py-4 font-black shadow-lg"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader className="w-5 h-5 animate-spin mr-2" />
+                      Submitting...
+                    </>
+                  ) : (
+                    'Submit Results'
                   )}
-
-                  <Button
-                    onClick={handleSubmitScore}
-                    disabled={isSubmitting || !teacherCode.trim()}
-                    className="w-full py-4 font-black shadow-lg"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Loader className="w-5 h-5 animate-spin mr-2" />
-                        Submitting...
-                      </>
-                    ) : (
-                      'Submit Results'
-                    )}
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
+                </Button>
+              </div>
+            )}
+          </div>
 
           <div className="flex flex-col gap-3">
             <p className="text-[11px] text-gray-400 italic text-center leading-snug font-medium">
