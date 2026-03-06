@@ -30,6 +30,14 @@ export default defineConfig(({ mode }) => {
           entry: path.resolve(__dirname, 'pocketbase-worksheet.tsx'),
           name: 'TJPocketBaseWorksheet',
           fileName: (format) => `tj-pocketbase-worksheet.${format}.js`
+        },
+        rollupOptions: {
+          output: {
+            assetFileNames: (assetInfo) => {
+              if (assetInfo.name === 'style.css') return 'language-learning-worksheets.css';
+              return assetInfo.name;
+            },
+          },
         }
       } : {
         outDir: 'dist',

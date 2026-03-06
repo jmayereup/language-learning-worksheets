@@ -69,9 +69,9 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
                 try {
                     setTitle(initialData.title || '');
                     setLessonType(initialData.lessonType || '');
-                    
+
                     const newJsonContent = initialData.content ? JSON.stringify(initialData.content, null, isMinified ? 0 : 2) : '';
-                    
+
                     setJsonContent(newJsonContent);
                     setLanguage(initialData.language || '');
                     setLevel(initialData.level || '');
@@ -692,7 +692,9 @@ ${embedData}
                                         ? "https://gemini.google.com/gem/1bdsM9tYk1Qb4lcCsnPVOTK1FR_37HYnX?usp=sharing"
                                         : lessonType === 'focused-reading'
                                             ? "https://gemini.google.com/gem/1ZcCIp-jD0vhJk_nZziTbmGv0eVz-vfHV?usp=sharing"
-                                            : "https://gemini.google.com/gem/1a183ceHi_da5ac9scUQ3AXs0A5-TcOtn?usp=sharing"
+                                            : lessonType === 'word-blaster'
+                                                ? "https://gemini.google.com/gem/1-FCaGzHScc5c3pAIAJ8SuzuaT-LwbXzU?usp=sharing"
+                                                : "https://gemini.google.com/gem/1a183ceHi_da5ac9scUQ3AXs0A5-TcOtn?usp=sharing"
                                     }
                                     target="_blank"
                                     rel="noopener noreferrer"
