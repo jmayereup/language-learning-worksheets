@@ -31,6 +31,14 @@ export default defineConfig(({ mode }) => {
           name: 'TJPocketBaseWorksheet',
           fileName: (format) => `tj-pocketbase-worksheet.${format}.js`
         }
+      } : process.env.VITE_CREATOR ? {
+        outDir: 'dist/tj-creator',
+        emptyOutDir: false,
+        lib: {
+          entry: path.resolve(__dirname, 'src/tj-creator/creator.tsx'),
+          name: 'TJCreator',
+          fileName: (format) => `tj-creator.${format}.js`
+        }
       } : {
         outDir: 'dist',
         emptyOutDir: true
