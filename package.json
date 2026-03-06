@@ -5,10 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run build:app && npm run build:wc && npm run build:creator",
+    "build": "npm run build:app && npm run build:wc",
     "build:app": "vite build",
     "build:wc": "VITE_WC=true vite build",
-    "build:creator": "VITE_CREATOR=true vite build",
     "preview": "vite preview",
     "start": "node server.js"
   },
