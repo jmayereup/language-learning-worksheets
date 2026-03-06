@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { LoginForm } from './LoginForm';
 import { LessonList } from './LessonList';
 import { LessonEditor } from './LessonEditor';
@@ -25,6 +25,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, onPrevie
         logout();
         setIsLoggedIn(false);
     };
+
+    useEffect(() => {
+        if (isLoggedIn) {
+            const params = new URLSearchParams(window.location.search);
+            const editId = params.get('edit');
+            if (editId) {
+                handleEditLesson(editId);
+                // Remove the edit param from the URL to prevent reopening on refresh
+                const url = new URL(window.location.href);
+                url.searchParams.delete('edit');
+                url.searchParams.set('view', 'admin');
+                window.history.replaceState({}, '', url.toString());
+            }
+        }
+    }, [isLoggedIn]);
 
     const handleEditLesson = (id: string) => {
         setEditingLessonId(id);

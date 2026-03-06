@@ -28,6 +28,7 @@ const App: React.FC = () => {
             const params = new URLSearchParams(window.location.search);
             const viewParam = params.get('view');
             const lessonId = params.get('lesson');
+            const editId = params.get('edit');
 
             // Sync filters from URL if present
             const urlLang = params.get('language');
@@ -38,7 +39,7 @@ const App: React.FC = () => {
             if (urlLevel) setLevel(urlLevel);
             if (urlTag) setTag(urlTag);
 
-            if (viewParam === 'admin') {
+            if (viewParam === 'admin' || editId) {
                 setView('admin');
             } else if (lessonId && (!currentLesson || currentLesson.id !== lessonId)) {
                 handleSelectLesson(lessonId);

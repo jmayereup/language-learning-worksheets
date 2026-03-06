@@ -105,6 +105,15 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
     }
   };
 
+  const isWebComponent = typeof window !== 'undefined' && 
+    window.location.origin !== 'https://worksheets.teacherjake.com' && 
+    !window.location.origin.includes('localhost') &&
+    !window.location.origin.includes('127.0.0.1');
+    
+  const editUrl = isWebComponent 
+    ? `https://worksheets.teacherjake.com/?view=admin&edit=${lesson.id}`
+    : `/?view=admin&edit=${lesson.id}`;
+
   const handleFinish = (data: ReportData) => {
     if (!studentName.trim() || !studentId.trim() || !homeroom.trim()) {
       alert('Please fill in your Nickname, Student ID, and Homeroom.');
@@ -240,6 +249,22 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
           onClose={() => setShowReportCard(false)} 
         />
       )}
+
+      {/* Edit Button for Admins/Teachers */}
+      <div className="mt-12 text-center print:hidden">
+        <a 
+          href={editUrl}
+          target={isWebComponent ? "_blank" : "_self"}
+          rel="noopener noreferrer"
+          className="inline-flex items-center justify-center text-xs font-medium text-gray-200 hover:text-gray-400 transition-colors"
+          title="Edit this lesson"
+        >
+          <svg className="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+          </svg>
+          Edit Lesson
+        </a>
+      </div>
     </div>
   );
 };
