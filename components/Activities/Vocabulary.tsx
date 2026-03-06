@@ -78,11 +78,33 @@ export const Vocabulary: React.FC<Props> = ({
 
   const handleWordSelect = (wordIndex: number) => {
     if (isChecked) return;
+
+    // If word is already matched, unmatch it
+    const isMatched = Object.keys(savedAnswers).some(key => key === `vocab_${wordIndex}`);
+    if (isMatched) {
+      const newAnswers = { ...savedAnswers };
+      delete newAnswers[`vocab_${wordIndex}`];
+      onChange(newAnswers);
+      setSelectedWordIndex(null);
+      return;
+    }
+
     setSelectedWordIndex(selectedWordIndex === wordIndex ? null : wordIndex);
   };
 
   const handleDefSelect = (defIndex: number) => {
-    if (selectedWordIndex === null || isChecked) return;
+    if (isChecked) return;
+
+    if (selectedWordIndex === null) {
+      // If no word selected, check if this slot is matched and unmatch it
+      const matched = getMatchedWordLabel(defIndex);
+      if (matched) {
+        const newAnswers = { ...savedAnswers };
+        delete newAnswers[`vocab_${matched.index}`];
+        onChange(newAnswers);
+      }
+      return;
+    }
 
     // Map definition index to letter (a, b, c...)
     const char = String.fromCharCode(97 + defIndex);
@@ -254,21 +276,6 @@ export const Vocabulary: React.FC<Props> = ({
                         }}
                       />
                     )}
-                    {!isChecked && isMatched && (
-                      <div
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const newAnswers = { ...savedAnswers };
-                          delete newAnswers[`vocab_${idx}`];
-                          onChange(newAnswers);
-                        }}
-                        className="text-red-400 hover:text-red-600 rounded-full transition-colors flex items-center justify-center ml-1"
-                        title="Unmatch"
-                        aria-label="Unmatch"
-                      >
-                        <XCircle className="w-5 h-5 sm:w-4 sm:h-4" />
-                      </div>
-                    )}
                   </button>
                 );
               })}
@@ -304,23 +311,7 @@ export const Vocabulary: React.FC<Props> = ({
                     <p className="text-gray-700 text-sm md:text-base font-medium leading-relaxed mb-2" translate="no">{def.text}</p>
                     {matched ? (
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-black uppercase tracking-tighter text-blue-600 bg-blue-100 px-2 py-0.5 rounded">Matched:</span>
                         <span className="font-black text-gray-900 text-sm md:text-base" translate="no">{matched.label}</span>
-                        {!isChecked && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              const newAnswers = { ...savedAnswers };
-                              delete newAnswers[`vocab_${matched.index}`];
-                              onChange(newAnswers);
-                            }}
-                            className="text-red-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors flex items-center justify-center p-1 md:p-0.5 ml-1"
-                            title="Unmatch"
-                            aria-label="Unmatch"
-                          >
-                            <XCircle className="w-5 h-5 sm:w-4 sm:h-4" />
-                          </button>
-                        )}
                       </div>
                     ) : (
                       <span className="text-xs font-bold text-gray-300 italic">Tap to assign word...</span>

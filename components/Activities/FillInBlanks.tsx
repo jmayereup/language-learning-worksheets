@@ -59,6 +59,20 @@ export const FillInBlanks: React.FC<Props> = ({
 
   const handleWordSelect = (word: string) => {
     if (isChecked) return;
+
+    // If word is already used, unmatch it
+    const isUsed = Object.values(savedAnswers).includes(word);
+    if (isUsed) {
+      const newAnswers = { ...savedAnswers };
+      const keyToRemove = Object.keys(newAnswers).find(key => newAnswers[parseInt(key)] === word);
+      if (keyToRemove) {
+        delete newAnswers[parseInt(keyToRemove)];
+        onChange(newAnswers);
+        setSelectedWord(null);
+        return;
+      }
+    }
+
     setSelectedWord(selectedWord === word ? null : word);
   };
 
@@ -137,7 +151,7 @@ export const FillInBlanks: React.FC<Props> = ({
               <button
                 key={idx}
                 onClick={() => handleWordSelect(word)}
-                disabled={isChecked || (isUsed && !isSelected)}
+                disabled={isChecked}
                 className={`px-4 py-2 rounded-full border-2 font-bold transition-all duration-200 shadow-sm ${colorClass}`}
               >
                 {word}
