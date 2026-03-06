@@ -3,7 +3,7 @@ import { fetchLessons, fetchLessonById } from './services/pocketbase';
 import { ParsedLesson, LANGUAGE_OPTIONS, LEVEL_OPTIONS, TAG_OPTIONS } from './types';
 import { LessonView } from './components/Lesson/LessonView';
 import { Button } from './components/UI/Button';
-import { BookOpen, Search, FlaskConical, Video, Feather, FileText, X, LogIn } from 'lucide-react';
+import { BookOpen, Search, FlaskConical, Video, Feather, FileText, X, LogIn, AlertTriangle } from 'lucide-react';
 import { BrowserSupportWarning } from './components/UI/BrowserSupportWarning';
 import { AdminDashboard } from './components/Admin/AdminDashboard';
 import { LessonEditor } from './components/Admin/LessonEditor';
@@ -225,6 +225,24 @@ const App: React.FC = () => {
             <main className="container mx-auto px-0 py-4 print:p-0 print:m-0 print:max-w-none">
                 {view === 'home' ? (
                     <div className="max-w-3xl mx-auto print:hidden">
+                        <div className="bg-amber-50 border-l-4 border-amber-400 p-4 mb-8 rounded-r-xl shadow-sm animate-in fade-in slide-in-from-top-2 duration-500">
+                            <div className="flex items-start gap-3">
+                                <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                                <div className="text-sm text-amber-900 leading-relaxed font-medium">
+                                    This site is for development purposes only. You can find the same lessons and more on{' '}
+                                    <a 
+                                        href="https://www.teacherjake.com" 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="font-bold underline decoration-amber-300 hover:decoration-amber-500 transition-all text-amber-700 hover:text-amber-800"
+                                    >
+                                        www.teacherjake.com
+                                    </a>{' '}
+                                    which is located on a faster server.
+                                </div>
+                            </div>
+                        </div>
+
                         <div className="text-center mb-12">
                             <h1 className="text-4xl font-extrabold text-green-900 mb-4 tracking-tight">Interactive Worksheets</h1>
                             <p className="text-lg text-gray-600">Select a language and level to start learning.</p>
