@@ -74,7 +74,8 @@ export class TJPocketBaseWorksheet extends HTMLElement {
           collectionName: rawData.collectionName || '',
           lessonType: rawData.lessonType,
           creatorId: rawData.creatorId,
-          seo: rawData.seo
+          seo: rawData.seo,
+          isStandalone: rawData.isStandalone || this.hasAttribute('is-standalone')
         };
       }
 
