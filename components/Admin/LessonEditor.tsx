@@ -3,7 +3,7 @@ import { fetchLessonById, createLesson, updateLesson } from '../../services/pock
 import { LANGUAGE_OPTIONS, LEVEL_OPTIONS, TAG_OPTIONS, LESSON_TYPE_OPTIONS } from '../../types';
 import { triggerRebuild } from '../../services/deploy';
 import { Button } from '../UI/Button';
-import { Save, X, AlertCircle, FileJson, Info, Globe, Layers, Tag as TagIcon, Video, Check, Image as ImageIcon, Music, Layout, ClipboardPaste, Eye } from 'lucide-react';
+import { Save, X, AlertCircle, FileJson, Info, Globe, Layers, Tag as TagIcon, Video, Check, Image as ImageIcon, Music, Layout, ClipboardPaste, Eye, Code } from 'lucide-react';
 import { Modal } from '../UI/Modal';
 import { JSONKeyValueEditor } from './JSONKeyValueEditor';
 
@@ -12,12 +12,13 @@ import { JSONKeyValueEditor } from './JSONKeyValueEditor';
 interface LessonEditorProps {
     lessonId: string | null;
     initialData?: any;
+    isPublicCreator?: boolean;
     onSave: () => void;
     onCancel: () => void;
     onPreview: (lesson: any) => void;
 }
 
-export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialData, onSave, onCancel, onPreview }) => {
+export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialData, isPublicCreator = false, onSave, onCancel, onPreview }) => {
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(!!lessonId);
     const [error, setError] = useState<string | null>(null);
@@ -191,6 +192,128 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleDownloadJSON = () => {
+        try {
+            // Validate JSON first
+            let parsedContent;
+            try {
+                parsedContent = JSON.parse(jsonContent);
+                if (title && parsedContent.title !== title) {
+                    parsedContent.title = title;
+                }
+            } catch (err) {
+                setError('Invalid JSON content. Please check for syntax errors before downloading.');
+                return;
+            }
+
+            const lessonData = {
+                title,
+                language,
+                level,
+                tags: selectedTags,
+                videoUrl,
+                isVideoLesson,
+                lessonType,
+                seo,
+                content: parsedContent,
+            };
+
+            const blob = new Blob([JSON.stringify(lessonData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'worksheet'}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } catch (e: any) {
+            setError('Failed to generate JSON for download.');
+        }
+    };
+
+    const generateEmbedCode = () => {
+        try {
+            let parsedContent;
+            try {
+                parsedContent = JSON.parse(jsonContent);
+                if (title && parsedContent.title !== title) {
+                    parsedContent.title = title;
+                }
+            } catch (err) {
+                setError('Invalid JSON content. Please check for syntax errors before generating embed code.');
+                return null;
+            }
+
+            const embedData = JSON.stringify({
+                title,
+                level,
+                language,
+                tags: selectedTags,
+                videoUrl,
+                isVideoLesson,
+                lessonType,
+                seo,
+                content: parsedContent,
+                isStandalone: isPublicCreator
+            }, null, 2);
+
+            return `<!-- TJ Worksheet Embed -->
+<link rel="stylesheet" href="https://worksheets.teacherjake.com/wc/language-learning-worksheets.css">
+
+<tj-pocketbase-worksheet>
+  <script type="application/json">
+${embedData}
+  </script>
+</tj-pocketbase-worksheet>
+
+<script src="https://worksheets.teacherjake.com/wc/tj-pocketbase-worksheet.umd.js"></script>`;
+        } catch (e) {
+            setError('Failed to generate embed code.');
+            return null;
+        }
+    };
+
+    const handleCopyEmbed = () => {
+        const code = generateEmbedCode();
+        if (code) {
+            navigator.clipboard.writeText(code);
+            alert("Embed code copied to clipboard!");
+        }
+    };
+
+    const handleDownloadHTML = () => {
+        const embedCode = generateEmbedCode();
+        if (!embedCode) return;
+
+        const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title || 'TeacherJake Worksheet'}</title>
+    <style>
+        body { margin: 0; padding: 0; background-color: #f9fafb; font-family: sans-serif; }
+    </style>
+</head>
+<body>
+    <div style="max-w: 1000px; margin: 0 auto; padding: 20px;">
+        ${embedCode}
+    </div>
+</body>
+</html>`;
+
+        const blob = new Blob([htmlContent], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'worksheet'}.html`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     };
 
     const handleVisualEditorApply = (updatedData: any) => {
@@ -412,73 +535,77 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
                             </div>
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-black text-gray-700 mb-2 ml-1 uppercase tracking-wider">Worksheet Image</label>
-                            <div className="flex flex-col gap-3">
-                                {imagePreview && (
-                                    <div className="w-full aspect-video rounded-xl bg-gray-100 overflow-hidden border border-gray-200">
-                                        <img src={imagePreview} alt="Preview" className="w-full h-full object-contain" />
-                                    </div>
-                                )}
-                                <div className="relative">
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={(e) => {
-                                            const file = e.target.files?.[0] || null;
-                                            setImageFile(file);
-                                            if (file) {
-                                                const reader = new FileReader();
-                                                reader.onloadend = () => setImagePreview(reader.result as string);
-                                                reader.readAsDataURL(file);
-                                            } else {
-                                                setImagePreview(null);
-                                            }
-                                        }}
-                                        className="hidden"
-                                        id="image-upload"
-                                    />
-                                    <div className="flex gap-2">
-                                        <label
-                                            htmlFor="image-upload"
-                                            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white border-2 border-dashed border-gray-300 rounded-xl hover:border-green-500 hover:bg-green-50 cursor-pointer transition-all text-gray-600 font-bold text-sm"
-                                        >
-                                            <ImageIcon className="w-4 h-4" />
-                                            <span className="truncate">{imageFile ? imageFile.name : 'Upload Image (JPG/PNG)'}</span>
-                                        </label>
-                                        <Button
-                                            type="button"
-                                            variant="secondary"
-                                            onClick={handlePasteImageFromClipboard}
-                                            className="px-4 py-3 h-auto"
-                                            title="Paste image from clipboard"
-                                        >
-                                            <ClipboardPaste className="w-5 h-5 shrink-0" />
-                                        </Button>
+                        {!isPublicCreator && (
+                            <>
+                                <div>
+                                    <label className="block text-sm font-black text-gray-700 mb-2 ml-1 uppercase tracking-wider">Worksheet Image</label>
+                                    <div className="flex flex-col gap-3">
+                                        {imagePreview && (
+                                            <div className="w-full aspect-video rounded-xl bg-gray-100 overflow-hidden border border-gray-200">
+                                                <img src={imagePreview} alt="Preview" className="w-full h-full object-contain" />
+                                            </div>
+                                        )}
+                                        <div className="relative">
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={(e) => {
+                                                    const file = e.target.files?.[0] || null;
+                                                    setImageFile(file);
+                                                    if (file) {
+                                                        const reader = new FileReader();
+                                                        reader.onloadend = () => setImagePreview(reader.result as string);
+                                                        reader.readAsDataURL(file);
+                                                    } else {
+                                                        setImagePreview(null);
+                                                    }
+                                                }}
+                                                className="hidden"
+                                                id="image-upload"
+                                            />
+                                            <div className="flex gap-2">
+                                                <label
+                                                    htmlFor="image-upload"
+                                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white border-2 border-dashed border-gray-300 rounded-xl hover:border-green-500 hover:bg-green-50 cursor-pointer transition-all text-gray-600 font-bold text-sm"
+                                                >
+                                                    <ImageIcon className="w-4 h-4" />
+                                                    <span className="truncate">{imageFile ? imageFile.name : 'Upload Image (JPG/PNG)'}</span>
+                                                </label>
+                                                <Button
+                                                    type="button"
+                                                    variant="secondary"
+                                                    onClick={handlePasteImageFromClipboard}
+                                                    className="px-4 py-3 h-auto"
+                                                    title="Paste image from clipboard"
+                                                >
+                                                    <ClipboardPaste className="w-5 h-5 shrink-0" />
+                                                </Button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
 
-                        <div>
-                            <label className="block text-sm font-black text-gray-700 mb-2 ml-1 uppercase tracking-wider">Audio File (MP3)</label>
-                            <div className="relative">
-                                <input
-                                    type="file"
-                                    accept="audio/mpeg,audio/mp3"
-                                    onChange={(e) => setAudioFile(e.target.files?.[0] || null)}
-                                    className="hidden"
-                                    id="audio-upload"
-                                />
-                                <label
-                                    htmlFor="audio-upload"
-                                    className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-white border-2 border-dashed border-gray-300 rounded-xl hover:border-blue-500 hover:bg-blue-50 cursor-pointer transition-all text-gray-600 font-bold text-sm"
-                                >
-                                    <Music className="w-4 h-4" />
-                                    {audioFile ? audioFile.name : 'Upload Audio (MP3)'}
-                                </label>
-                            </div>
-                        </div>
+                                <div>
+                                    <label className="block text-sm font-black text-gray-700 mb-2 ml-1 uppercase tracking-wider">Audio File (MP3)</label>
+                                    <div className="relative">
+                                        <input
+                                            type="file"
+                                            accept="audio/mpeg,audio/mp3"
+                                            onChange={(e) => setAudioFile(e.target.files?.[0] || null)}
+                                            className="hidden"
+                                            id="audio-upload"
+                                        />
+                                        <label
+                                            htmlFor="audio-upload"
+                                            className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-white border-2 border-dashed border-gray-300 rounded-xl hover:border-blue-500 hover:bg-blue-50 cursor-pointer transition-all text-gray-600 font-bold text-sm"
+                                        >
+                                            <Music className="w-4 h-4" />
+                                            {audioFile ? audioFile.name : 'Upload Audio (MP3)'}
+                                        </label>
+                                    </div>
+                                </div>
+                            </>
+                        )}
 
                         <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
                             <div className="flex items-center h-5">
@@ -607,16 +734,28 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
                     </Modal>
                 </div>
 
-                <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-gray-100">
-                    <Button variant="secondary" onClick={onCancel} type="button" className="px-8 order-3 sm:order-1">
+                <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-gray-100 flex-wrap">
+                    <Button variant="secondary" onClick={onCancel} type="button" className="px-6 order-last sm:order-none">
                         Cancel
                     </Button>
-                    <Button variant="outline" type="button" onClick={handlePreview} className="px-8 border-green-200 text-green-700 hover:bg-green-50 order-2">
+                    <Button variant="outline" type="button" onClick={handlePreview} className="px-6 border-green-200 text-green-700 hover:bg-green-50">
                         <Eye className="w-4 h-4 mr-2" /> Preview
                     </Button>
-                    <Button variant="success" size="lg" type="submit" isLoading={loading} className="px-12 order-1 sm:order-3 shadow-lg shadow-green-100">
-                        <Save className="w-4 h-4 mr-2" /> {lessonId ? 'Update Worksheet' : 'Create Worksheet'}
+                    <Button variant="outline" type="button" onClick={handleDownloadJSON} className="border-blue-200 text-blue-700 hover:bg-blue-50">
+                        <FileJson className="w-4 h-4" /> Download JSON
                     </Button>
+                    <Button variant="outline" type="button" onClick={handleCopyEmbed} className="border-indigo-200 text-indigo-700 hover:bg-indigo-50">
+                        <Code className="w-4 h-4" /> Copy Embed
+                    </Button>
+                    <Button variant="success" type="button" onClick={handleDownloadHTML} className="shadow-lg shadow-green-100 px-6">
+                        <Globe className="w-4 h-4" /> Save as HTML
+                    </Button>
+
+                    {!isPublicCreator && (
+                        <Button variant="success" size="lg" type="submit" isLoading={loading} className="px-10 shadow-lg shadow-green-100 ml-auto w-full sm:w-auto mt-4 sm:mt-0">
+                            <Save className="w-4 h-4 mr-2" /> {lessonId ? 'Update Online Worksheet' : 'Create Online Worksheet'}
+                        </Button>
+                    )}
                 </div>
             </form>
         </div>

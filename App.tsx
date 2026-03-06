@@ -6,10 +6,11 @@ import { Button } from './components/UI/Button';
 import { BookOpen, Search, FlaskConical, Video, Feather, FileText, X, LogIn } from 'lucide-react';
 import { BrowserSupportWarning } from './components/UI/BrowserSupportWarning';
 import { AdminDashboard } from './components/Admin/AdminDashboard';
+import { LessonEditor } from './components/Admin/LessonEditor';
 import { WebComponentPreview } from './components/Lesson/WebComponentPreview';
 
 const App: React.FC = () => {
-    const [view, setView] = useState<'home' | 'lesson' | 'admin'>('home');
+    const [view, setView] = useState<'home' | 'lesson' | 'admin' | 'create'>('home');
     const [currentLesson, setCurrentLesson] = useState<ParsedLesson | null>(null);
     const [showPreview, setShowPreview] = useState(false);
 
@@ -41,6 +42,8 @@ const App: React.FC = () => {
 
             if (viewParam === 'admin' || editId) {
                 setView('admin');
+            } else if (viewParam === 'create') {
+                setView('create');
             } else if (lessonId && (!currentLesson || currentLesson.id !== lessonId)) {
                 handleSelectLesson(lessonId);
             } else if (!lessonId && view === 'lesson') {
@@ -114,12 +117,14 @@ const App: React.FC = () => {
         }
     };
 
-    const handleViewChange = (newView: 'home' | 'lesson' | 'admin') => {
+    const handleViewChange = (newView: 'home' | 'lesson' | 'admin' | 'create') => {
         setView(newView);
         if (newView === 'home') {
             updateURL({ lesson: '', view: '', language, level, category: tag });
         } else if (newView === 'admin') {
             updateURL({ lesson: '', view: 'admin' });
+        } else if (newView === 'create') {
+            updateURL({ lesson: '', view: 'create' });
         }
     };
 
@@ -191,14 +196,26 @@ const App: React.FC = () => {
                             </>
                         )}
                         
+                        
                         {view !== 'admin' && (
-                            <button 
-                                onClick={() => handleViewChange('admin')}
-                                className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all"
-                                title="Admin UI"
-                            >
-                                <LogIn className="w-5 h-5" />
-                            </button>
+                            <div className="flex items-center gap-2">
+                                {view !== 'create' && (
+                                    <button 
+                                        onClick={() => handleViewChange('create')}
+                                        className="hidden md:flex items-center gap-2 px-3 py-1.5 text-sm font-bold text-green-700 bg-green-50 border border-green-200 hover:bg-green-100 rounded-lg transition-all"
+                                        title="Create Worksheet"
+                                    >
+                                        <FileText className="w-4 h-4" /> Create
+                                    </button>
+                                )}
+                                <button 
+                                    onClick={() => handleViewChange('admin')}
+                                    className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all"
+                                    title="Admin UI"
+                                >
+                                    <LogIn className="w-5 h-5" />
+                                </button>
+                            </div>
                         )}
                     </div>
                 </div>
@@ -359,6 +376,19 @@ const App: React.FC = () => {
                             setShowPreview(true);
                         }}
                     />
+                ) : view === 'create' ? (
+                    <div className="max-w-6xl mx-auto px-4 sm:px-6">
+                        <LessonEditor 
+                            lessonId={null} 
+                            isPublicCreator={true}
+                            onSave={() => handleViewChange('home')} 
+                            onCancel={() => handleViewChange('home')} 
+                            onPreview={(lesson) => {
+                                setCurrentLesson(lesson);
+                                setShowPreview(true);
+                            }}
+                        />
+                    </div>
                 ) : (
                     currentLesson && <LessonView lesson={currentLesson} />
                 )}
