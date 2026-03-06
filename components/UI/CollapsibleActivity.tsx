@@ -58,6 +58,12 @@ export const CollapsibleActivity: React.FC<CollapsibleActivityProps> = ({
       return;
     }
 
+    // If completed but not a perfect score, keep it open so they see their mistakes
+    if (isCompleted && score !== undefined && !isPerfectScore) {
+      setIsCollapsed(false);
+      return;
+    }
+
     if (isCompleted && isPerfectScore && !hasPlayedFanfare.current) {
       hasPlayedFanfare.current = true;
       playFanfare();
