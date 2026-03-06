@@ -55,7 +55,25 @@ export const getLangCode = (langName: string): string => {
     "french": "fr-FR",
     "spanish": "es-ES",
     "german": "de-DE",
-    "thai": "th-TH"
+    "thai": "th-TH",
+    "arabic": "ar-SA",
+    "chinese": "zh-CN",
+    "danish": "da-DK",
+    "dutch": "nl-NL",
+    "finnish": "fi-FI",
+    "greek": "el-GR",
+    "hindi": "hi-IN",
+    "indonesian": "id-ID",
+    "italian": "it-IT",
+    "japanese": "ja-JP",
+    "korean": "ko-KR",
+    "norwegian": "nb-NO",
+    "polish": "pl-PL",
+    "portuguese": "pt-PT",
+    "russian": "ru-RU",
+    "swedish": "sv-SE",
+    "turkish": "tr-TR",
+    "vietnamese": "vi-VN"
   };
   return map[normalized] || "en-US";
 };

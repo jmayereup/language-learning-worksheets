@@ -126,8 +126,31 @@ export interface StandardLessonContent {
 
 export type LessonContent = StandardLessonContent | InformationGapContent | InformationGapActivity[] | FocusedReaderContent | WordBlasterContent;
 
-// Options for UI lookups derived from PocketBase enums
-export const LANGUAGE_OPTIONS = Object.values(WorksheetsLanguageOptions);
+// Define extended language list manually
+export const POCKETBASE_SUPPORTED_LANGUAGES = ['English', 'Spanish', 'French', 'Thai', 'German'] as const;
+
+export const LANGUAGE_OPTIONS = [
+  ...POCKETBASE_SUPPORTED_LANGUAGES,
+  'Arabic',
+  'Chinese',
+  'Danish',
+  'Dutch',
+  'Finnish',
+  'Greek',
+  'Hindi',
+  'Indonesian',
+  'Italian',
+  'Japanese',
+  'Korean',
+  'Norwegian',
+  'Polish',
+  'Portuguese',
+  'Russian',
+  'Swedish',
+  'Turkish',
+  'Vietnamese'
+];
+
 export const LEVEL_OPTIONS = Object.values(WorksheetsLevelOptions);
 export const TAG_OPTIONS = Object.values(WorksheetsTagsOptions);
 export const LESSON_TYPE_OPTIONS = Object.values(WorksheetsLessonTypeOptions);

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { fetchLessonById, createLesson, updateLesson } from '../../services/pocketbase';
-import { LANGUAGE_OPTIONS, LEVEL_OPTIONS, TAG_OPTIONS, LESSON_TYPE_OPTIONS } from '../../types';
+import { LANGUAGE_OPTIONS, LEVEL_OPTIONS, TAG_OPTIONS, LESSON_TYPE_OPTIONS, POCKETBASE_SUPPORTED_LANGUAGES } from '../../types';
 import { triggerRebuild } from '../../services/deploy';
 import { Button } from '../UI/Button';
 import { Save, X, AlertCircle, FileJson, Info, Globe, Layers, Tag as TagIcon, Video, Check, Image as ImageIcon, Music, Layout, ClipboardPaste, Eye, Code } from 'lucide-react';
 import { Modal } from '../UI/Modal';
 import { JSONKeyValueEditor } from './JSONKeyValueEditor';
+import { SearchableSelect } from '../UI/SearchableSelect';
 
 
 
@@ -39,6 +40,11 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
     const [showVisualEditor, setShowVisualEditor] = useState(false);
     const [seo, setSeo] = useState('');
     const [isMinified, setIsMinified] = useState(false);
+
+    const isPocketbaseSupportedLanguage = React.useMemo(() => {
+        if (!language) return false;
+        return (POCKETBASE_SUPPORTED_LANGUAGES as readonly string[]).includes(language);
+    }, [language]);
 
     useEffect(() => {
         if (lessonId) {
@@ -445,20 +451,16 @@ ${embedData}
                             <div>
                                 <label className="block text-sm font-black text-gray-700 mb-2 ml-1 uppercase tracking-wider">Language</label>
                                 <div className="relative">
-                                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none z-10">
                                         <Globe className="h-4 w-4 text-gray-400" />
                                     </div>
-                                    <select
+                                    <SearchableSelect
                                         value={language}
-                                        onChange={(e) => setLanguage(e.target.value)}
-                                        required
-                                        className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none appearance-none"
-                                    >
-                                        <option value="" disabled>Select language...</option>
-                                        {LANGUAGE_OPTIONS.map(opt => (
-                                            <option key={opt} value={opt}>{opt}</option>
-                                        ))}
-                                    </select>
+                                        onChange={setLanguage}
+                                        options={LANGUAGE_OPTIONS}
+                                        placeholder="Select language..."
+                                        className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none hover:border-gray-300 transition-colors"
+                                    />
                                 </div>
                             </div>
                             <div>
@@ -772,9 +774,16 @@ ${embedData}
                     </Button>
 
                     {!isPublicCreator && (
-                        <Button variant="success" size="lg" type="submit" isLoading={loading} className="px-10 shadow-lg shadow-green-100 ml-auto w-full sm:w-auto mt-4 sm:mt-0">
-                            <Save className="w-4 h-4 mr-2" /> {lessonId ? 'Update Online Worksheet' : 'Create Online Worksheet'}
-                        </Button>
+                        <div className="ml-auto flex flex-col items-end w-full sm:w-auto mt-4 sm:mt-0">
+                            <Button variant="success" size="lg" type="submit" isLoading={loading} disabled={!isPocketbaseSupportedLanguage} className="px-10 shadow-lg shadow-green-100 w-full disabled:opacity-50 disabled:cursor-not-allowed">
+                                <Save className="w-4 h-4 mr-2" /> {lessonId ? 'Update Online Worksheet' : 'Create Online Worksheet'}
+                            </Button>
+                            {!isPocketbaseSupportedLanguage && language && (
+                                <p className="text-[10px] text-red-500 font-bold mt-1.5 text-right max-w-[250px] leading-tight mb-[-10px]">
+                                    Online saving is disabled: '{language}' is not an officially supported platform language. You can still save as HTML.
+                                </p>
+                            )}
+                        </div>
                     )}
                 </div>
             </form>

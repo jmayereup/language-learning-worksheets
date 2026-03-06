@@ -8,6 +8,7 @@ import { BrowserSupportWarning } from './components/UI/BrowserSupportWarning';
 import { AdminDashboard } from './components/Admin/AdminDashboard';
 import { LessonEditor } from './components/Admin/LessonEditor';
 import { WebComponentPreview } from './components/Lesson/WebComponentPreview';
+import { SearchableSelect } from './components/UI/SearchableSelect';
 
 const App: React.FC = () => {
     const [view, setView] = useState<'home' | 'lesson' | 'admin' | 'create'>('home');
@@ -233,15 +234,13 @@ const App: React.FC = () => {
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                                 <div>
                                     <label className="block text-sm font-bold text-gray-700 mb-2">Language</label>
-                                    <select
+                                    <SearchableSelect
                                         value={language}
-                                        onChange={(e) => setLanguage(e.target.value)}
+                                        onChange={setLanguage}
+                                        options={LANGUAGE_OPTIONS}
+                                        placeholder="Select language..."
                                         className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 bg-white"
-                                    >
-                                        {LANGUAGE_OPTIONS.map(opt => (
-                                            <option key={opt} value={opt}>{opt}</option>
-                                        ))}
-                                    </select>
+                                    />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-bold text-gray-700 mb-2">Level</label>
