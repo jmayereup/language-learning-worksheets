@@ -402,15 +402,27 @@ ${embedData}
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button variant="secondary" size="sm" onClick={handlePreview} className="flex-1 sm:flex-none gap-2 border-green-200 text-green-700 hover:bg-green-50 text-xs">
-
-                        <Eye className="w-4 h-4" /> Preview
-                    </Button>
                     <Button variant="secondary" size="sm" onClick={onCancel} className="flex-1 sm:flex-none gap-2 text-xs">
                         <X className="w-4 h-4" /> Cancel
                     </Button>
                 </div>
             </div>
+
+            {isPublicCreator && (
+                <div className="bg-blue-50/50 border-b border-blue-100 p-4 md:p-6 text-sm text-blue-800">
+                    <h3 className="font-bold flex items-center gap-2 mb-2">
+                        <Info className="w-5 h-5 text-blue-600" />
+                        How to create a standalone worksheet
+                    </h3>
+                    <ol className="list-decimal pl-5 space-y-1.5 ml-2">
+                        <li>Fill out the form below with your worksheet's language, level, and tags.</li>
+                        <li>Select a <strong>Lesson Type</strong> to enable the Gemini generator link.</li>
+                        <li>Click <strong>Get JSON from Gemini</strong> to open a pre-prompted AI chat. Have Gemini generate the worksheet content, then paste the resulting JSON into the content area.</li>
+                        <li>Use <strong>Preview</strong> to verify your worksheet looks correct.</li>
+                        <li>Finally, click <strong>Save as HTML</strong> to download your standalone interactive worksheet!</li>
+                    </ol>
+                </div>
+            )}
 
             <form onSubmit={handleSubmit} className="p-8">
 
@@ -674,19 +686,25 @@ ${embedData}
                             >
                                 <ClipboardPaste className="w-4 h-4" /> Paste
                             </Button>
-                            <a
-                                href={lessonType === 'information-gap'
-                                    ? "https://gemini.google.com/gem/1bdsM9tYk1Qb4lcCsnPVOTK1FR_37HYnX?usp=sharing"
-                                    : lessonType === 'focused-reading'
-                                        ? "https://gemini.google.com/gem/1ZcCIp-jD0vhJk_nZziTbmGv0eVz-vfHV?usp=sharing"
-                                        : "https://gemini.google.com/gem/1a183ceHi_da5ac9scUQ3AXs0A5-TcOtn?usp=sharing"
-                                }
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-[10px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 bg-blue-50 px-2 py-1 rounded-md border border-blue-100 transition-colors"
-                            >
-                                <Info className="w-4 h-4" /> Get JSON from Gemini
-                            </a>
+                            {lessonType ? (
+                                <a
+                                    href={lessonType === 'information-gap'
+                                        ? "https://gemini.google.com/gem/1bdsM9tYk1Qb4lcCsnPVOTK1FR_37HYnX?usp=sharing"
+                                        : lessonType === 'focused-reading'
+                                            ? "https://gemini.google.com/gem/1ZcCIp-jD0vhJk_nZziTbmGv0eVz-vfHV?usp=sharing"
+                                            : "https://gemini.google.com/gem/1a183ceHi_da5ac9scUQ3AXs0A5-TcOtn?usp=sharing"
+                                    }
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-[10px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 bg-blue-50 px-2 py-1 rounded-md border border-blue-100 transition-colors"
+                                >
+                                    <Info className="w-4 h-4" /> Get JSON from Gemini
+                                </a>
+                            ) : (
+                                <span className="text-[10px] font-bold text-gray-400 flex items-center gap-1 bg-gray-50 px-2 py-1 rounded-md border border-gray-200 cursor-not-allowed opacity-70" title="Select a Lesson Type first">
+                                    <Info className="w-4 h-4" /> Get JSON from Gemini
+                                </span>
+                            )}
                         </div>
                     </div>
                     <textarea
@@ -738,7 +756,7 @@ ${embedData}
                     <Button variant="secondary" onClick={onCancel} type="button" className="px-6 order-last sm:order-none">
                         Cancel
                     </Button>
-                    <Button variant="outline" type="button" onClick={handlePreview} className="px-6 border-green-200 text-green-700 hover:bg-green-50">
+                    <Button variant="outline" type="button" onClick={handlePreview} disabled={!lessonType} className="px-6 border-green-200 text-green-700 hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed">
                         <Eye className="w-4 h-4 mr-2" /> Preview
                     </Button>
                     <Button variant="outline" type="button" onClick={handleDownloadJSON} className="border-blue-200 text-blue-700 hover:bg-blue-50">
