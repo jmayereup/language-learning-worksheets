@@ -7,6 +7,7 @@ import { Save, X, AlertCircle, FileJson, Info, Globe, Layers, Tag as TagIcon, Vi
 import { Modal } from '../UI/Modal';
 import { JSONKeyValueEditor } from './JSONKeyValueEditor';
 import { SearchableSelect } from '../UI/SearchableSelect';
+import geminiCopyExample from '../../assets/copy-from-gemini-example.png';
 
 
 
@@ -144,7 +145,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
         e.preventDefault();
 
         // Ensure at least one tag is selected
-        if (selectedTags.length === 0) {
+        if (!isPublicCreator && selectedTags.length === 0) {
             setError('Please select at least one tag.');
             return;
         }
@@ -421,9 +422,15 @@ ${embedData}
                         How to create a standalone worksheet
                     </h3>
                     <ol className="list-decimal pl-5 space-y-1.5 ml-2">
-                        <li>Fill out the form below with your worksheet's language, level, and tags.</li>
                         <li>Select a <strong>Lesson Type</strong> to enable the Gemini generator link.</li>
-                        <li>Click <strong>Get JSON from Gemini</strong> to open a pre-prompted AI chat. Have Gemini generate the worksheet content, then paste the resulting JSON into the content area.</li>
+                        <li>
+                            Click <strong>Get JSON from Gemini</strong> to open a pre-prompted AI chat.<br /> Tell Gemini to generate the worksheet content for the topic, language, and difficuly level desired.<br />
+                            <div className="my-2 p-3 bg-white/60 rounded-lg border border-blue-200/60 inline-block">
+                                <p className="text-xs font-bold mb-2">⚠️ Important: Use the copy icon at the TOP-RIGHT corner of Gemini's response:</p>
+                                <img src={geminiCopyExample} alt="Copy from Gemini Example" className="rounded border border-gray-200 shadow-sm max-w-full md:max-w-sm" />
+                            </div>
+                            <br />Then return to this tab and click the paste button above the WORKSHEET JSON CONTENT area below.
+                        </li>
                         <li>Use <strong>Preview</strong> to verify your worksheet looks correct.</li>
                         <li>Finally, click <strong>Save as HTML</strong> to download your standalone interactive worksheet!</li>
                     </ol>
@@ -443,46 +450,48 @@ ${embedData}
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
                                 className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
-                                placeholder="Enter lesson title..."
+                                placeholder="Gemini will fill this in..."
                             />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-black text-gray-700 mb-2 ml-1 uppercase tracking-wider">Language</label>
-                                <div className="relative">
-                                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none z-10">
-                                        <Globe className="h-4 w-4 text-gray-400" />
+                        {!isPublicCreator && (
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-black text-gray-700 mb-2 ml-1 uppercase tracking-wider">Language</label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none z-10">
+                                            <Globe className="h-4 w-4 text-gray-400" />
+                                        </div>
+                                        <SearchableSelect
+                                            value={language}
+                                            onChange={setLanguage}
+                                            options={LANGUAGE_OPTIONS}
+                                            placeholder="Select language..."
+                                            className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none hover:border-gray-300 transition-colors"
+                                        />
                                     </div>
-                                    <SearchableSelect
-                                        value={language}
-                                        onChange={setLanguage}
-                                        options={LANGUAGE_OPTIONS}
-                                        placeholder="Select language..."
-                                        className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none hover:border-gray-300 transition-colors"
-                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-black text-gray-700 mb-2 ml-1 uppercase tracking-wider">Level</label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                            <Layers className="h-4 w-4 text-gray-400" />
+                                        </div>
+                                        <select
+                                            value={level}
+                                            onChange={(e) => setLevel(e.target.value)}
+                                            required={!isPublicCreator}
+                                            className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none appearance-none"
+                                        >
+                                            <option value="" disabled>Select level...</option>
+                                            {LEVEL_OPTIONS.map(opt => (
+                                                <option key={opt} value={opt}>{opt}</option>
+                                            ))}
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
-                            <div>
-                                <label className="block text-sm font-black text-gray-700 mb-2 ml-1 uppercase tracking-wider">Level</label>
-                                <div className="relative">
-                                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                        <Layers className="h-4 w-4 text-gray-400" />
-                                    </div>
-                                    <select
-                                        value={level}
-                                        onChange={(e) => setLevel(e.target.value)}
-                                        required
-                                        className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none appearance-none"
-                                    >
-                                        <option value="" disabled>Select level...</option>
-                                        {LEVEL_OPTIONS.map(opt => (
-                                            <option key={opt} value={opt}>{opt}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
+                        )}
 
                         <div>
                             <label className="block text-sm font-black text-gray-700 mb-2 ml-1 uppercase tracking-wider">Lesson Type</label>
@@ -504,32 +513,34 @@ ${embedData}
                             </div>
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-black text-gray-700 mb-2 ml-1 uppercase tracking-wider">Tags</label>
-                            <div className="flex flex-wrap gap-2 p-3 bg-gray-50 border border-gray-200 rounded-xl min-h-[50px]">
-                                {TAG_OPTIONS.map(tag => (
-                                    <button
-                                        key={tag}
-                                        type="button"
-                                        onClick={() => {
-                                            setSelectedTags(prev =>
-                                                prev.includes(tag)
-                                                    ? prev.filter(t => t !== tag)
-                                                    : [...prev, tag]
-                                            );
-                                        }}
-                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${selectedTags.includes(tag)
-                                            ? 'bg-green-600 border-green-700 text-white shadow-sm'
-                                            : 'bg-white border-gray-200 text-gray-600 hover:border-green-300 hover:bg-green-50'
-                                            }`}
-                                    >
-                                        <TagIcon className="w-4 h-4" />
-                                        {tag}
-                                        {selectedTags.includes(tag) && <Check className="w-3 h-3" />}
-                                    </button>
-                                ))}
+                        {!isPublicCreator && (
+                            <div>
+                                <label className="block text-sm font-black text-gray-700 mb-2 ml-1 uppercase tracking-wider">Tags</label>
+                                <div className="flex flex-wrap gap-2 p-3 bg-gray-50 border border-gray-200 rounded-xl min-h-[50px]">
+                                    {TAG_OPTIONS.map(tag => (
+                                        <button
+                                            key={tag}
+                                            type="button"
+                                            onClick={() => {
+                                                setSelectedTags(prev =>
+                                                    prev.includes(tag)
+                                                        ? prev.filter(t => t !== tag)
+                                                        : [...prev, tag]
+                                                );
+                                            }}
+                                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${selectedTags.includes(tag)
+                                                ? 'bg-green-600 border-green-700 text-white shadow-sm'
+                                                : 'bg-white border-gray-200 text-gray-600 hover:border-green-300 hover:bg-green-50'
+                                                }`}
+                                        >
+                                            <TagIcon className="w-4 h-4" />
+                                            {tag}
+                                            {selectedTags.includes(tag) && <Check className="w-3 h-3" />}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
 
                     <div className="space-y-6">
@@ -646,10 +657,10 @@ ${embedData}
                         value={seo}
                         onChange={(e) => setSeo(e.target.value)}
                         className="w-full h-24 px-4 py-3 bg-white border border-blue-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-sm leading-relaxed"
-                        placeholder="Enter a brief, engaging description for search results and social sharing..."
+                        placeholder="Gemini will fill this in for you..."
                     />
-                    <p className="mt-2 text-[10px] text-blue-400 font-medium ml-1 italic">
-                        This summary appears on the lesson list page and helps with search engine visibility.
+                    <p className="mt-2 text-sm text-blue-400 font-medium ml-1 italic">
+                        This summary appears on the lesson list page and helps with search engine visibility. You only need it if you plan to use your worksheet on websites.
                     </p>
                 </div>
 
@@ -763,14 +774,11 @@ ${embedData}
                     <Button variant="outline" type="button" onClick={handlePreview} disabled={!lessonType} className="px-6 border-green-200 text-green-700 hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed">
                         <Eye className="w-4 h-4 mr-2" /> Preview
                     </Button>
-                    <Button variant="outline" type="button" onClick={handleDownloadJSON} className="border-blue-200 text-blue-700 hover:bg-blue-50">
-                        <FileJson className="w-4 h-4" /> Download JSON
-                    </Button>
-                    <Button variant="outline" type="button" onClick={handleCopyEmbed} className="border-indigo-200 text-indigo-700 hover:bg-indigo-50">
-                        <Code className="w-4 h-4" /> Copy Embed
+                    <Button variant="outline" type="button" onClick={handleCopyEmbed} className="border-indigo-200  text-indigo-700 hover:bg-indigo-50">
+                        <Code className="w-4 h-4 mr-2" /> Copy Embed
                     </Button>
                     <Button variant="success" type="button" onClick={handleDownloadHTML} className="shadow-lg shadow-green-100 px-6">
-                        <Globe className="w-4 h-4" /> Save as HTML
+                        <Globe className="w-4 h-4 mr-2" /> Save as HTML
                     </Button>
 
                     {!isPublicCreator && (
