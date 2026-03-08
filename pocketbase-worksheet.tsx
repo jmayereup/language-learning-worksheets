@@ -15,7 +15,44 @@ export class TJPocketBaseWorksheet extends HTMLElement {
 
   connectedCallback() {
     this.classList.add('tj-printable-worksheet');
+    this.injectGlobalPrintStyles();
     this.render();
+  }
+
+  private injectGlobalPrintStyles() {
+    // Check if styles already injected
+    if (document.getElementById('tj-worksheet-print-isolation')) return;
+
+    const style = document.createElement('style');
+    style.id = 'tj-worksheet-print-isolation';
+    style.textContent = `
+      @media print {
+        /* Explicitly hide common blog clutter on the host page */
+        header, footer, nav, .sidebar, .comments-section, .nav-menu, .recommendations, .astro-header, .astro-footer {
+          display: none !important;
+        }
+        
+        /* Ensure the custom element itself is visible and full width */
+        tj-pocketbase-worksheet {
+          display: block !important;
+          width: 100% !important;
+        }
+
+        /* If browser supports :has(), use the surgical isolation logic */
+        @supports (selector(:has(*))) {
+          :root:has(.tj-printable-worksheet) body *:not(:has(.tj-printable-worksheet)):not(.tj-printable-worksheet):not(.tj-printable-worksheet *) {
+            display: none !important;
+          }
+          :root:has(.tj-printable-worksheet) body :has(.tj-printable-worksheet) {
+            background: transparent !important;
+            border: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+        }
+      }
+    `;
+    document.head.appendChild(style);
   }
 
   render() {

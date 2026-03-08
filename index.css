@@ -46,12 +46,27 @@ body {
     /* Universal Print Solo: Hide everything except the worksheet and its container hierarchy */
     /* This ensures that only the worksheet content is visible when printing, even if deep-embedded. */
     @supports (selector(:has(*))) {
+        /* User-suggested explicit hides for blog elements */
+        :root:has(.tj-printable-worksheet) header, 
+        :root:has(.tj-printable-worksheet) footer, 
+        :root:has(.tj-printable-worksheet) nav,
+        :root:has(.tj-printable-worksheet) .sidebar, 
+        :root:has(.tj-printable-worksheet) .comments-section, 
+        :root:has(.tj-printable-worksheet) .nav-menu, 
+        :root:has(.tj-printable-worksheet) .recommendations,
+        :root:has(.tj-printable-worksheet) .astro-header,
+        :root:has(.tj-printable-worksheet) .astro-footer {
+            display: none !important;
+        }
+
+        /* Universal Print Solo: Hide everything except the worksheet and its container hierarchy */
         :root:has(.tj-printable-worksheet) body *:not(:has(.tj-printable-worksheet)):not(.tj-printable-worksheet):not(.tj-printable-worksheet *) {
             display: none !important;
         }
 
         /* Ensure the printable container itself is visible and occupies full space */
-        .tj-printable-worksheet {
+        .tj-printable-worksheet,
+        tj-pocketbase-worksheet {
             display: block !important;
             width: 100% !important;
             margin: 0 !important;
