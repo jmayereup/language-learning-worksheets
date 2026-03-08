@@ -14,6 +14,7 @@ export class TJPocketBaseWorksheet extends HTMLElement {
   }
 
   connectedCallback() {
+    this.classList.add('tj-printable-worksheet');
     this.render();
   }
 
