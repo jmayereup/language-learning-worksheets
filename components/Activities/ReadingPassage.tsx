@@ -205,7 +205,7 @@ export const ReadingPassage: React.FC<ReadingPassageProps> = ({
       <div className="mx-0">
         <div
           ref={passageRef}
-          className="max-w-none justify-baseline text-lg leading-loose text-gray-800 bg-transparent"
+          className="max-w-none justify-baseline text-lg leading-relaxed text-gray-800 bg-transparent whitespace-pre-wrap"
           translate="no"
         >
           {renderTextWithVocabulary()}

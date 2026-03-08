@@ -37,9 +37,11 @@
       "questions": [
         { "text": "Sarah wakes up at 8:00 am.", "answer": "false" },
         { "text": "She eats toast and eggs for breakfast.", "answer": "true" },
-        { "text": "She goes to school by car.", "answer": "false" },
-        { "text": "School finishes at 3:00 pm.", "answer": "true" },
-        { "text": "She goes to bed at 10:00 pm.", "answer": "false" }
+        {
+          "text": "The question text goes here?",
+          "options": ["Option A", "Option B", "Option C", "Option D"],
+          "answer": "Option B"
+        }       
       ]
     },
     "writtenExpression": {

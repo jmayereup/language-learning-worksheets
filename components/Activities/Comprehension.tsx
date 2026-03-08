@@ -143,7 +143,7 @@ export const Comprehension: React.FC<Props> = ({
               Reference Text
             </h3>
             <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 max-h-[400px] overflow-y-auto custom-scrollbar shadow-inner select-text">
-              <p className="text-gray-700 leading-relaxed font-sans text-base whitespace-pre-line" translate="no">
+              <p className="text-gray-700 leading-relaxed font-sans text-base whitespace-pre-wrap" translate="no">
                 {readingText}
               </p>
             </div>
