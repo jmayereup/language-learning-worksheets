@@ -138,6 +138,32 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
       };
     });
   }, [standardContent, lesson.id]);
+
+  const optimizedImageUrl = useMemo(() => {
+    if (!lesson.imageUrl) return undefined;
+    
+    // In Astro, images are often optimized and their URLs changed.
+    // Since this component might be in a Shadow DOM (via pocketbase-worksheet.tsx),
+    // we try to find the image element by ID.
+    try {
+      // First try standard document lookup
+      let img = document.getElementById('lesson-image') as HTMLImageElement;
+      
+      // If not found, try searching from the current element's root (for Shadow DOM)
+      if (!img && passageRef.current) {
+        const root = passageRef.current.getRootNode() as ShadowRoot | Document;
+        if (root && 'getElementById' in root) {
+          img = root.getElementById('lesson-image') as HTMLImageElement;
+        }
+      }
+      
+      if (img && img.src) return img.src;
+    } catch (e) {
+      console.warn('Failed to resolve optimized image URL:', e);
+    }
+    
+    return lesson.imageUrl;
+  }, [lesson.imageUrl]);
   
   const vocabularyExplanations = useMemo(() => {
     const map: Record<string, string> = {};
@@ -155,7 +181,7 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
       {/* Worksheet Actions */}
       <div className="hidden sm:flex">
         <WorksheetExportActions
-          lesson={lesson}
+          lesson={{ ...lesson, optimizedImageUrl }}
           displayTitle={displayTitle}
           studentName={studentName}
           studentId={studentId}
@@ -357,7 +383,8 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
           {lesson.imageUrl && (
             <div className="flex justify-center">
               <img
-                src={lesson.imageUrl}
+                id="lesson-image-print"
+                src={optimizedImageUrl || lesson.imageUrl}
                 alt="Lesson topic"
                 className="max-h-36 w-auto object-contain rounded"
               />

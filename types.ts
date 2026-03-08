@@ -179,6 +179,7 @@ export interface LessonRecord {
 export interface ParsedLesson extends Omit<LessonRecord, 'content'> {
   content: LessonContent;
   imageUrl?: string;
+  optimizedImageUrl?: string;
   audioFileUrl?: string;
 }
 

@@ -31,6 +31,7 @@ export const LessonMedia: React.FC<LessonMediaProps> = ({
       {imageUrl && (
         <div className="w-full flex justify-center">
           <img
+            id="lesson-image"
             src={imageUrl}
             alt={title || "Lesson topic"}
             className="w-full h-auto max-h-[500px] object-contain rounded-2xl shadow-lg bg-white p-4 border border-green-100 animate-fade-in"

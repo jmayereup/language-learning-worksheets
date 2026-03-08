@@ -77,6 +77,8 @@ Name <u>&nbsp;&nbsp;&nbsp;&nbsp;${studentName || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <h1 style="font-size:18px;font-weight:bold;margin:0 0 4px 0">${displayTitle} - Player ${playerNum}</h1>
 <p style="color:#666;margin:0 0 16px 0;font-size:11px">Language: ${lesson.language} | Level: ${lesson.level} | Role: Player ${playerNum}</p>
 
+${(lesson.optimizedImageUrl || lesson.imageUrl) ? `<div style="text-align:center;margin:16px 0"><img src="${lesson.optimizedImageUrl || lesson.imageUrl}" alt="Lesson image" style="max-width:100%;height:auto;border-radius:6px" /></div>` : ''}
+
 ${playerHtml}
 `;
     };

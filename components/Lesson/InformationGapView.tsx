@@ -67,6 +67,23 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
   const [isFinished, setIsFinished] = useState(false);
   const [isSinglePlayer, setIsSinglePlayer] = useState(false);
   const passageRef = React.useRef<HTMLDivElement>(null);
+  
+  const optimizedImageUrl = React.useMemo(() => {
+    if (!lesson.imageUrl) return undefined;
+    try {
+      let img = document.getElementById('lesson-image') as HTMLImageElement;
+      if (!img && passageRef.current) {
+        const root = passageRef.current.getRootNode() as ShadowRoot | Document;
+        if (root && 'getElementById' in root) {
+          img = root.getElementById('lesson-image') as HTMLImageElement;
+        }
+      }
+      if (img && img.src) return img.src;
+    } catch (e) {
+      console.warn('Failed to resolve optimized image URL:', e);
+    }
+    return lesson.imageUrl;
+  }, [lesson.imageUrl]);
 
   const { content } = lesson;
 
@@ -136,7 +153,7 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
       <div className="max-w-4xl mx-auto py-12 px-4 animate-fade-in">
         <div className="hidden sm:flex mb-8">
           <InformationGapExportActions
-            lesson={lesson}
+            lesson={{ ...lesson, optimizedImageUrl }}
             displayTitle={mainTitle}
             studentName={studentName}
             studentId={studentId}

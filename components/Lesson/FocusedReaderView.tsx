@@ -68,6 +68,23 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const readingPassageRef = useRef<HTMLDivElement>(null);
 
+  const optimizedImageUrl = React.useMemo(() => {
+    if (!lesson.imageUrl) return undefined;
+    try {
+      let img = document.getElementById('lesson-image') as HTMLImageElement;
+      if (!img && readingPassageRef.current) {
+        const root = readingPassageRef.current.getRootNode() as ShadowRoot | Document;
+        if (root && 'getElementById' in root) {
+          img = root.getElementById('lesson-image') as HTMLImageElement;
+        }
+      }
+      if (img && img.src) return img.src;
+    } catch (e) {
+      console.warn('Failed to resolve optimized image URL:', e);
+    }
+    return lesson.imageUrl;
+  }, [lesson.imageUrl]);
+
   const handlePageChange = (newIndex: number) => {
     setCurrentPartIndex(newIndex);
     setAnswers(prev => ({ ...prev, focusedReaderPage: newIndex }));
@@ -112,7 +129,7 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
     <div className="space-y-4">
       <div className="hidden sm:flex">
         <FocusedReaderExportActions
-          lesson={lesson}
+          lesson={{ ...lesson, optimizedImageUrl }}
           displayTitle={lesson.title || content.title}
           studentName={studentName}
           studentId={studentId}
@@ -327,7 +344,8 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
           {lesson.imageUrl && (
             <div className="flex justify-center mb-4">
               <img
-                src={lesson.imageUrl}
+                id="lesson-image-reader-print"
+                src={optimizedImageUrl || lesson.imageUrl}
                 alt="Lesson topic"
                 className="max-h-36 w-auto object-contain rounded"
               />
