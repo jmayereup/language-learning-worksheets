@@ -120,7 +120,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
         try {
             const parsedContent = JSON.parse(jsonContent);
             const tempLesson = {
-                id: lessonId || 'preview',
+                id: `preview-${lessonId || 'new'}-${Date.now()}`,
                 title,
                 language,
                 level,

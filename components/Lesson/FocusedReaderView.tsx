@@ -64,8 +64,18 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
   setAudioPreference,
 }) => {
   const content = lesson.content;
-  const [currentPartIndex, setCurrentPartIndex] = useState(answers.focusedReaderPage || 0);
+  const [rawPartIndex, setCurrentPartIndex] = useState(answers.focusedReaderPage || 0);
   
+  const currentPartIndex = (content.parts && rawPartIndex < content.parts.length) 
+    ? (rawPartIndex >= 0 ? rawPartIndex : 0) 
+    : 0;
+
+  useEffect(() => {
+    if (rawPartIndex !== currentPartIndex) {
+      setCurrentPartIndex(currentPartIndex);
+    }
+  }, [rawPartIndex, currentPartIndex]);
+
   if (!content.parts || content.parts.length === 0) {
     return (
       <div className="p-8 text-center bg-amber-50 rounded-2xl border border-amber-200">
