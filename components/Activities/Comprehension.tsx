@@ -111,7 +111,7 @@ export const Comprehension: React.FC<Props> = ({
       <section className="bg-white p-6 rounded-xl sm:shadow-sm sm:border sm:border-gray-100 mb-2 text-center">
         <h2 className="text-xl font-black text-green-900 uppercase tracking-tight mb-4">{isCompleted ? "Activity Completed!" : title}</h2>
         <div className="text-2xl font-black mb-4 text-green-600">
-          {score === data.questions.length ? '🎉 Perfect!' : 'Good Job!'}
+          {score === data.questions.length ? '🎉 Perfect!' : ''}
         </div>
         <p className="text-gray-600 text-lg mb-6 font-medium">You got {score} out of {data.questions.length} correct.</p>
         <Button onClick={handleRetry} variant="secondary" className="px-8 py-3 rounded-full font-bold">

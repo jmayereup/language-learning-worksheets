@@ -122,13 +122,6 @@ export const Vocabulary: React.FC<Props> = ({
     onChange(newAnswers);
     setSelectedWordIndex(null); // Clear selection after matching
 
-    // Auto-check if all words are matched
-    const matchedCount = Object.keys(newAnswers).filter(k => k.startsWith('vocab_')).length;
-    if (matchedCount === shuffledWordIndices.length) {
-      setTimeout(() => {
-        checkAnswers(newAnswers);
-      }, 500); // Small delay for visual consistency
-    }
   };
 
   const checkAnswers = (currentAnswers = savedAnswers) => {
