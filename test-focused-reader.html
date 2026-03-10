@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Focused Reader Test - TJ Web Component</title>
+    
+    <!-- Include the compiled CSS from Vite build -->
+    <link rel="stylesheet" href="./dist/wc/language-learning-worksheets.css">
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    
+    <style>
+        body {
+            background-color: #f3f4f6;
+            padding: 2rem;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+        header {
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 1rem;
+        }
+        h1 { color: #111827; margin: 0; }
+        p { color: #4b5563; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Focused Reader Test</h1>
+            <p>Testing the <code>&lt;tj-pocketbase-worksheet&gt;</code> web component with a Focused Reader (Multi-Page) layout.</p>
+        </header>
+
+        <!-- The Web Component -->
+        <tj-pocketbase-worksheet>
+            <script type="application/json">
+{
+  "id": "fr-test-002",
+  "title": "The Amazing World of Dolphins",
+  "language": "English",
+  "level": "B1",
+  "lessonType": "focused-reader",
+  "content": {
+    "title": "The Amazing World of Dolphins",
+    "seo_intro": "Learn about the intelligence and social lives of dolphins.",
+    "parts": [
+      {
+        "part_number": 1,
+        "text": "Dolphins are some of the most intelligent and beloved animals in the ocean. They are not fish, but marine mammals, which means they breathe air and give birth to live babies.",
+        "vocabulary_explanations": {
+          "marine mammals": "Animals that live in the ocean but breathe air, are warm-blooded, and produce milk."
+        },
+        "questions": [
+          {
+            "question": "Dolphins are a type of highly intelligent fish.",
+            "type": "True/False",
+            "options": ["True", "False"],
+            "answer": "False"
+          }
+        ]
+      },
+      {
+        "part_number": 2,
+        "text": "Dolphins are very social animals. They live in groups called pods. A pod can have just a few dolphins, or it can have hundreds of them! Living in a pod helps them stay safe from predators.",
+        "vocabulary_explanations": {
+          "pod": "A specific word used for a group of dolphins or whales."
+        },
+        "questions": [
+          {
+            "question": "What is a group of dolphins called?",
+            "type": "Multiple Choice",
+            "options": ["A) A school", "B) A herd", "C) A pod"],
+            "answer": "C) A pod"
+          }
+        ]
+      }
+    ],
+    "criticalThinking": {
+      "title": "Discussion: Dolphins & Community",
+      "instructions": [
+        "Why is it an advantage for dolphins to be mammals in the ocean?",
+        "How does being part of a 'pod' (or community) help humans stay safe or succeed?",
+        "Can you think of other animals that live in similar social structures?"
+      ]
+    }
+  },
+  "created": "2026-03-10 10:15:00.000Z",
+  "image": "https://blog.teacherjake.com/apps/assets/tj-logo.svg"
+}
+            </script>
+        </tj-pocketbase-worksheet>
+    </div>
+
+    <!-- Include the compiled JS from Vite build -->
+    <script src="./dist/wc/tj-pocketbase-worksheet.umd.js"></script>
+</body>
+</html>

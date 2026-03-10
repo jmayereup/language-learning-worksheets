@@ -251,7 +251,7 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
       )}
 
       {/* Edit Button for Admins/Teachers */}
-      <div className="mt-12 text-center print:hidden">
+      <div className="mt-8 text-center print:hidden">
         <a 
           href={editUrl}
           target={isWebComponent ? "_blank" : "_self"}

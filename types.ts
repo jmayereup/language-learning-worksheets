@@ -106,13 +106,13 @@ export interface FocusedReaderPart {
   text: string;
   vocabulary_explanations: Record<string, string>;
   questions: FocusedReaderQuestion[];
-  criticalThinking?: CriticalThinkingActivity;
 }
 
 export interface FocusedReaderContent {
   title: string;
   seo_intro: string;
   parts: FocusedReaderPart[];
+  criticalThinking?: CriticalThinkingActivity;
   references?: Record<string, string>;
 }
 

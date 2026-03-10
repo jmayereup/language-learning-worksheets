@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Worksheet View Test - TJ Web Component</title>
+    
+    <!-- Include the compiled CSS from Vite build -->
+    <link rel="stylesheet" href="./dist/wc/language-learning-worksheets.css">
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    
+    <style>
+        body {
+            background-color: #f3f4f6;
+            padding: 2rem;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+        header {
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 1rem;
+        }
+        h1 { color: #111827; margin: 0; }
+        p { color: #4b5563; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Worksheet View Test</h1>
+            <p>Testing the <code>&lt;tj-pocketbase-worksheet&gt;</code> web component with a Standard Worksheet layout.</p>
+        </header>
+
+        <!-- The Web Component -->
+        <tj-pocketbase-worksheet>
+            <script type="application/json">
+{
+  "id": "ws-test-001",
+  "title": "The Joy of Creating",
+  "language": "English",
+  "level": "B1",
+  "lessonType": "standard",
+  "content": {
+    "title": "The Joy of Creating",
+    "readingText": "Finding the perfect hobby can be a wonderful way to relax and express creativity. In my community, people have very diverse interests that keep them busy during their free time. My neighbor, Thomas, is a skilled craftsman who loves to build things with wood. He spends his weekends in a dusty workshop creating sturdy oak tables and elegant chairs for his family.",
+    "activities": {
+      "vocabulary": {
+        "definitions": [
+          { "id": "A", "text": "To construct items like furniture using timber." },
+          { "id": "B", "text": "To assemble mechanical devices or robots." }
+        ],
+        "items": [
+          { "label": "Build things with wood", "answer": "A" },
+          { "label": "Build machines", "answer": "B" }
+        ]
+      },
+      "fillInTheBlanks": [
+        { "before": "My grandfather has a large workshop where he likes to", "after": "for the whole family.", "answer": "build things with wood" }
+      ],
+      "scrambled": [
+        { "text": "scrambled", "answer": "I use the oven to bake bread." }
+      ],
+      "comprehension": {
+        "questions": [
+          { "text": "Thomas builds robots in his workshop.", "answer": "false" }
+        ]
+      },
+      "writtenExpression": {
+        "questions": [
+          { "text": "Which of the hobbies mentioned in the text would you like to try and why?" }
+        ],
+        "examples": "<p><strong>Examples:</strong></p><ul class='list-disc pl-5'><li>I would like to grow a garden because I love being outside.</li></ul>"
+      },
+      "criticalThinking": {
+        "title": "Discussion: Hobbies & Creativity",
+        "instructions": [
+          "Why is it important to have a creative outlet?",
+          "How can hobbies help reduce stress in daily life?",
+          "Do you think handmade items are better than mass-produced ones? Why or why not?"
+        ]
+      }
+    }
+  },
+  "created": "2026-02-11 06:27:17.324Z",
+  "image": "https://blog.teacherjake.com/apps/assets/my_hobbies_q8se7y0inb.jpg"
+}
+            </script>
+        </tj-pocketbase-worksheet>
+    </div>
+
+    <!-- Include the compiled JS from Vite build -->
+    <script src="./dist/wc/tj-pocketbase-worksheet.umd.js"></script>
+</body>
+</html>

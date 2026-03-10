@@ -148,7 +148,7 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
         />
       </div>
 
-      <div className="max-w-4xl mx-auto px-1 sm:px-4 py-4 sm:py-8 space-y-2 print:hidden">
+      <div className="max-w-4xl mx-auto px-1 sm:px-4 py-4 space-y-2 print:hidden">
         <LessonMedia 
           videoUrl={lesson.videoUrl}
           imageUrl={lesson.imageUrl} 
@@ -282,17 +282,6 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
           </section>
         )}
 
-        {/* Critical Thinking Section */}
-        {currentPart.criticalThinking && (
-          <section className="animate-fade-in">
-            <CollapsibleActivity
-              isCompleted={false}
-              title={currentPart.criticalThinking.title || `Page ${currentPart.part_number} Critical Thinking`}
-            >
-              <CriticalThinkingExtension data={currentPart.criticalThinking} />
-            </CollapsibleActivity>
-          </section>
-        )}
         <hr className="border-gray-300 my-6"/>
         {/* Controls */}
         <div className="flex justify-between items-center">
@@ -323,6 +312,22 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
         {currentPartIndex === content.parts.length - 1 && (
           <ReferenceLinks references={content.references} />
         )}
+                {/* Critical Thinking Section (Independent of parts) */}
+        {content.criticalThinking && (
+          <section className="mt-8 animate-fade-in">
+            <CollapsibleActivity
+              isCompleted={false}
+              title={content.criticalThinking.title || "Critical Thinking & Discussion"}
+            >
+              <CriticalThinkingExtension data={content.criticalThinking} />
+            </CollapsibleActivity>
+          </section>
+        )}
+
+        <div className="mt-8">
+          <VideoExploration videoUrl={lesson.videoUrl} isVideoLesson={lesson.isVideoLesson} />
+        </div>
+      </div>
 
         <LessonFooter
           studentName={studentName}
@@ -335,11 +340,6 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
           onFinish={() => onFinish(calculateReportData(lesson.title, studentName, studentId, homeroom))}
           onReset={onReset}
         />
-
-        <div className="mt-8">
-          <VideoExploration videoUrl={lesson.videoUrl} isVideoLesson={lesson.isVideoLesson} />
-        </div>
-      </div>
 
       {/* Print-only Layout */}
       <div className="hidden print:block" style={{ fontSize: '12px', padding: '16px 24px' }}>
