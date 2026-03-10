@@ -36,7 +36,7 @@ export const CriticalThinkingExtension: React.FC<Props> = ({ data, className = '
       
       <div className="mt-6 pt-6 border-t border-amber-200/50 flex items-center gap-2 text-amber-600/70 text-sm font-medium italic">
         <Lightbulb className="w-4 h-4" />
-        <span>Use these questions for personal reflection or group discussion. No answers required!</span>
+        <span>Use these questions for personal reflection or group discussion.</span>
       </div>
     </section>
   );

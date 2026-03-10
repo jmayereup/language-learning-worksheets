@@ -15,7 +15,7 @@ export const VideoExploration: React.FC<VideoExplorationProps> = ({ videoUrl, is
         <div className="inline-flex items-center justify-center w-12 h-12 not-visited:rounded-full">
           <Video className="w-6 h-6 text-green-600" />
         </div>
-        <h2 className="text-2xl font-bold text-green-900">Explore Further</h2>
+        <h2 className="text-lg sm:text-xl text-left font-bold text-green-900">This lesson was based on a video.</h2>
       </div>
       <a
         href={videoUrl}
@@ -23,7 +23,7 @@ export const VideoExploration: React.FC<VideoExplorationProps> = ({ videoUrl, is
         rel="noopener noreferrer"
         className="inline-flex items-center gap-2 bg-green-800 text-white px-8 py-3 rounded-full font-bold hover:bg-green-700 transform hover:scale-105 transition-all shadow-md"
       >
-        Watch on YouTube
+        Watch it on YouTube
       </a>
     </section>
   );
