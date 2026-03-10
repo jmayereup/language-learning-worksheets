@@ -10,7 +10,6 @@ interface SubmissionSectionProps {
   setHomeroom: (homeroom: string) => void;
   isNameLocked: boolean;
   onFinish: () => void;
-  variant?: 'green' | 'white';
 }
 
 export const SubmissionSection: React.FC<SubmissionSectionProps> = ({
@@ -22,25 +21,20 @@ export const SubmissionSection: React.FC<SubmissionSectionProps> = ({
   setHomeroom,
   isNameLocked,
   onFinish,
-  variant = 'green'
 }) => {
-  const isGreen = variant === 'green';
-  const containerClasses = isGreen 
-    ? "bg-blue-700 p-8 rounded-xl shadow-lg text-white text-center mb-8"
-    : "bg-white p-8 rounded-3xl shadow-sm border border-gray-100 text-center mb-8";
-    
-  const inputBg = isGreen ? "bg-white" : "bg-gray-50";
-  const inputBorder = isGreen ? "border-transparent" : "border-gray-200";
-  const labelClasses = isGreen ? "text-white" : "text-gray-500";
+  const containerClasses = "bg-green-800 p-4 rounded-xl shadow-lg text-white text-center";
+  const inputBg = "bg-white";
+  const inputBorder = "border-transparent";
+  const labelClasses = "text-white";
 
   return (
     <section className={containerClasses}>
-      <h2 className={`text-2xl font-bold mb-4 ${!isGreen ? 'text-blue-900' : ''}`}>
+      <h2 className="text-2xl font-bold mb-4">
         {isNameLocked ? 'Update Score' : 'Finished?'}
       </h2>
       <div className="max-w-xl mx-auto mb-6">
         {isNameLocked ? (
-          <div className={`w-full p-3 rounded-lg font-bold text-xl shadow-sm mb-4 ${isGreen ? 'bg-white text-blue-900' : 'bg-blue-50 text-blue-800 border border-blue-100'}`}>
+          <div className="w-full p-3 rounded-lg font-bold text-xl shadow-sm mb-4 bg-white text-blue-900">
             {studentName} • {studentId} • {homeroom}
           </div>
         ) : (
@@ -81,9 +75,9 @@ export const SubmissionSection: React.FC<SubmissionSectionProps> = ({
       <Button
         onClick={onFinish}
         disabled={!studentName.trim() || !studentId.trim() || !homeroom.trim()}
-        variant={isGreen ? 'white' : 'primary'}
+        variant="white"
         size="lg"
-        className={isGreen ? 'px-8' : 'text-xl py-4 px-10 rounded-2xl shadow-xl transform hover:scale-105'}
+        className="px-4"
       >
         {isNameLocked ? 'See Updated Report Card' : 'See My Score'}
       </Button>

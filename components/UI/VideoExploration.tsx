@@ -10,7 +10,7 @@ export const VideoExploration: React.FC<VideoExplorationProps> = ({ videoUrl, is
   if (isVideoLesson || !videoUrl) return null;
 
   return (
-    <section className="bg-white p-6 rounded-xl shadow-sm border border-green-50 mb-8 max-w-4xl mx-auto text-center animate-fade-in print:hidden">
+    <section className="bg-white p-6 rounded-xl shadow-sm border border-green-50 max-w-4xl mx-auto text-center animate-fade-in print:hidden">
       <div className="inline-flex items-center justify-center w-12 h-12 not-visited:rounded-full mb-4">
         <Video className="w-6 h-6 text-green-600" />
       </div>

@@ -13,7 +13,6 @@ interface LessonFooterProps {
   isNameLocked: boolean;
   onFinish: () => void;
   onReset: () => void;
-  variant?: 'green' | 'white';
 }
 
 export const LessonFooter: React.FC<LessonFooterProps> = ({
@@ -26,12 +25,9 @@ export const LessonFooter: React.FC<LessonFooterProps> = ({
   isNameLocked,
   onFinish,
   onReset,
-  variant
 }) => {
   return (
-    <div className="flex flex-col items-center gap-4 py-8 animate-fade-in print:hidden">
-      <p className="text-gray-500 italic">Check your answers carefully before finishing!</p>
-      
+    <div className="flex flex-col items-center gap-4 py-2 animate-fade-in print:hidden">
       <SubmissionSection 
         studentName={studentName}
         setStudentName={setStudentName}
@@ -41,7 +37,6 @@ export const LessonFooter: React.FC<LessonFooterProps> = ({
         setHomeroom={setHomeroom}
         isNameLocked={isNameLocked}
         onFinish={onFinish}
-        variant={variant}
       />
 
       <Button
