@@ -10,7 +10,7 @@ export const ReferenceLinks: React.FC<ReferenceLinksProps> = ({ references, clas
   if (!references || Object.keys(references).length === 0) return null;
 
   return (
-    <div className={`mt-8 p-4 sm:p-6 bg-linear-to-br from-slate-50 to-white rounded-2xl border border-slate-200 shadow-sm ${className}`}>
+    <div className={`my-4 p-4 sm:p-6 bg-linear-to-br from-slate-50 to-white rounded-2xl border border-slate-200 shadow-sm ${className}`}>
       <div className="flex items-center gap-2 mb-4 text-slate-800">
         <BookOpen className="w-5 h-5 text-blue-600" />
         <h3 className="font-bold text-lg">Further Reading & References</h3>

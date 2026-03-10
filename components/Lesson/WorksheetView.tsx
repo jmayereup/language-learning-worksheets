@@ -355,6 +355,8 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
 
         <ReferenceLinks references={standardContent.references} />
 
+        <VideoExploration videoUrl={lesson.videoUrl} isVideoLesson={lesson.isVideoLesson} />
+
         <LessonFooter
           studentName={studentName}
           setStudentName={setStudentName}
@@ -367,9 +369,6 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
           onReset={onReset}
         />
 
-        <div className="mt-8">
-          <VideoExploration videoUrl={lesson.videoUrl} isVideoLesson={lesson.isVideoLesson} />
-        </div>
       </div>
 
       {/* Print-only Layout */}
