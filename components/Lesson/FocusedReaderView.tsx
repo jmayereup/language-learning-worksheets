@@ -64,6 +64,16 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
 }) => {
   const content = lesson.content;
   const [currentPartIndex, setCurrentPartIndex] = useState(answers.focusedReaderPage || 0);
+  
+  if (!content.parts || content.parts.length === 0) {
+    return (
+      <div className="p-8 text-center bg-amber-50 rounded-2xl border border-amber-200">
+        <h3 className="text-lg font-bold text-amber-900 mb-2">Incomplete Content</h3>
+        <p className="text-amber-700">This Focused Reader lesson doesn't have any parts yet. Please add content to the parts array in the JSON editor.</p>
+      </div>
+    );
+  }
+
   const currentPart = content.parts[currentPartIndex];
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const readingPassageRef = useRef<HTMLDivElement>(null);
@@ -179,7 +189,7 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
         </div>
 
         {/* Vocabulary Section */}
-        {Object.keys(currentPart.vocabulary_explanations).length > 0 && (
+        {currentPart.vocabulary_explanations && Object.keys(currentPart.vocabulary_explanations).length > 0 && (
           <section className="animate-fade-in">
             <CollapsibleActivity
               isCompleted={isVocabCompleted}
@@ -189,11 +199,11 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
             >
               <Vocabulary 
                 data={{
-                  items: Object.keys(currentPart.vocabulary_explanations).map((word, i) => ({
+                  items: Object.keys(currentPart.vocabulary_explanations || {}).map((word, i) => ({
                     label: word,
                     answer: `def_${i}`
                   })),
-                  definitions: Object.entries(currentPart.vocabulary_explanations).map(([word, def], i) => ({
+                  definitions: Object.entries(currentPart.vocabulary_explanations || {}).map(([word, def], i) => ({
                     id: `def_${i}`,
                     text: def
                   }))
@@ -353,7 +363,7 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
           )}
 
           {content.parts.map((part, pIndex) => {
-            const allVocabWords = Object.keys(part.vocabulary_explanations);
+            const allVocabWords = Object.keys(part.vocabulary_explanations || {});
             let printWords: string[] = [];
             let printDefs: string[] = [];
             

@@ -13,9 +13,10 @@ export const useFocusedReaderScores = (
   currentPartIndex: number,
   lessonId: string
 ) => {
-  const currentPart = content.parts[currentPartIndex];
+  const currentPart = content.parts?.[currentPartIndex];
 
   const vocabScore = useMemo(() => {
+    if (!currentPart) return 0;
     let score = 0;
     const vocabExplanations = currentPart.vocabulary_explanations || {};
     const words = Object.keys(vocabExplanations);
@@ -37,6 +38,7 @@ export const useFocusedReaderScores = (
   }, [currentPart, currentPartIndex, answers.vocabulary, lessonId]);
 
   const isVocabCompleted = useMemo(() => {
+    if (!currentPart) return false;
     const vocabExplanations = currentPart.vocabulary_explanations || {};
     const words = Object.keys(vocabExplanations);
     const wordIndices = words.map((_, i) => i);
@@ -57,6 +59,7 @@ export const useFocusedReaderScores = (
   }, [currentPart, currentPartIndex, answers.vocabulary, lessonId]);
 
   const comprehensionScore = useMemo(() => {
+    if (!currentPart) return 0;
     let score = 0;
     const questions = currentPart.questions || [];
     const partAnswers = answers.focusedReader?.[currentPartIndex] || {};
@@ -67,6 +70,7 @@ export const useFocusedReaderScores = (
   }, [currentPart, currentPartIndex, answers.focusedReader]);
 
   const isComprehensionCompleted = useMemo(() => {
+    if (!currentPart) return false;
     const questions = currentPart.questions || [];
     if (questions.length === 0) return false;
     const partAnswers = answers.focusedReader?.[currentPartIndex] || {};
@@ -151,10 +155,10 @@ export const useFocusedReaderScores = (
 
   return {
     vocabScore,
-    vocabTotal: isVocabCompleted ? vocabScore : (currentPart.vocabulary_explanations ? Math.min(5, Object.keys(currentPart.vocabulary_explanations).length) : 0),
+    vocabTotal: isVocabCompleted ? vocabScore : (currentPart?.vocabulary_explanations ? Math.min(5, Object.keys(currentPart.vocabulary_explanations).length) : 0),
     isVocabCompleted,
     comprehensionScore,
-    comprehensionTotal: currentPart.questions?.length || 0,
+    comprehensionTotal: currentPart?.questions?.length || 0,
     isComprehensionCompleted,
     calculateReportData
   };

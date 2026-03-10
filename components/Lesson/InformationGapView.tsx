@@ -100,6 +100,15 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
         blocks: content.blocks || []
       }] : []));
 
+  if (!activities || activities.length === 0) {
+    return (
+      <div className="p-8 text-center bg-amber-50 rounded-2xl border border-amber-200">
+        <h3 className="text-lg font-bold text-amber-900 mb-2">Incomplete Content</h3>
+        <p className="text-amber-700">This Information-Gap lesson doesn't have any activities yet. Please add content to the activities array in the JSON editor.</p>
+      </div>
+    );
+  }
+
   // Normalize activities ...
 
   const { calculateReportData } = useInformationGapScores();
@@ -287,11 +296,11 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
     );
   }
 
-  const currentActivity = activities[currentActivityIndex];
+  const currentActivity = activities[currentActivityIndex] || { blocks: [] };
   
-  const myTextBlocks = currentActivity.blocks.filter(b => b.text_holder_id === currentPlayer);
-  const myQuestions = currentActivity.blocks.flatMap(b => b.questions).filter(q => q.asker_id === currentPlayer);
-  const partnerText = currentActivity.blocks
+  const myTextBlocks = (currentActivity.blocks || []).filter(b => b.text_holder_id === currentPlayer);
+  const myQuestions = (currentActivity.blocks || []).flatMap(b => b.questions || []).filter(q => q.asker_id === currentPlayer);
+  const partnerText = (currentActivity.blocks || [])
     .filter(b => b.text_holder_id !== currentPlayer)
     .map(b => b.text)
     .join('\n\n');

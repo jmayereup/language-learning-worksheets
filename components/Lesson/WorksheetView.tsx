@@ -124,13 +124,13 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
 
 
   const printVocabItems = useMemo(() =>
-    seededShuffle([...standardContent.activities.vocabulary.items], `${lesson.id}-print-vocab`),
+    seededShuffle([...(standardContent.activities?.vocabulary?.items || [])], `${lesson.id}-print-vocab`),
     [standardContent, lesson.id]
   );
 
   const printScrambledItems = useMemo(() => {
-    return standardContent.activities.scrambled.map((item, idx) => {
-      const words = item.answer.replace(/[.!?]+$/, '').split(/\s+/).filter(w => w);
+    return (standardContent.activities?.scrambled || []).map((item, idx) => {
+      const words = (item.answer || '').replace(/[.!?]+$/, '').split(/\s+/).filter(w => w);
       const shuffled = seededShuffle([...words], `${lesson.id}-print-scramble-${idx}`);
       return {
         ...item,
@@ -167,14 +167,17 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
   
   const vocabularyExplanations = useMemo(() => {
     const map: Record<string, string> = {};
-    standardContent.activities.vocabulary.items.forEach(item => {
-      const definition = standardContent.activities.vocabulary.definitions.find(d => d.id === item.answer);
+    const items = standardContent.activities?.vocabulary?.items || [];
+    const definitions = standardContent.activities?.vocabulary?.definitions || [];
+    
+    items.forEach(item => {
+      const definition = definitions.find(d => d.id === item.answer);
       if (definition) {
         map[item.label] = definition.text;
       }
     });
     return map;
-  }, [standardContent.activities.vocabulary]);
+  }, [standardContent.activities?.vocabulary]);
 
   return (
     <div className="space-y-4">
@@ -235,8 +238,8 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
           <CollapsibleActivity
             isCompleted={completionStates.vocabularyChecked}
             title="Vocabulary Matching"
-            score={`${vocabScore}/${standardContent.activities.vocabulary.items.length}`}
-            isPerfectScore={vocabScore === standardContent.activities.vocabulary.items.length}
+            score={`${vocabScore}/${standardContent.activities?.vocabulary?.items?.length || 0}`}
+            isPerfectScore={vocabScore === standardContent.activities?.vocabulary?.items?.length}
           >
             <Vocabulary
               data={standardContent.activities.vocabulary}
@@ -258,12 +261,12 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
           <CollapsibleActivity
             isCompleted={completionStates.fillBlanksChecked}
             title="Fill in the Blanks"
-            score={`${fillScore}/${standardContent.activities.fillInTheBlanks.length}`}
-            isPerfectScore={fillScore === standardContent.activities.fillInTheBlanks.length}
+            score={`${fillScore}/${standardContent.activities?.fillInTheBlanks?.length || 0}`}
+            isPerfectScore={fillScore === standardContent.activities?.fillInTheBlanks?.length}
           >
             <FillInBlanks
-              data={standardContent.activities.fillInTheBlanks}
-              vocabItems={standardContent.activities.vocabulary.items}
+              data={standardContent.activities?.fillInTheBlanks || []}
+              vocabItems={standardContent.activities?.vocabulary?.items || []}
               level={lesson.level.replace('Level ', '')}
               language={lesson.language}
               onChange={(data) => updateAnswers('fillBlanks', data)}
@@ -282,8 +285,8 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
           <CollapsibleActivity
             isCompleted={completionStates.comprehensionCompleted}
             title="Comprehension Check"
-            score={`${compScore}/${standardContent.activities.comprehension.questions.length}`}
-            isPerfectScore={compScore === standardContent.activities.comprehension.questions.length}
+            score={`${compScore}/${standardContent.activities?.comprehension?.questions?.length || 0}`}
+            isPerfectScore={compScore === (standardContent.activities?.comprehension?.questions?.length || 0)}
           >
             <Comprehension
               data={standardContent.activities.comprehension}
@@ -306,8 +309,8 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
           <CollapsibleActivity
             isCompleted={completionStates.scrambledCompleted}
             title="Scrambled Sentences"
-            score={`${scrambledScore}/${standardContent.activities.scrambled.length}`}
-            isPerfectScore={scrambledScore === standardContent.activities.scrambled.length}
+            score={`${scrambledScore}/${standardContent.activities?.scrambled?.length || 0}`}
+            isPerfectScore={scrambledScore === (standardContent.activities?.scrambled?.length || 0)}
           >
             <Scrambled
               data={standardContent.activities.scrambled}
@@ -331,7 +334,7 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
             title="Written Expression"
           >
             <WrittenExpression
-              data={standardContent.activities.writtenExpression}
+              data={standardContent.activities?.writtenExpression || { questions: [], examples: '' }}
               savedAnswers={answers.writing}
               onChange={(newWriting) => updateAnswers('writing', newWriting)}
             />
@@ -407,7 +410,7 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
                 ))}
               </div>
               <div className="space-y-1">
-                {standardContent.activities.vocabulary.definitions.map((def, i) => (
+                {(standardContent.activities?.vocabulary?.definitions || []).map((def, i) => (
                   <div key={i} className="text-xs">
                     <span className="font-bold">{String.fromCharCode(97 + i)}.</span> {def.text}
                   </div>
@@ -419,7 +422,7 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
           <section>
             <h2 className="text-sm font-bold mb-1 bg-gray-100 px-2 py-1">2. Fill in the Blanks</h2>
             <div className="space-y-1">
-              {standardContent.activities.fillInTheBlanks.map((item, i) => (
+              {(standardContent.activities?.fillInTheBlanks || []).map((item, i) => (
                 <div key={i} className="text-xs">
                   {i + 1}. {item.before} <u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u> {item.after}
                 </div>
@@ -430,7 +433,7 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
           <section>
             <h2 className="text-sm font-bold mb-1 bg-gray-100 px-2 py-1">3. Reading Questions</h2>
             <div className="space-y-1">
-              {standardContent.activities.comprehension.questions.map((q, i) => (
+              {(standardContent.activities?.comprehension?.questions || []).map((q, i) => (
                 <div key={i} className="flex justify-between items-center border-b border-gray-100 pb-1">
                   <span className="text-xs">{i + 1}. {q.text}</span>
                   <span className="font-bold text-xs flex gap-3 shrink-0 ml-2">
@@ -457,7 +460,7 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
           <section>
             <h2 className="text-sm font-bold mb-1 bg-gray-100 px-2 py-1">5. Written Expression</h2>
             <div className="space-y-3">
-              {standardContent.activities.writtenExpression.questions.map((q, i) => (
+              {(standardContent.activities?.writtenExpression?.questions || []).map((q, i) => (
                 <div key={i}>
                   <p className="text-xs font-bold mb-1">{i + 1}. {q.text}</p>
                   <div className="space-y-2">

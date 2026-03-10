@@ -9,6 +9,7 @@ import { AdminDashboard } from './components/Admin/AdminDashboard';
 import { LessonEditor } from './components/Admin/LessonEditor';
 import { WebComponentPreview } from './components/Lesson/WebComponentPreview';
 import { SearchableSelect } from './components/UI/SearchableSelect';
+import logo from './assets/tj-logo.svg';
 
 const App: React.FC = () => {
     const [view, setView] = useState<'home' | 'lesson' | 'admin' | 'create'>('home');
@@ -159,7 +160,7 @@ const App: React.FC = () => {
                     <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleViewChange('home')}>
                         {/* <img src="https://blog.teacherjake.com/apps/assets/tj-logo.png" alt="Logo" className="h-10 w-auto" /> */}
                         <a href="https://www.teacherjake.com" className="hover:opacity-80 transition-opacity">
-                            <img src="https://blog.teacherjake.com/apps/assets/tj-logo.png" alt="Teacher Jake Logo"
+                            <img src={logo} alt="Teacher Jake Logo"
                                 className="h-10 w-auto "></img>
                         </a>
                         <span className="hidden md:block font-bold text-gray-700">Worksheets</span>
