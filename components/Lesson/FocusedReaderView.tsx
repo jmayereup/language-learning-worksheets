@@ -11,6 +11,7 @@ import { CollapsibleActivity } from '../UI/CollapsibleActivity';
 import { LessonMedia } from '../UI/LessonMedia';
 import { ReferenceLinks } from '../UI/ReferenceLinks';
 import { VideoExploration } from '../UI/VideoExploration';
+import { CriticalThinkingExtension } from '../Activities/CriticalThinkingExtension';
 import { useFocusedReaderScores } from '../../hooks/useFocusedReaderScores';
 import { FocusedReaderExportActions } from '../UI/FocusedReaderExportActions';
 import { seededShuffle } from '../../utils/textUtils';
@@ -277,6 +278,18 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
                 showReferenceText={false}
                 savedIsCompleted={isComprehensionCompleted}
               />
+            </CollapsibleActivity>
+          </section>
+        )}
+
+        {/* Critical Thinking Section */}
+        {currentPart.criticalThinking && (
+          <section className="animate-fade-in">
+            <CollapsibleActivity
+              isCompleted={false}
+              title={currentPart.criticalThinking.title || `Page ${currentPart.part_number} Critical Thinking`}
+            >
+              <CriticalThinkingExtension data={currentPart.criticalThinking} />
             </CollapsibleActivity>
           </section>
         )}

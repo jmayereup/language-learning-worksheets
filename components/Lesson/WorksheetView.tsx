@@ -7,6 +7,7 @@ import { Comprehension } from '../Activities/Comprehension';
 import { Scrambled } from '../Activities/Scrambled';
 import { ReadingPassage } from '../Activities/ReadingPassage';
 import { WrittenExpression } from '../Activities/WrittenExpression';
+import { CriticalThinkingExtension } from '../Activities/CriticalThinkingExtension';
 import { VoiceSelectorModal } from '../UI/VoiceSelectorModal';
 import { LessonFooter } from './LessonFooter';
 import { CollapsibleActivity } from '../UI/CollapsibleActivity';
@@ -340,6 +341,17 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
             />
           </CollapsibleActivity>
         </section>
+
+        {standardContent.activities?.criticalThinking && (
+          <section id="critical-thinking">
+            <CollapsibleActivity
+              isCompleted={false}
+              title={standardContent.activities.criticalThinking.title || "Critical Thinking & Discussion"}
+            >
+              <CriticalThinkingExtension data={standardContent.activities.criticalThinking} />
+            </CollapsibleActivity>
+          </section>
+        )}
 
         <ReferenceLinks references={standardContent.references} />
 

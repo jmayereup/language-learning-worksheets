@@ -60,6 +60,11 @@ export interface WritingActivity {
   examples: string; // HTML string
 }
 
+export interface CriticalThinkingActivity {
+  title?: string;
+  instructions: string[];
+}
+
 export interface InformationGapQuestion {
   asker_id: number;
   question: string;
@@ -101,6 +106,7 @@ export interface FocusedReaderPart {
   text: string;
   vocabulary_explanations: Record<string, string>;
   questions: FocusedReaderQuestion[];
+  criticalThinking?: CriticalThinkingActivity;
 }
 
 export interface FocusedReaderContent {
@@ -120,6 +126,7 @@ export interface StandardLessonContent {
     comprehension: ComprehensionActivity;
     scrambled: ScrambledItem[];
     writtenExpression: WritingActivity;
+    criticalThinking?: CriticalThinkingActivity;
   };
   references?: Record<string, string>;
 }
