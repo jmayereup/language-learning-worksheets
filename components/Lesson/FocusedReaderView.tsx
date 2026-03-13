@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ParsedLesson, FocusedReaderContent, UserAnswers, ReportData } from '../../types';
 import { VoiceSelectorModal } from '../UI/VoiceSelectorModal';
 import { LessonFooter } from './LessonFooter';
-import { ChevronRight, ChevronLeft, CheckCircle2 } from 'lucide-react';
+import { ChevronRight, ChevronLeft, CheckCircle2, Gamepad2, PenTool, Puzzle } from 'lucide-react';
 import { Button } from '../UI/Button';
 import { Vocabulary } from '../Activities/Vocabulary';
 import { ReadingPassage } from '../Activities/ReadingPassage';
@@ -15,6 +15,7 @@ import { CriticalThinkingExtension } from '../Activities/CriticalThinkingExtensi
 import { useFocusedReaderScores } from '../../hooks/useFocusedReaderScores';
 import { FocusedReaderExportActions } from '../UI/FocusedReaderExportActions';
 import { seededShuffle } from '../../utils/textUtils';
+import { PracticeGamesModal } from './PracticeGamesModal';
 
 interface FocusedReaderViewProps {
   lesson: ParsedLesson & { content: FocusedReaderContent };
@@ -65,6 +66,7 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
 }) => {
   const content = lesson.content;
   const [rawPartIndex, setCurrentPartIndex] = useState(answers.focusedReaderPage || 0);
+  const [activePracticeGame, setActivePracticeGame] = useState<'scramble' | 'fill' | 'wordblaster' | null>(null);
   
   const currentPartIndex = (content.parts && rawPartIndex < content.parts.length) 
     ? (rawPartIndex >= 0 ? rawPartIndex : 0) 
@@ -322,7 +324,31 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
         {currentPartIndex === content.parts.length - 1 && (
           <ReferenceLinks references={content.references} />
         )}
-                {/* Critical Thinking Section (Independent of parts) */}
+
+        {/* Practice Games Section */}
+        <section className="mt-8 animate-fade-in print:hidden">
+          <CollapsibleActivity
+            isCompleted={false}
+            title="Extra Practice Games"
+          >
+            <div className="p-4 bg-white rounded-xl">
+              <p className="text-gray-500 mb-4 font-medium text-sm">Practice what you've learned. These games are just for fun and don't affect your score.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <Button variant="secondary" onClick={() => setActivePracticeGame('scramble')} className="flex flex-col items-center justify-center gap-2 h-20 shadow-sm border border-gray-100 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 transition-all">
+                  <Puzzle className="w-6 h-6 text-indigo-500" /> Scrambled Sentences
+                </Button>
+                <Button variant="secondary" onClick={() => setActivePracticeGame('fill')} className="flex flex-col items-center justify-center gap-2 h-20 shadow-sm border border-gray-100 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 transition-all">
+                  <PenTool className="w-6 h-6 text-emerald-500" /> Fill-in-the-Blanks
+                </Button>
+                <Button variant="secondary" onClick={() => setActivePracticeGame('wordblaster')} className="flex flex-col items-center justify-center gap-2 h-20 shadow-sm border border-gray-100 hover:border-amber-300 hover:bg-amber-50 hover:text-amber-700 transition-all">
+                  <Gamepad2 className="w-6 h-6 text-amber-500" /> Word Blaster
+                </Button>
+              </div>
+            </div>
+          </CollapsibleActivity>
+        </section>
+
+        {/* Critical Thinking Section (Independent of parts) */}
         {content.criticalThinking && (
           <section className="mt-8 animate-fade-in">
             <CollapsibleActivity
@@ -482,6 +508,15 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
         hasRecordedAudio={!!lesson.audioFileUrl}
         audioPreference={audioPreference}
         onSelectPreference={setAudioPreference}
+      />
+
+      <PracticeGamesModal
+        lesson={lesson}
+        gameType={activePracticeGame}
+        onClose={() => setActivePracticeGame(null)}
+        toggleTTS={toggleTTS}
+        ttsState={ttsState}
+        selectedVoiceName={selectedVoiceName}
       />
     </div>
   );

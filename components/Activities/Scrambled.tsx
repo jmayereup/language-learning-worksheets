@@ -17,6 +17,7 @@ interface Props {
   toggleTTS: (rate: number, overrideText?: string) => void;
   ttsState: { status: 'playing' | 'paused' | 'stopped', rate: number };
   lessonId: string;
+  defaultMode?: 'scramble' | 'dictation';
 }
 
 export const Scrambled: React.FC<Props> = ({
@@ -30,7 +31,8 @@ export const Scrambled: React.FC<Props> = ({
   onComplete,
   toggleTTS,
   ttsState,
-  lessonId
+  lessonId,
+  defaultMode
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [wordBank, setWordBank] = useState<{ id: number, text: string }[]>([]);
@@ -39,6 +41,7 @@ export const Scrambled: React.FC<Props> = ({
   const [isCorrectState, setIsCorrectState] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false); // isCompleted is not saved via props
   const [activityMode, setActivityMode] = useState<'scramble' | 'dictation'>(() => {
+    if (defaultMode) return defaultMode;
     if (!shouldShowAudioControls()) return 'scramble';
     return (level === 'A1' || level === 'A2') ? 'scramble' : 'dictation';
   });

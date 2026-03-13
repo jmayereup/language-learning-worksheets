@@ -112,6 +112,13 @@ export interface FocusedReaderContent {
   title: string;
   seo_intro: string;
   parts: FocusedReaderPart[];
+  activities?: {
+    vocabulary?: VocabularyActivity;
+    fillInTheBlanks?: FillInBlankItem[];
+    comprehension?: ComprehensionActivity;
+    scrambled?: ScrambledItem[];
+    writtenExpression?: WritingActivity;
+  };
   criticalThinking?: CriticalThinkingActivity;
   references?: Record<string, string>;
 }
