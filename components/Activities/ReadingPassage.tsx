@@ -1,4 +1,4 @@
-import React, { ReactNode, useState } from 'react';
+import React, { ReactNode, useState, useRef, useEffect } from 'react';
 import { HelpCircle, X, BookOpen, Volume2, Turtle } from 'lucide-react';
 import { AudioControls } from '../UI/AudioControls';
 import { TranslateButton } from '../UI/TranslateButton';
@@ -44,8 +44,9 @@ export const ReadingPassage: React.FC<ReadingPassageProps> = ({
   passageRef,
 }) => {
   const [selectedWord, setSelectedWord] = useState<string | null>(null);
-  const [definitionData, setDefinitionData] = useState<{ type: 'dictionary' | 'translation', content: any } | null>(null);
+  const [definitionData, setDefinitionData] = useState<{ type: 'dictionary' | 'translation' | 'google-search', content: any } | null>(null);
   const [isFetchingDefinition, setIsFetchingDefinition] = useState(false);
+  const selectionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const getLanguageCode = (lang: string) => {
     const map: Record<string, string> = {
@@ -75,11 +76,8 @@ export const ReadingPassage: React.FC<ReadingPassageProps> = ({
         }
       }
 
-      // 2. Fallback to Google Translate logic if dictionary entry is missing
-      const translateUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${langCode}&tl=en&dt=t&q=${encodeURIComponent(word)}`;
-      const transRes = await fetch(translateUrl);
-      const transData = await transRes.json();
-      return { type: 'translation', content: transData[0][0][0] };
+      // 2. Fallback to Google Search logic if dictionary entry is missing
+      return { type: 'google-search', content: word };
       
     } catch (error) {
       console.error("Lookup failed", error);
@@ -94,14 +92,55 @@ export const ReadingPassage: React.FC<ReadingPassageProps> = ({
       const langCode = getLanguageCode(language);
       const data = await fetchWordData(word, langCode);
       if (data) {
+        // For phrases (usually detected if word contains spaces), we go to Google Translate
+        const isPhrase = word.trim().split(/\s+/).length > 1;
+        
+        if (data.type === 'google-search' || isPhrase) {
+          const baseUrl = isPhrase 
+            ? `https://translate.google.com/?sl=${langCode}&tl=en&text=${encodeURIComponent(word)}&op=translate`
+            : `https://www.google.com/search?q=define+${encodeURIComponent(word)}`;
+          
+          window.open(baseUrl, '_blank');
+          setSelectedWord(null); 
+          return;
+        }
         setDefinitionData(data as any);
-      } else {
-        setDefinitionData({ type: 'translation', content: 'Lookup failed. Please check your connection.' });
       }
     } finally {
       setIsFetchingDefinition(false);
     }
   };
+  
+  useEffect(() => {
+    const handleSelectionChange = () => {
+      if (selectionTimeoutRef.current) {
+        clearTimeout(selectionTimeoutRef.current);
+      }
+
+      const selection = window.getSelection();
+      if (!selection || selection.isCollapsed) return;
+
+      const selectedText = selection.toString().trim();
+      if (selectedText && selectedText.split(/\s+/).length > 1) {
+        // Only trigger for phrases (2+ words)
+        selectionTimeoutRef.current = setTimeout(() => {
+          const cleanPhrase = selectedText.replace(/^[.,!?;:"'()\[\]{}]+|[.,!?;:"'()\[\]{}]+$/g, '');
+          if (cleanPhrase) {
+            setSelectedWord(cleanPhrase);
+            setDefinitionData(null);
+          }
+        }, 500);
+      }
+    };
+
+    document.addEventListener('selectionchange', handleSelectionChange);
+    return () => {
+      document.removeEventListener('selectionchange', handleSelectionChange);
+      if (selectionTimeoutRef.current) {
+        clearTimeout(selectionTimeoutRef.current);
+      }
+    };
+  }, [language]);
 
   const handleWordClick = (word: string) => {
     const cleanWord = word.replace(/^[.,!?;:"'()\[\]{}]+|[.,!?;:"'()\[\]{}]+$/g, '');
@@ -267,7 +306,7 @@ export const ReadingPassage: React.FC<ReadingPassageProps> = ({
       <div className="mx-0">
         <div
           ref={passageRef}
-          className="max-w-none justify-baseline text-lg leading-relaxed text-gray-800 bg-transparent whitespace-pre-wrap"
+          className="max-w-none justify-baseline text-lg leading-relaxed text-gray-800 bg-transparent whitespace-pre-wrap select-text"
           translate="no"
         >
           {renderTextWithVocabulary()}
@@ -344,7 +383,7 @@ export const ReadingPassage: React.FC<ReadingPassageProps> = ({
                   <span className="inline-block px-2 py-0.5 rounded text-xs font-semibold bg-gray-800 text-emerald-300 mb-2 uppercase tracking-wider">
                     Translation
                   </span>
-                  <p>{typeof definitionData.content === 'string' ? definitionData.content : 'Translation not available.'}</p>
+                  <p>{typeof definitionData.content === 'string' ? definitionData.content : 'Search result available.'}</p>
                 </div>
               )}
             </div>
@@ -353,12 +392,14 @@ export const ReadingPassage: React.FC<ReadingPassageProps> = ({
           {definitionData && (
             <div className="pt-2 border-t border-gray-700 mt-1 flex justify-end">
               <a 
-                href={`https://translate.google.com/?sl=${getLanguageCode(language)}&tl=en&text=${encodeURIComponent(selectedWord)}&op=translate`}
+                href={selectedWord.trim().split(/\s+/).length > 1 
+                  ? `https://translate.google.com/?sl=${getLanguageCode(language)}&tl=en&text=${encodeURIComponent(selectedWord)}&op=translate` 
+                  : `https://www.google.com/search?q=define+${encodeURIComponent(selectedWord)}`}
                 target="_blank"
                 rel="noreferrer"
                 className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors"
               >
-                Try Google Translate ↗
+                {selectedWord.trim().split(/\s+/).length > 1 ? 'Translate on Google ↗' : 'Search on Google ↗'}
               </a>
             </div>
           )}
