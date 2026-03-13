@@ -9,7 +9,7 @@ interface AudioControlsProps {
   currentRate: number;
   hasVoices?: boolean;
   className?: string;
-  variant?: 'white' | 'green';
+  variant?: 'white' | 'green' | 'dark';
 }
 
 export const AudioControls: React.FC<AudioControlsProps> = ({
@@ -35,22 +35,24 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
           className={`flex items-center px-3 py-1.5 text-sm font-bold border rounded-xl shadow-sm transition-all ${
             variant === 'white' 
               ? 'border-gray-200 bg-white text-gray-700 hover:border-green-300 hover:bg-green-50 hover:text-green-600' 
-              : 'border-green-400 bg-green-500 text-white hover:bg-green-400'
+              : variant === 'green'
+              ? 'border-green-400 bg-green-500 text-white hover:bg-green-400'
+              : 'border-gray-600 bg-gray-800 text-gray-300 hover:border-gray-500 hover:bg-gray-700 hover:text-white'
           }`}
           title="Voice Settings"
         >
-          <Settings2 className={`w-4 h-4 mr-1.5 ${variant === 'white' ? 'text-gray-500' : 'text-white'}`} />
+          <Settings2 className={`w-4 h-4 mr-1.5 ${variant === 'white' ? 'text-gray-500' : variant === 'green' ? 'text-white' : 'text-gray-400'}`} />
         </button>
       )}
 
-      <div className={`flex bg-white rounded-xl border shadow-sm overflow-hidden ${variant === 'white' ? 'border-gray-200' : 'border-green-400'}`}>
+      <div className={`flex rounded-xl border shadow-sm overflow-hidden ${variant === 'white' ? 'border-gray-200 bg-white' : variant === 'green' ? 'border-green-400 bg-white' : 'border-gray-600 bg-gray-800'}`}>
         <button
           onClick={onSlowToggle}
-          className={`flex items-center px-1 py-1.5 text-sm font-bold transition-all border-r ${
+          className={`flex items-center px-2 py-1.5 text-sm font-bold transition-all border-r ${
             isSlowActive 
-              ? 'bg-green-50 text-green-700' 
-              : 'hover:bg-gray-50 text-gray-700'
-          } ${variant === 'white' ? 'border-gray-100' : 'border-green-100'}`}
+              ? (variant === 'dark' ? 'bg-gray-700 text-white' : 'bg-green-50 text-green-700') 
+              : (variant === 'dark' ? 'hover:bg-gray-700 text-gray-300 hover:text-white' : 'hover:bg-gray-50 text-gray-700')
+          } ${variant === 'white' ? 'border-gray-100' : variant === 'green' ? 'border-green-100' : 'border-gray-600'}`}
           title="Slow Speed"
         >
           {isSlowActive && ttsStatus === 'playing' ? (
@@ -58,17 +60,17 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
           ) : isSlowActive && ttsStatus === 'paused' ? (
             <Play className="w-4 h-4 mr-1.5" />
           ) : (
-            <Turtle className="w-4 h-4 mr-0 text-gray-500" />
+            <Turtle className={`w-4 h-4 mr-0 ${variant === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
           )}
 
         </button>
 
         <button
           onClick={onListenToggle}
-          className={`flex items-center px-1 py-1.5 text-sm font-bold transition-all ${
+          className={`flex items-center px-2 py-1.5 text-sm font-bold transition-all ${
             isListenActive 
-              ? 'bg-green-50 text-green-700' 
-              : 'hover:bg-gray-50 text-gray-700'
+              ? (variant === 'dark' ? 'bg-gray-700 text-white' : 'bg-green-50 text-green-700') 
+              : (variant === 'dark' ? 'hover:bg-gray-700 text-gray-300 hover:text-white' : 'hover:bg-gray-50 text-gray-700')
           }`}
           title="Normal Speed"
         >
@@ -77,7 +79,7 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
           ) : isListenActive && ttsStatus === 'paused' ? (
             <Play className="w-4 h-4 mr-1.5" />
           ) : (
-            <Volume2 className="w-4 h-4 mr-1 text-gray-500" />
+            <Volume2 className={`w-4 h-4 mr-1 ${variant === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
           )}
         </button>
       </div>
