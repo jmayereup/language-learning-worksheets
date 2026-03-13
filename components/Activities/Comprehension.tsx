@@ -38,8 +38,14 @@ export const Comprehension: React.FC<Props> = ({
   const [isCompleted, setIsCompleted] = useState(savedIsCompleted);
 
   useEffect(() => {
-    setIsCompleted(savedIsCompleted);
-  }, [savedIsCompleted]);
+    // Only force completed screen if we aren't currently checking an answer (e.g. on mount)
+    // and if we aren't already in the completed state.
+    // This prevents the "Activity Completed" screen from flashing instantly 
+    // when the user answers the last question.
+    if (savedIsCompleted && !isCompleted && !isChecked) {
+      setIsCompleted(true);
+    }
+  }, [savedIsCompleted, isCompleted, isChecked]);
 
   // Randomize question order once on mount/data change
   const shuffledIndices = useMemo(() => {
@@ -65,7 +71,8 @@ export const Comprehension: React.FC<Props> = ({
 
     if (isCorrect) {
       // Auto-advance after delay if correct
-      const delay = 1200;
+      // Increased delay to give students time to see the green highlight on the last question
+      const delay = 2000;
       if (currentIndex < data.questions.length - 1) {
         setTimeout(() => {
           setIsChecked(false);

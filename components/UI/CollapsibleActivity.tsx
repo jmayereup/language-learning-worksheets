@@ -69,13 +69,14 @@ export const CollapsibleActivity: React.FC<CollapsibleActivityProps> = ({
       playFanfare();
       
       // Brief delay to let the fanfare start before collapsing
+      // Increased to 3s to give student time to see the "Activity Completed" screen
       const timer = setTimeout(() => {
         if (containerRef.current) {
           lastHeightRef.current = containerRef.current.offsetHeight;
           isAdjustingRef.current = true;
         }
         setIsCollapsed(true);
-      }, 600);
+      }, 3000);
 
       return () => clearTimeout(timer);
     }
