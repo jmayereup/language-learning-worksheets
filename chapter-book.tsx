@@ -143,28 +143,8 @@ const ChapterBookWrapper: React.FC<{ lesson: ParsedLesson & { content: ChapterBo
   } = useLessonProgress(lesson.id);
 
   const [showReportCard, setShowReportCard] = React.useState(false);
-  const [reportData, setReportData] = React.useState<ReportData | null>(null);
-  const [isVoiceModalOpen, setIsVoiceModalOpen] = React.useState(false);
-
-  // Use the first chapter's content as default reading text for TTS initialization
-  const defaultText = lesson.content.chapters[0]?.content.join('\n') || '';
-
-  const {
-    ttsState,
-    availableVoices,
-    selectedVoiceName,
-    setSelectedVoiceName,
-    audioPreference,
-    setAudioPreference,
-    toggleTTS
-  } = useTTS({
-    language: lesson.language,
-    defaultAudioPreference: 'tts',
-    defaultReadingText: defaultText
-  });
 
   const handleFinish = (data: ReportData) => {
-    setReportData(data);
     setShowReportCard(true);
   };
 
@@ -190,15 +170,6 @@ const ChapterBookWrapper: React.FC<{ lesson: ParsedLesson & { content: ChapterBo
         onReset={handleReset}
         answers={answers}
         setAnswers={setAnswers}
-        toggleTTS={toggleTTS}
-        ttsState={ttsState}
-        availableVoices={availableVoices}
-        selectedVoiceName={selectedVoiceName}
-        setSelectedVoiceName={setSelectedVoiceName}
-        isVoiceModalOpen={isVoiceModalOpen}
-        setIsVoiceModalOpen={setIsVoiceModalOpen}
-        audioPreference={audioPreference}
-        setAudioPreference={setAudioPreference}
       />
     </>
   );

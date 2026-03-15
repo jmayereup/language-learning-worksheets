@@ -219,12 +219,12 @@ export const ReadingPassage: React.FC<ReadingPassageProps> = ({
 
   return (
     <section className={`bg-white p-1 sm:p-2 rounded-xl sm:shadow-sm sm:border sm:border-gray-100 mb-2 relative ${className}`}>
-      <div className="flex justify-between items-center mb-2 px-1">
-        <div translate="no">
-          <h2 className="text-xl font-black text-green-900 uppercase tracking-tight">{title}</h2>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-2 px-1">
+        <div translate="no" className="min-w-0 flex-1">
+          <h2 className="text-xl font-black text-green-900 uppercase tracking-tight wrap-break-word">{title}</h2>
         </div>
         
-        <div className="flex gap-2">
+        <div className="flex gap-2 shrink-0 self-end sm:self-auto">
           {onTranslate && <TranslateButton onClick={onTranslate} />}
           <AudioControls 
             onVoiceOpen={onVoiceOpen}
