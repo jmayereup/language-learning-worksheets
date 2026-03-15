@@ -183,6 +183,8 @@ export const ChapterBookView: React.FC<ChapterBookViewProps> = ({
           currentRate={ttsState.rate}
           hasVoices={availableVoices.length > 0}
           onTranslate={() => toggleTranslation(currentChapterIndex)}
+          onSwipeLeft={currentChapterIndex < content.chapters.length - 1 ? () => handleChapterChange(currentChapterIndex + 1) : undefined}
+          onSwipeRight={currentChapterIndex > 0 ? () => handleChapterChange(currentChapterIndex - 1) : undefined}
           onVoiceOpen={availableVoices.length > 0 ? () => setIsVoiceModalOpen(true) : undefined}
           className="animate-slide-up"
           showHighlightHelp={!showTranslation[currentChapterIndex]}

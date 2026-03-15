@@ -88,7 +88,6 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
   }
 
   const currentPart = content.parts[currentPartIndex];
-  const [touchStart, setTouchStart] = useState<number | null>(null);
   const readingPassageRef = useRef<HTMLDivElement>(null);
 
   const optimizedImageUrl = React.useMemo(() => {
@@ -116,26 +115,6 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
       readingPassageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 10);
   };
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStart(e.targetTouches[0].pageX);
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!touchStart) return;
-    const touchEnd = e.changedTouches[0].pageX;
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > 100;
-    const isRightSwipe = distance < -100;
-
-    if (isLeftSwipe && currentPartIndex < content.parts.length - 1) {
-      handlePageChange(currentPartIndex + 1);
-    } else if (isRightSwipe && currentPartIndex > 0) {
-      handlePageChange(currentPartIndex - 1);
-    }
-    setTouchStart(null);
-  };
-
 
   const {
     vocabScore,
@@ -184,22 +163,22 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
         </div>
 
         <div ref={readingPassageRef} className="scroll-mt-6" />
-        <div onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-          <ReadingPassage
-            text={currentPart.text}
-            language={lesson.language}
-            title={`Page ${currentPart.part_number}`}
-            vocabularyExplanations={currentPart.vocabulary_explanations}
-            onSlowToggle={() => toggleTTS(0.6, currentPart.text)}
-            onListenToggle={() => toggleTTS(1.0, currentPart.text)}
-            ttsStatus={ttsState.status}
-            currentRate={ttsState.rate}
-            hasVoices={availableVoices.length > 0}
-            onVoiceOpen={availableVoices.length > 0 ? () => setIsVoiceModalOpen(true) : undefined}
-            showHighlightHelp={true}
-            className="animate-slide-up"
-          />
-        </div>
+        <ReadingPassage
+          text={currentPart.text}
+          language={lesson.language}
+          title={`Page ${currentPart.part_number}`}
+          vocabularyExplanations={currentPart.vocabulary_explanations}
+          onSlowToggle={() => toggleTTS(0.6, currentPart.text)}
+          onListenToggle={() => toggleTTS(1.0, currentPart.text)}
+          ttsStatus={ttsState.status}
+          currentRate={ttsState.rate}
+          hasVoices={availableVoices.length > 0}
+          onSwipeLeft={currentPartIndex < content.parts.length - 1 ? () => handlePageChange(currentPartIndex + 1) : undefined}
+          onSwipeRight={currentPartIndex > 0 ? () => handlePageChange(currentPartIndex - 1) : undefined}
+          onVoiceOpen={availableVoices.length > 0 ? () => setIsVoiceModalOpen(true) : undefined}
+          showHighlightHelp={true}
+          className="animate-slide-up"
+        />
 
         {/* Vocabulary Section */}
         {currentPart.vocabulary_explanations && Object.keys(currentPart.vocabulary_explanations).length > 0 && (

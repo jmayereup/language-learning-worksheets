@@ -21,6 +21,10 @@ interface ReadingPassageProps {
   
   // Optional Translate
   onTranslate?: () => void;
+
+  // Swipe callbacks
+  onSwipeLeft?: () => void;
+  onSwipeRight?: () => void;
   
   // UI Options
   showHighlightHelp?: boolean;
@@ -40,12 +44,37 @@ export const ReadingPassage: React.FC<ReadingPassageProps> = ({
   currentRate,
   hasVoices,
   onTranslate,
+  onSwipeLeft,
+  onSwipeRight,
   showHighlightHelp = false,
   className = "",
   passageRef,
 }) => {
   const [selectedWord, setSelectedWord] = useState<string | null>(null);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
   const selectionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (onSwipeLeft || onSwipeRight) {
+      setTouchStart(e.targetTouches[0].pageX);
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStart || (!onSwipeLeft && !onSwipeRight)) return;
+    
+    const touchEnd = e.changedTouches[0].pageX;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 100;
+    const isRightSwipe = distance < -100;
+
+    if (isLeftSwipe && onSwipeLeft) {
+      onSwipeLeft();
+    } else if (isRightSwipe && onSwipeRight) {
+      onSwipeRight();
+    }
+    setTouchStart(null);
+  };
 
 
   
@@ -218,7 +247,11 @@ export const ReadingPassage: React.FC<ReadingPassageProps> = ({
   };
 
   return (
-    <section className={`bg-white p-1 sm:p-2 rounded-xl sm:shadow-sm sm:border sm:border-gray-100 mb-2 relative ${className}`}>
+    <section 
+      className={`bg-white p-1 sm:p-2 rounded-xl sm:shadow-sm sm:border sm:border-gray-100 mb-2 relative ${className}`}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-2 px-1">
         <div translate="no" className="min-w-0 flex-1">
           <h2 className="text-xl font-black text-green-900 uppercase tracking-tight wrap-break-word">{title}</h2>
