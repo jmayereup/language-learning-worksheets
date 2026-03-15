@@ -109,10 +109,28 @@ export const useTTS = ({
     utterance.lang = langCode;
     utterance.rate = rate;
 
+    // Use selected voice ONLY if it matches the requested language prefix
+    // otherwise fall back to getBestVoice for the specific language
+    const voices = synth.getVoices();
+    let voiceToUse = null;
+
     if (selectedVoiceName) {
-      const voices = synth.getVoices();
-      const voice = voices.find(v => v.name === selectedVoiceName);
-      if (voice) utterance.voice = voice;
+      const selectedVoice = voices.find(v => v.name === selectedVoiceName);
+      if (selectedVoice) {
+        const requestedPrefix = langCode.split(/[-_]/)[0].toLowerCase();
+        const voicePrefix = selectedVoice.lang.split(/[-_]/)[0].toLowerCase();
+        if (requestedPrefix === voicePrefix) {
+          voiceToUse = selectedVoice;
+        }
+      }
+    }
+
+    if (!voiceToUse) {
+      voiceToUse = getBestVoice(langCode);
+    }
+
+    if (voiceToUse) {
+      utterance.voice = voiceToUse;
     }
 
     utterance.onend = () => {

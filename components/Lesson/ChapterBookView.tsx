@@ -64,8 +64,14 @@ export const ChapterBookView: React.FC<ChapterBookViewProps> = ({
   
   const currentChapter = content.chapters[currentChapterIndex] || content.chapters[0];
   const chapterText = currentChapter.content.join('\n\n');
+  
+  // Resolve translation language: Chapter override > Content override > Default (English, or Thai if lesson is English)
+  const translationLanguage = currentChapter.translationLanguage || content.translationLanguage || (
+    (['english', 'en'].includes(lesson.language.toLowerCase())) ? 'Thai' : 'English'
+  );
+
   const displayText = showTranslation[currentChapterIndex] ? currentChapter.translation : chapterText;
-  const currentLanguage = showTranslation[currentChapterIndex] ? 'English' : lesson.language;
+  const currentLanguage = showTranslation[currentChapterIndex] ? translationLanguage : lesson.language;
   const [showReportCard, setShowReportCard] = useState(false);
   const [reportData, setReportData] = useState<ReportData | null>(null);
   
@@ -176,7 +182,7 @@ export const ChapterBookView: React.FC<ChapterBookViewProps> = ({
         
         <ReadingPassage
           text={displayText}
-          language={showTranslation[currentChapterIndex] ? 'English' : lesson.language}
+          language={showTranslation[currentChapterIndex] ? translationLanguage : lesson.language}
           title={currentChapter.title}
           onSlowToggle={() => toggleTTS(0.6, displayText, currentLanguage)}
           onListenToggle={() => toggleTTS(1.0, displayText, currentLanguage)}

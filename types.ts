@@ -153,12 +153,14 @@ export interface Chapter {
   title: string;
   content: string[];
   translation: string;
+  translationLanguage?: string;
   quiz: ChapterQuizQuestion[];
 }
 
 export interface ChapterBookContent {
   title: string;
   language: string;
+  translationLanguage?: string;
   subtitle?: string;
   chapters: Chapter[];
 }
