@@ -1,5 +1,5 @@
 import React, { ReactNode, useState, useRef, useEffect } from 'react';
-import { HelpCircle, X, BookOpen, Volume2, Turtle } from 'lucide-react';
+import { HelpCircle, X, BookOpen, Volume2, Turtle, ChevronDown, ChevronUp } from 'lucide-react';
 import { AudioControls } from '../UI/AudioControls';
 import { TranslateButton } from '../UI/TranslateButton';
 import { speakText } from '../../utils/textUtils';
@@ -46,6 +46,7 @@ export const ReadingPassage: React.FC<ReadingPassageProps> = ({
   const [selectedWord, setSelectedWord] = useState<string | null>(null);
   const [definitionData, setDefinitionData] = useState<{ type: 'dictionary' | 'translation' | 'google-search', content: any } | null>(null);
   const [isFetchingDefinition, setIsFetchingDefinition] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const selectionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const getLanguageCode = (lang: string) => {
@@ -88,6 +89,7 @@ export const ReadingPassage: React.FC<ReadingPassageProps> = ({
   const fetchDefinition = async (word: string) => {
     setIsFetchingDefinition(true);
     setDefinitionData(null);
+    setIsExpanded(false);
     try {
       const langCode = getLanguageCode(language);
       const data = await fetchWordData(word, langCode);
@@ -97,7 +99,7 @@ export const ReadingPassage: React.FC<ReadingPassageProps> = ({
         
         if (data.type === 'google-search' || isPhrase) {
           const baseUrl = isPhrase 
-            ? `https://translate.google.com/?sl=${langCode}&tl=en&text=${encodeURIComponent(word)}&op=translate`
+            ? `https://www.google.com/search?q=translate+${encodeURIComponent(word)}`
             : `https://www.google.com/search?q=define+${encodeURIComponent(word)}`;
           
           window.open(baseUrl, '_blank');
@@ -148,6 +150,7 @@ export const ReadingPassage: React.FC<ReadingPassageProps> = ({
       speakText(cleanWord, language, 0.7);
       setSelectedWord(cleanWord);
       setDefinitionData(null);
+      setIsExpanded(false);
     }
   };
 
@@ -362,21 +365,116 @@ export const ReadingPassage: React.FC<ReadingPassageProps> = ({
           )}
           
           {definitionData && (
-            <div className="text-gray-200 text-base leading-relaxed max-h-[150px] overflow-y-auto pr-2">
-              {definitionData.type === 'dictionary' && definitionData.content && definitionData.content.entries && definitionData.content.entries.length > 0 ? (
-                <div>
-                  <span className="inline-block px-2 py-0.5 rounded text-xs font-semibold bg-gray-800 text-blue-300 mb-2 uppercase tracking-wider">
-                    {definitionData.content.entries[0].partOfSpeech || 'Unknown Type'}
-                  </span>
-                  <p>{definitionData.content.entries[0].senses?.[0]?.definition || 'Definition missing.'}</p>
-                </div>
-              ) : definitionData.type === 'dictionary' && definitionData.content && definitionData.content[0]?.meanings ? (
-                /* Fallback for the older Dictionary API format just in case */
-                <div>
-                  <span className="inline-block px-2 py-0.5 rounded text-xs font-semibold bg-gray-800 text-blue-300 mb-2 uppercase tracking-wider">
-                    {definitionData.content[0].meanings[0]?.partOfSpeech || 'Unknown Type'}
-                  </span>
-                  <p>{definitionData.content[0].meanings[0]?.definitions?.[0]?.definition || 'Definition missing.'}</p>
+            <div className="text-gray-200 text-base leading-relaxed">
+              {definitionData.type === 'dictionary' && definitionData.content ? (
+                <div className="flex flex-col gap-4">
+                  {(() => {
+                    const entries = Array.isArray(definitionData.content) 
+                      ? definitionData.content 
+                      : (definitionData.content.entries || []);
+                    
+                    if (entries.length === 0) return <p>Definition missing.</p>;
+
+                    // Flatten meanings from all entries to normalize different API structures
+                    const allMeanings = entries.flatMap((entry: any) => {
+                      // Format A: { meanings: [ { partOfSpeech, definitions: [ { definition, example } ] } ] }
+                      if (entry.meanings) {
+                        return entry.meanings.map((m: any) => ({ ...m, word: entry.word || selectedWord }));
+                      } 
+                      // Format B: { partOfSpeech, senses: [ { definition, examples: [] } ] }
+                      if (entry.senses) {
+                        return [{
+                          partOfSpeech: entry.partOfSpeech,
+                          definitions: entry.senses.map((s: any) => ({
+                            definition: s.definition,
+                            example: s.examples?.[0] || s.example
+                          })),
+                          word: entry.word || selectedWord
+                        }];
+                      }
+                      return [];
+                    });
+
+                    if (allMeanings.length === 0) return <p>Definition missing.</p>;
+
+                    // Show only first definition initially if not expanded
+                    const displayMeanings = isExpanded ? allMeanings : allMeanings.slice(0, 1);
+
+                    return (
+                      <>
+                        <div className={`flex flex-col gap-3 ${!isExpanded ? 'max-h-[120px] overflow-hidden' : ''}`}>
+                          {displayMeanings.map((meaning: any, mIdx: number) => (
+                            <div key={mIdx} className="border-l-2 border-blue-500/30 pl-3">
+                              <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-900/50 text-blue-300 mb-1 uppercase tracking-wider">
+                                {meaning.partOfSpeech || 'unknown'}
+                              </span>
+                              {meaning.definitions?.slice(0, isExpanded ? 5 : 2).map((def: any, dIdx: number) => (
+                                <div key={dIdx} className="mb-2 last:mb-0">
+                                  <p className="text-sm sm:text-base">{def.definition}</p>
+                                  {def.example && (
+                                    <p className="text-xs sm:text-sm italic text-gray-400 mt-1">
+                                      "{def.example}"
+                                    </p>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          ))}
+                        </div>
+
+                        {allMeanings.length > 1 || (allMeanings[0]?.definitions?.length > 2) ? (
+                          <button
+                            onClick={() => setIsExpanded(!isExpanded)}
+                            className="flex items-center gap-1 text-blue-400 hover:text-blue-300 text-xs font-semibold py-1 transition-colors self-start"
+                          >
+                            {isExpanded ? (
+                              <><ChevronUp size={14} /> Show Less</>
+                            ) : (
+                              <><ChevronDown size={14} /> More details...</>
+                            )}
+                          </button>
+                        ) : null}
+
+                        <div className="mt-4 pt-3 border-t border-gray-700/50 flex flex-col gap-1 text-[10px] text-gray-400">
+                          <p>
+                            Content sourced from{' '}
+                            {definitionData.content.source?.url ? (
+                              <a 
+                                href={definitionData.content.source.url} 
+                                target="_blank" 
+                                rel="noreferrer"
+                                className="text-blue-400 hover:underline"
+                              >
+                                Wiktionary
+                              </a>
+                            ) : (
+                              'Wiktionary'
+                            )}
+                            {' '}under{' '}
+                            <a 
+                              href="https://creativecommons.org/licenses/by-sa/4.0/" 
+                              target="_blank" 
+                              rel="noreferrer"
+                              className="text-blue-400 hover:underline"
+                            >
+                              CC BY-SA 4.0
+                            </a>.
+                          </p>
+                          <p>
+                            Data provided by{' '}
+                            <a 
+                              href="https://freedictionaryapi.com" 
+                              target="_blank" 
+                              rel="noreferrer"
+                              className="text-blue-400 hover:underline"
+                            >
+                              FreeDictionaryAPI.com
+                            </a>.
+                          </p>
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
               ) : (
                 <div>
@@ -393,7 +491,7 @@ export const ReadingPassage: React.FC<ReadingPassageProps> = ({
             <div className="pt-2 border-t border-gray-700 mt-1 flex justify-end">
               <a 
                 href={selectedWord.trim().split(/\s+/).length > 1 
-                  ? `https://translate.google.com/?sl=${getLanguageCode(language)}&tl=en&text=${encodeURIComponent(selectedWord)}&op=translate` 
+                  ? `https://www.google.com/search?q=translate+${encodeURIComponent(selectedWord)}` 
                   : `https://www.google.com/search?q=define+${encodeURIComponent(selectedWord)}`}
                 target="_blank"
                 rel="noreferrer"
