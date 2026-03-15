@@ -11,8 +11,6 @@ import { LessonMedia } from '../UI/LessonMedia';
 import { useFocusedReaderScores } from '../../hooks/useFocusedReaderScores';
 import { ReportCard } from '../UI/ReportCard';
 
-import { useTTS } from '../../hooks/useTTS';
-
 interface ChapterBookViewProps {
   lesson: ParsedLesson & { content: ChapterBookContent };
   studentName: string;
@@ -26,6 +24,15 @@ interface ChapterBookViewProps {
   onReset: () => void;
   answers: UserAnswers;
   setAnswers: React.Dispatch<React.SetStateAction<UserAnswers>>;
+  toggleTTS: (rate: number, overrideText?: string, overrideLang?: string) => void;
+  ttsState: { status: 'playing' | 'paused' | 'stopped', rate: number };
+  availableVoices: SpeechSynthesisVoice[];
+  selectedVoiceName: string | null;
+  setSelectedVoiceName: (name: string) => void;
+  isVoiceModalOpen: boolean;
+  setIsVoiceModalOpen: (isOpen: boolean) => void;
+  audioPreference: 'recorded' | 'tts';
+  setAudioPreference: (pref: 'recorded' | 'tts') => void;
 }
 
 export const ChapterBookView: React.FC<ChapterBookViewProps> = ({
@@ -41,11 +48,19 @@ export const ChapterBookView: React.FC<ChapterBookViewProps> = ({
   onReset,
   answers,
   setAnswers,
+  toggleTTS,
+  ttsState,
+  availableVoices,
+  selectedVoiceName,
+  setSelectedVoiceName,
+  isVoiceModalOpen,
+  setIsVoiceModalOpen,
+  audioPreference,
+  setAudioPreference,
 }) => {
   const content = lesson.content;
   const [currentChapterIndex, setCurrentChapterIndex] = useState(answers.focusedReaderPage || 0);
   const [showTranslation, setShowTranslation] = useState<Record<number, boolean>>({});
-  const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
   
   const currentChapter = content.chapters[currentChapterIndex] || content.chapters[0];
   const chapterText = currentChapter.content.join('\n\n');
@@ -53,20 +68,6 @@ export const ChapterBookView: React.FC<ChapterBookViewProps> = ({
   const currentLanguage = showTranslation[currentChapterIndex] ? 'English' : lesson.language;
   const [showReportCard, setShowReportCard] = useState(false);
   const [reportData, setReportData] = useState<ReportData | null>(null);
-
-  const {
-      ttsState,
-      availableVoices,
-      selectedVoiceName,
-      setSelectedVoiceName,
-      audioPreference,
-      setAudioPreference,
-      toggleTTS
-  } = useTTS({
-      language: currentLanguage,
-      defaultAudioPreference: 'tts',
-      defaultReadingText: chapterText
-  });
   
   const readingPassageRef = useRef<HTMLDivElement>(null);
 
@@ -177,8 +178,8 @@ export const ChapterBookView: React.FC<ChapterBookViewProps> = ({
           text={displayText}
           language={showTranslation[currentChapterIndex] ? 'English' : lesson.language}
           title={currentChapter.title}
-          onSlowToggle={() => toggleTTS(0.6, displayText)}
-          onListenToggle={() => toggleTTS(1.0, displayText)}
+          onSlowToggle={() => toggleTTS(0.6, displayText, currentLanguage)}
+          onListenToggle={() => toggleTTS(1.0, displayText, currentLanguage)}
           ttsStatus={ttsState.status}
           currentRate={ttsState.rate}
           hasVoices={availableVoices.length > 0}

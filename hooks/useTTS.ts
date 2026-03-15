@@ -78,7 +78,7 @@ export const useTTS = ({
     };
   }, [language, selectedVoiceName]);
 
-  const playTTS = useCallback((rate: number, text: string) => {
+  const playTTS = useCallback((rate: number, text: string, overrideLang?: string) => {
     if (typeof window === 'undefined' || !window.speechSynthesis) {
         console.warn('SpeechSynthesis not supported/available');
         return;
@@ -105,7 +105,7 @@ export const useTTS = ({
     }
 
     const utterance = new SpeechSynthesisUtterance(text);
-    const langCode = getLangCode(language);
+    const langCode = getLangCode(overrideLang || language);
     utterance.lang = langCode;
     utterance.rate = rate;
 
@@ -125,7 +125,7 @@ export const useTTS = ({
     if (onStartCallback) onStartCallback();
   }, [language, selectedVoiceName, ttsState, onStartCallback]);
 
-  const toggleTTS = useCallback((rate: number, overrideText?: string) => {
+  const toggleTTS = useCallback((rate: number, overrideText?: string, overrideLang?: string) => {
     // Use audio file if available and preferred, but ONLY if no override text is provided
     if (!overrideText && audioFileUrl && audioPreference === 'recorded') {
       if (!audioRef.current) {
@@ -175,7 +175,7 @@ export const useTTS = ({
     // Default to TTS if not recorded or if override provided
     const textToSpeak = overrideText || defaultReadingText || ""; 
     if (textToSpeak) {
-        playTTS(rate, textToSpeak);
+        playTTS(rate, textToSpeak, overrideLang);
     }
   }, [audioFileUrl, audioPreference, ttsState, onStartCallback, playTTS, defaultReadingText]);
 
