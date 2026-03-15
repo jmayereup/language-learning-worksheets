@@ -86,7 +86,7 @@ class TJChapterBook extends HTMLElement {
         id: `chapter-book-${bookData.title.replace(/\s+/g, '-').toLowerCase()}`,
         title: bookData.title,
         level: 'A2' as any, 
-        language: (bookData.language || 'French') as any,
+        language: (bookData.language || 'English') as any,
         tags: [],
         created: new Date().toISOString(),
         updated: new Date().toISOString(),
