@@ -51,6 +51,8 @@ export const ChapterBookView: React.FC<ChapterBookViewProps> = ({
   const chapterText = currentChapter.content.join('\n\n');
   const displayText = showTranslation[currentChapterIndex] ? currentChapter.translation : chapterText;
   const currentLanguage = showTranslation[currentChapterIndex] ? 'English' : lesson.language;
+  const [showReportCard, setShowReportCard] = useState(false);
+  const [reportData, setReportData] = useState<ReportData | null>(null);
 
   const {
       ttsState,
@@ -137,11 +139,10 @@ export const ChapterBookView: React.FC<ChapterBookViewProps> = ({
         { label: 'Reading Comprehension', score, total }
       ]
     };
+    setReportData(data);
+    setShowReportCard(true);
     onFinish(data);
   };
-
-  const chapterText = currentChapter.content.join('\n\n');
-  const displayText = showTranslation[currentChapterIndex] ? currentChapter.translation : chapterText;
 
   return (
     <div className="space-y-4">
@@ -284,6 +285,13 @@ export const ChapterBookView: React.FC<ChapterBookViewProps> = ({
         audioPreference={audioPreference}
         onSelectPreference={setAudioPreference}
       />
+
+      {showReportCard && reportData && (
+        <ReportCard
+          data={reportData}
+          onClose={() => setShowReportCard(false)}
+        />
+      )}
     </div>
   );
 };
