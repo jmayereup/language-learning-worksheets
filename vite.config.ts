@@ -27,9 +27,12 @@ export default defineConfig(({ mode }) => {
         outDir: 'dist/wc',
         emptyOutDir: false,
         lib: {
-          entry: path.resolve(__dirname, 'pocketbase-worksheet.tsx'),
-          name: 'TJPocketBaseWorksheet',
-          fileName: (format) => `tj-pocketbase-worksheet.${format}.js`
+          entry: {
+            'tj-pocketbase-worksheet': path.resolve(__dirname, 'pocketbase-worksheet.tsx'),
+            'tj-chapter-book': path.resolve(__dirname, 'chapter-book.tsx')
+          },
+          name: 'TJWorksheets',
+          fileName: (format, entryName) => `${entryName}.${format}.js`
         }
       } : {
         outDir: 'dist',

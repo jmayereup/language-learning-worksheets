@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ParsedLesson, StandardLessonContent, InformationGapContent, FocusedReaderContent, LessonContent, ReportData, WordBlasterContent } from '../../types';
+import { ParsedLesson, StandardLessonContent, InformationGapContent, FocusedReaderContent, LessonContent, ReportData, WordBlasterContent, ChapterBookContent } from '../../types';
 import { selectElementText } from '../../utils/textUtils';
 import { Loader } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -12,6 +12,7 @@ const InformationGapView = React.lazy(() => import('./InformationGapView').then(
 const WorksheetView = React.lazy(() => import('./WorksheetView').then(m => ({ default: m.WorksheetView })));
 const FocusedReaderView = React.lazy(() => import('./FocusedReaderView').then(m => ({ default: m.FocusedReaderView })));
 const WordBlasterView = React.lazy(() => import('./WordBlasterView').then(m => ({ default: m.WordBlasterView })));
+const ChapterBookView = React.lazy(() => import('./ChapterBookView').then(m => ({ default: m.ChapterBookView })));
 
 interface Props {
   lesson: ParsedLesson;
@@ -34,16 +35,22 @@ const isInformationGapLesson = (content: LessonContent): content is InformationG
   return content !== null && typeof content === 'object' && ('topic' in content || 'player_count' in content || ('activities' in content && Array.isArray((content as any).activities)));
 };
 
+const isChapterBook = (content: LessonContent): content is ChapterBookContent => {
+  return content !== null && typeof content === 'object' && 'chapters' in content && Array.isArray((content as any).chapters);
+};
+
 export const LessonView: React.FC<Props> = ({ lesson }) => {
   const isStandard = isStandardLesson(lesson.content);
   const isFocused = isFocusedReader(lesson.content);
   const isBlaster = isWordBlaster(lesson.content);
   const isInfoGap = isInformationGapLesson(lesson.content);
+  const isChapter = isChapterBook(lesson.content);
 
   // Determine effective lesson type to handle previews where the dropdown hasn't been saved yet
   const effectiveLessonType = 
     isBlaster ? 'word-blaster' :
     isFocused ? 'focused-reading' :
+    isChapter ? 'chapter-book' :
     isInfoGap ? 'information-gap' :
     isStandard ? 'standard' :
     lesson.lessonType;
@@ -210,6 +217,31 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
               lesson={{...lesson, content: lesson.content as WordBlasterContent}}
               onFinish={handleFinish}
               onReset={handleReset}
+            />
+          ) : effectiveLessonType === 'chapter-book' ? (
+            <ChapterBookView
+              key={`chapter-book-${resetKey}`}
+              lesson={{...lesson, content: lesson.content as ChapterBookContent}}
+              studentName={studentName}
+              setStudentName={setStudentName}
+              studentId={studentId}
+              setStudentId={setStudentId}
+              homeroom={homeroom}
+              setHomeroom={setHomeroom}
+              isNameLocked={isNameLocked}
+              onFinish={handleFinish}
+              onReset={handleReset}
+              answers={answers}
+              setAnswers={setAnswers}
+              toggleTTS={toggleTTS}
+              ttsState={ttsState}
+              availableVoices={availableVoices}
+              selectedVoiceName={selectedVoiceName}
+              setSelectedVoiceName={setSelectedVoiceName}
+              isVoiceModalOpen={isVoiceModalOpen}
+              setIsVoiceModalOpen={setIsVoiceModalOpen}
+              audioPreference={audioPreference}
+              setAudioPreference={setAudioPreference}
             />
           ) : (
             <WorksheetView

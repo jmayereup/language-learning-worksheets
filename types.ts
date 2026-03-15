@@ -138,7 +138,32 @@ export interface StandardLessonContent {
   references?: Record<string, string>;
 }
 
-export type LessonContent = StandardLessonContent | InformationGapContent | InformationGapActivity[] | FocusedReaderContent | WordBlasterContent;
+export interface ChapterQuizOption {
+  text: string;
+  value: 'correct' | 'wrong';
+}
+
+export interface ChapterQuizQuestion {
+  question: string;
+  options: ChapterQuizOption[];
+}
+
+export interface Chapter {
+  id: string;
+  title: string;
+  content: string[];
+  translation: string;
+  quiz: ChapterQuizQuestion[];
+}
+
+export interface ChapterBookContent {
+  title: string;
+  language: string;
+  subtitle?: string;
+  chapters: Chapter[];
+}
+
+export type LessonContent = StandardLessonContent | InformationGapContent | InformationGapActivity[] | FocusedReaderContent | WordBlasterContent | ChapterBookContent;
 
 // Define extended language list manually
 export const POCKETBASE_SUPPORTED_LANGUAGES = ['English', 'Spanish', 'French', 'Thai', 'German'] as const;
@@ -244,6 +269,7 @@ declare module 'react' {
   namespace JSX {
     interface IntrinsicElements {
       'tj-pocketbase-worksheet': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
+      'tj-chapter-book': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
     }
   }
 }

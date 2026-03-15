@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter Book Test</title>
+    <script type="module" src="/chapter-book.tsx"></script>
+    <style>
+        body { margin: 0; padding: 20px; background: #f9fafb; font-family: sans-serif; }
+        .container { max-width: 900px; margin: 0 auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <tj-chapter-book>
+            <script type="application/json">
+{
+  "title": "L'Âme du Terroir",
+  "language": "French",
+  "subtitle": "Growing up on a Vineyard (A2)",
+  "chapters": [
+    {
+      "id": "chapter-1",
+      "title": "Chapitre 1: Ma Maison en Provence",
+      "content": [
+        "J'habite dans une grande maison en pierre dans le sud de la France. Autour de la maison, il y a beaucoup de vignes. C'est le domaine de ma famille depuis longtemps. Quand j'étais petite, j'adorais courir entre les rangs de raisins. Le soleil brille souvent ici et le ciel est très bleu.",
+        "Mon père est vigneron. Il travaille dehors toute l'année. Il m'a appris à aimer la terre et la nature. Pour moi, le vignoble est le plus bel endroit du monde. Je me souviens de l'odeur des fleurs au printemps et de la chaleur de l'été. C'est ici que mon histoire commence."
+      ],
+      "translation": "I live in a large stone house in the south of France. Around the house, there are many vines. It has been my family's estate for a long time. When I was little, I loved running between the rows of grapes. The sun often shines here and the sky is very blue. My father is a winemaker. He works outside all year round. He taught me to love the earth and nature. For me, the vineyard is the most beautiful place in the world. I remember the smell of flowers in spring and the heat of summer. This is where my story begins.",
+      "quiz": [
+        {
+          "question": "1. Où habite la famille ?",
+          "options": [
+            { "text": "a) Dans un appartement à Paris", "value": "wrong" },
+            { "text": "b) Dans une maison en Provence", "value": "correct" },
+            { "text": "c) Près de la mer", "value": "wrong" }
+          ]
+        },
+        {
+          "question": "2. Vrai ou Faux: Le père travaille dans un bureau.",
+          "options": [
+            { "text": "Vrai", "value": "wrong" },
+            { "text": "Faux", "value": "correct" }
+          ]
+        },
+        {
+          "question": "3. Quel temps fait-il souvent là-bas ?",
+          "options": [
+            { "text": "a) Il pleut toujours", "value": "wrong" },
+            { "text": "b) Il neige beaucoup", "value": "wrong" },
+            { "text": "c) Le soleil brille", "value": "correct" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chapter-2",
+      "title": "Chapitre 2: Le Travail au Printemps",
+      "content": [
+        "Au printemps, la nature se réveille. C'est un moment très important pour les vignes. Mon père utilise des ciseaux spéciaux pour couper les branches mortes. On appelle cela « la taille ». C'est un travail difficile parce qu'il faut faire attention à chaque plante.",
+        "Parfois, il fait froid la nuit. Mon père a peur du gel. Si les jeunes bourgeons gèlent, il n'y aura pas de raisins. Une nuit, nous avons allumé des petits feux pour protéger les vignes. C'était magnifique de voir toutes ces lumières dans le noir. Heureusement, le soleil est revenu le matin et les plantes étaient sauvées."
+      ],
+      "translation": "In spring, nature wakes up. It is a very important moment for the vines. My father uses special scissors to cut the dead branches. We call this 'pruning.' It is difficult work because you have to pay attention to each plant. Sometimes, it is cold at night. My father is afraid of frost. If the young buds freeze, there will be no grapes. One night, we lit small fires to protect the vines. It was beautiful to see all those lights in the dark. Fortunately, the sun returned in the morning and the plants were saved.",
+      "quiz": [
+        {
+          "question": "1. Comment s'appelle le travail de couper les branches ?",
+          "options": [
+            { "text": "a) La récolte", "value": "wrong" },
+            { "text": "b) La taille", "value": "correct" },
+            { "text": "c) La cuisine", "value": "wrong" }
+          ]
+        },
+        {
+          "question": "2. Quel est le danger pendant la nuit ?",
+          "options": [
+            { "text": "a) Les loups", "value": "wrong" },
+            { "text": "b) Le vent", "value": "wrong" },
+            { "text": "c) Le gel", "value": "correct" }
+          ]
+        },
+        {
+          "question": "3. Vrai ou Faux: Ils utilisent des feux pour chauffer les plantes.",
+          "options": [
+            { "text": "Vrai", "value": "correct" },
+            { "text": "Faux", "value": "wrong" }
+          ]
+        }
+      ]
+    }
+  ]
+}
+            </script>
+        </tj-chapter-book>
+    </div>
+</body>
+</html>
