@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { fetchAllLessons, deleteLesson, getCurrentUser } from '../../services/pocketbase';
-import { triggerRebuild } from '../../services/deploy';
+import React, { useState } from 'react';
+import { getCurrentUser } from '../../services/pocketbase';
+import { useAllLessons, useDeleteLesson } from '../../hooks/useLessons';
 import { Button } from '../UI/Button';
 import { Edit, Trash2, ExternalLink, RefreshCw, Layers, Globe, Calendar, Eye, Search, FileText, CheckSquare, Square, Rocket } from 'lucide-react';
 import { extractVocabularyFromLessons } from '../../utils/vocabularyExtractor';
@@ -12,38 +12,18 @@ interface LessonListProps {
 }
 
 export const LessonList: React.FC<LessonListProps> = ({ onEdit, onPreview, onAddNew }) => {
-    const [lessons, setLessons] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedLessonIds, setSelectedLessonIds] = useState<Set<string>>(new Set());
     const [isBuilding, setIsBuilding] = useState(false);
     const currentUser = getCurrentUser();
 
-    const loadLessons = async () => {
-        setLoading(true);
-        try {
-            const data = await fetchAllLessons(currentUser?.id);
-            setLessons(data);
-        } catch (err) {
-            setError('Failed to load lessons');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        loadLessons();
-    }, []);
+    const { data: lessons = [], isLoading: loading, error: fetchError } = useAllLessons(currentUser?.id);
+    const deleteMutation = useDeleteLesson();
 
     const handleDelete = async (id: string, title: string) => {
         if (window.confirm(`Are you sure you want to delete "${title}"?`)) {
             try {
-                await deleteLesson(id);
-                setLessons(lessons.filter(l => l.id !== id));
-                
-                // Trigger Cloudflare rebuild
-                triggerRebuild();
+                await deleteMutation.mutateAsync(id);
             } catch (err) {
                 alert('Failed to delete lesson');
             }
@@ -115,11 +95,11 @@ export const LessonList: React.FC<LessonListProps> = ({ onEdit, onPreview, onAdd
         );
     }
 
-    if (error) {
+    if (fetchError) {
         return (
             <div className="p-8 bg-red-50 border border-red-100 rounded-2xl text-center">
-                <p className="text-red-600 font-bold mb-4">{error}</p>
-                <Button onClick={loadLessons} variant="outline">Try Again</Button>
+                <p className="text-red-600 font-bold mb-4">{"Failed to load lessons"}</p>
+                <Button onClick={() => window.location.reload()} variant="outline">Try Again</Button>
             </div>
         );
     }

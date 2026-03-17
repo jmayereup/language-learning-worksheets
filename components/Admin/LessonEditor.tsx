@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { fetchLessonById, createLesson, updateLesson } from '../../services/pocketbase';
+import { useLesson, useCreateLesson, useUpdateLesson } from '../../hooks/useLessons';
 import { LANGUAGE_OPTIONS, LEVEL_OPTIONS, TAG_OPTIONS, LESSON_TYPE_OPTIONS, POCKETBASE_SUPPORTED_LANGUAGES } from '../../types';
-import { triggerRebuild } from '../../services/deploy';
 import { Button } from '../UI/Button';
 import { Save, X, AlertCircle, FileJson, Info, Globe, Layers, Tag as TagIcon, Video, Check, Image as ImageIcon, Music, Layout, ClipboardPaste, Eye, Code } from 'lucide-react';
 import { Modal } from '../UI/Modal';
@@ -21,10 +20,13 @@ interface LessonEditorProps {
 }
 
 export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialData, isPublicCreator = false, onSave, onCancel, onPreview }) => {
-    const [loading, setLoading] = useState(false);
-    const [fetching, setFetching] = useState(!!lessonId);
+    const { data: lesson, isLoading: fetching, error: fetchError } = useLesson(lessonId);
+    const createMutation = useCreateLesson();
+    const updateMutation = useUpdateLesson();
     const [error, setError] = useState<string | null>(null);
-    const [lessonData, setLessonData] = useState<any>(null); // Store original lesson data if available
+    
+    // Original lesson data stored here to handle things like audio file preview/keeping
+    const [lessonData, setLessonData] = useState<any>(null); 
 
     // Form fields
     const [title, setTitle] = useState('');
@@ -48,29 +50,23 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
     }, [language]);
 
     useEffect(() => {
-        if (lessonId) {
-            const loadLesson = async () => {
-                try {
-                    const lesson = await fetchLessonById(lessonId);
-                    setLessonData(lesson);
-                    setTitle(lesson.title || '');
-                    setLanguage(lesson.language);
-                    setLevel(lesson.level);
-                    setSelectedTags(lesson.tags || []);
-                    setVideoUrl(lesson.videoUrl || '');
-                    setIsVideoLesson(lesson.isVideoLesson || false);
-                    setLessonType(lesson.lessonType || 'worksheet');
-                    setJsonContent(JSON.stringify(lesson.content, null, isMinified ? 0 : 2));
-                    setSeo(lesson.seo || '');
-                    if (lesson.imageUrl) setImagePreview(lesson.imageUrl);
-                } catch (err) {
-                    setError('Failed to load lesson for editing');
-                } finally {
-                    setFetching(false);
-                }
-            };
-            loadLesson();
-        } else {
+        if (lesson) {
+            setLessonData(lesson);
+            setTitle(lesson.title || '');
+            setLanguage(lesson.language);
+            setLevel(lesson.level);
+            setSelectedTags(lesson.tags || []);
+            setVideoUrl(lesson.videoUrl || '');
+            setIsVideoLesson(lesson.isVideoLesson || false);
+            setLessonType(lesson.lessonType || 'worksheet');
+            setJsonContent(JSON.stringify(lesson.content, null, isMinified ? 0 : 2));
+            setSeo(lesson.seo || '');
+            if (lesson.imageUrl) setImagePreview(lesson.imageUrl);
+        }
+    }, [lesson]);
+
+    useEffect(() => {
+        if (!lessonId) {
             // New lesson starts with empty JSON content or initial data from props
             if (initialData) {
                 try {
@@ -150,9 +146,6 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
             return;
         }
 
-        setLoading(true);
-        setError(null);
-
         try {
             // Validate JSON
             let parsedContent;
@@ -185,19 +178,14 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
             }
 
             if (lessonId) {
-                await updateLesson(lessonId, formData);
+                await updateMutation.mutateAsync({ id: lessonId, data: formData });
             } else {
-                await createLesson(formData);
+                await createMutation.mutateAsync(formData);
             }
-
-            // Trigger Cloudflare rebuild
-            triggerRebuild();
 
             onSave();
         } catch (err: any) {
             setError(err.message || 'Failed to save lesson');
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -781,7 +769,7 @@ ${embedData}
 
                     {!isPublicCreator && (
                         <div className="ml-auto flex flex-col items-end w-full sm:w-auto mt-4 sm:mt-0">
-                            <Button variant="success" size="lg" type="submit" isLoading={loading} disabled={!isPocketbaseSupportedLanguage} className="px-10 shadow-lg shadow-green-100 w-full disabled:opacity-50 disabled:cursor-not-allowed">
+                            <Button variant="success" size="lg" type="submit" isLoading={createMutation.isPending || updateMutation.isPending} disabled={!isPocketbaseSupportedLanguage} className="px-10 shadow-lg shadow-green-100 w-full disabled:opacity-50 disabled:cursor-not-allowed">
                                 <Save className="w-4 h-4 mr-2" /> {lessonId ? 'Update Online Worksheet' : 'Create Online Worksheet'}
                             </Button>
                             {!isPocketbaseSupportedLanguage && language && (

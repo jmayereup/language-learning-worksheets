@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { fetchLessons, fetchLessonById } from './services/pocketbase';
+import { useLessons, useLesson } from './hooks/useLessons';
 import { ParsedLesson, LANGUAGE_OPTIONS, LEVEL_OPTIONS, TAG_OPTIONS } from './types';
 import { LessonView } from './components/Lesson/LessonView';
 import { Button } from './components/UI/Button';
@@ -13,7 +13,7 @@ import logo from './assets/tj-logo.svg';
 
 const App: React.FC = () => {
     const [view, setView] = useState<'home' | 'lesson' | 'admin' | 'create'>('home');
-    const [currentLesson, setCurrentLesson] = useState<ParsedLesson | null>(null);
+    const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
     const [showPreview, setShowPreview] = useState(false);
 
     // Filter States
@@ -21,9 +21,18 @@ const App: React.FC = () => {
     const [level, setLevel] = useState('All');
     const [tag, setTag] = useState('All');
 
-    const [lessons, setLessons] = useState<ParsedLesson[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [loadingLesson, setLoadingLesson] = useState(false);
+    const { data: lessons = [], isLoading: loading } = useLessons(language, level);
+    const { data: currentLessonFromQuery, isLoading: loadingLesson } = useLesson(selectedLessonId);
+
+    // currentLesson state is kept for cases where it's passed from admin/create preview
+    const [currentLesson, setCurrentLesson] = useState<ParsedLesson | null>(null);
+
+    // Sync currentLesson with query result when viewing a specific lesson
+    useEffect(() => {
+        if (currentLessonFromQuery && view === 'lesson') {
+            setCurrentLesson(currentLessonFromQuery);
+        }
+    }, [currentLessonFromQuery, view]);
 
     // Parse URL params for routing
     useEffect(() => {
@@ -46,10 +55,11 @@ const App: React.FC = () => {
                 setView('admin');
             } else if (viewParam === 'create') {
                 setView('create');
-            } else if (lessonId && (!currentLesson || currentLesson.id !== lessonId)) {
+            } else if (lessonId && selectedLessonId !== lessonId) {
                 handleSelectLesson(lessonId);
             } else if (!lessonId && view === 'lesson') {
                 setView('home');
+                setSelectedLessonId(null);
                 setCurrentLesson(null);
             } else if (!viewParam && view === 'admin') {
                 setView('home');
@@ -59,7 +69,7 @@ const App: React.FC = () => {
         syncParams();
         window.addEventListener('popstate', syncParams);
         return () => window.removeEventListener('popstate', syncParams);
-    }, [currentLesson?.id, view]);
+    }, [selectedLessonId, view]);
 
     const updateURL = (params: Record<string, string>) => {
         try {
@@ -85,46 +95,28 @@ const App: React.FC = () => {
     };
 
     useEffect(() => {
-        const loadLessons = async () => {
-            setLoading(true);
-            try {
-                const data = await fetchLessons(language, level);
-                setLessons(data as any);
-
-                // Update URL to reflect filters without touching the active lesson param.
-                // (Clearing `lesson` is handled explicitly when returning to Home.)
-                updateURL({ language, level, category: tag });
-            } catch (err) {
-                console.error(err);
-            } finally {
-                setLoading(false);
-            }
-        };
-        loadLessons();
-    }, [language, level]);
+        // Update URL to reflect filters without touching the active lesson param.
+        // (Clearing `lesson` is handled explicitly when returning to Home.)
+        updateURL({ language, level, category: tag });
+    }, [language, level, tag]);
 
     const handleSelectLesson = async (id: string) => {
         if (!id) return;
-        setLoadingLesson(true);
-        try {
-            const lesson = await fetchLessonById(id);
-            setCurrentLesson(lesson);
-            setView('lesson');
-            window.scrollTo(0, 0);
-            updateURL({ lesson: id, language, level, category: tag });
-        } catch (err) {
-            alert("Failed to load lesson.");
-        } finally {
-            setLoadingLesson(false);
-        }
+        setSelectedLessonId(id);
+        setView('lesson');
+        window.scrollTo(0, 0);
+        updateURL({ lesson: id, language, level, category: tag });
     };
 
     const handleViewChange = (newView: 'home' | 'lesson' | 'admin' | 'create') => {
         setView(newView);
         if (newView === 'home') {
+            setSelectedLessonId(null);
+            setCurrentLesson(null);
             updateURL({ lesson: '', view: '', language, level, category: tag });
         } else if (newView === 'admin') {
-            updateURL({ lesson: '', view: 'admin' });
+            setSelectedLessonId(null);
+            setCurrentLesson(null);
         } else if (newView === 'create') {
             updateURL({ lesson: '', view: 'create' });
         }
