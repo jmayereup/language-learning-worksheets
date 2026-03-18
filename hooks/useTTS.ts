@@ -30,9 +30,16 @@ export const useTTS = ({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const userHasSelectedVoice = useRef(false);
   const activeContentRef = useRef<string | null>(null);
+  const prevLanguageRef = useRef<string>(language);
 
   // Initialize and update voices
   useEffect(() => {
+    // Reset user voice preference flag when language changes so we auto-select the best voice
+    if (prevLanguageRef.current !== language) {
+      userHasSelectedVoice.current = false;
+      prevLanguageRef.current = language;
+    }
+
     const updateVoices = () => {
       if (typeof window === 'undefined' || !window.speechSynthesis) {
         return;

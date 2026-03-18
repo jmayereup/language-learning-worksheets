@@ -77,6 +77,26 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
   const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
   const [resetKey, setResetKey] = useState(0);
 
+  // Determine Translation Language
+  const getTranslationLanguage = () => {
+    if (isChapter) {
+      const content = lesson.content as ChapterBookContent;
+      // Default translation for chapter books
+      return content.translationLanguage || (
+        (['english', 'en'].includes(lesson.language.toLowerCase())) ? 'Thai' : 'English'
+      );
+    }
+    if (isFocused) {
+      // Focused reader might also need translation lang logic if we add it there later
+      return (['english', 'en'].includes(lesson.language.toLowerCase())) ? 'Thai' : 'English';
+    }
+    return (['english', 'en'].includes(lesson.language.toLowerCase())) ? 'Thai' : 'English';
+  };
+
+  const translationLanguage = getTranslationLanguage();
+  const activeReadingLanguage = answers.activeReadingLanguage || 'original';
+  const effectiveLanguage = activeReadingLanguage === 'translation' ? translationLanguage : lesson.language;
+
   // TTS Hook
   const {
     ttsState,
@@ -87,7 +107,7 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
     setAudioPreference,
     toggleTTS
   } = useTTS({
-    language: lesson.language,
+    language: effectiveLanguage,
     audioFileUrl: lesson.audioFileUrl,
     defaultAudioPreference: lesson.audioFileUrl ? 'recorded' : 'tts',
     defaultReadingText: isStandard ? (lesson.content as StandardLessonContent).readingText : (isFocused ? (lesson.content as FocusedReaderContent).parts[0].text : ''),

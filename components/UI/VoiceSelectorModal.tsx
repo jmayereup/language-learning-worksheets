@@ -92,7 +92,7 @@ export const VoiceSelectorModal: React.FC<Props> = ({
                             className={`
                 group relative p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between
                 ${audioPreference === 'recorded'
-                                    ? 'border-blue-600 bg-blue-50/50 ring-4 ring-blue-50'
+                                    ? 'border-blue-500 bg-blue-50/80 shadow-md outline-2 outline-blue-300'
                                     : 'border-slate-100 bg-white hover:border-blue-200 hover:bg-slate-50'
                                 }
               `}
@@ -146,7 +146,7 @@ export const VoiceSelectorModal: React.FC<Props> = ({
                                     className={`
                     group relative p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between
                     ${isSelected
-                                            ? 'border-blue-600 bg-blue-50/50 ring-4 ring-blue-50'
+                                            ? 'border-blue-500 bg-blue-50/80 shadow-md outline-2 outline-blue-300'
                                             : 'border-slate-100 bg-white hover:border-blue-200 hover:bg-slate-50'
                                         }
                   `}

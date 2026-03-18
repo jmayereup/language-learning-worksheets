@@ -234,6 +234,7 @@ export interface UserAnswers {
   infoGap?: Record<number, { score: number, total: number }>; // activityIndex -> result
   focusedReader?: Record<number, Record<number, string>>; // partIndex -> questionIndex -> answer
   focusedReaderPage?: number; // current part/page index
+  activeReadingLanguage?: 'original' | 'translation';
   completionStates?: Record<string, boolean>; // sectionKey -> boolean
 }
 

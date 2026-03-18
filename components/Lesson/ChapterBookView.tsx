@@ -1,15 +1,16 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { ParsedLesson, ChapterBookContent, UserAnswers, ReportData, ChapterQuizQuestion } from '../../types';
 import { VoiceSelectorModal } from '../UI/VoiceSelectorModal';
 import { LessonFooter } from './LessonFooter';
-import { ChevronRight, ChevronLeft, CheckCircle2, Languages } from 'lucide-react';
+import { ChevronRight, ChevronLeft, CheckCircle2 } from 'lucide-react';
 import { Button } from '../UI/Button';
 import { ReadingPassage } from '../Activities/ReadingPassage';
 import { Comprehension } from '../Activities/Comprehension';
 import { CollapsibleActivity } from '../UI/CollapsibleActivity';
 import { LessonMedia } from '../UI/LessonMedia';
-import { useFocusedReaderScores } from '../../hooks/useFocusedReaderScores';
 import { ReportCard } from '../UI/ReportCard';
+import { getVoicesForLang } from '../../utils/tts';
+import { getLangCode } from '../../utils/textUtils';
 
 interface ChapterBookViewProps {
   lesson: ParsedLesson & { content: ChapterBookContent };
@@ -60,18 +61,19 @@ export const ChapterBookView: React.FC<ChapterBookViewProps> = ({
 }) => {
   const content = lesson.content;
   const [currentChapterIndex, setCurrentChapterIndex] = useState(answers.focusedReaderPage || 0);
-  const [showTranslation, setShowTranslation] = useState<Record<number, boolean>>({});
   
   const currentChapter = content.chapters[currentChapterIndex] || content.chapters[0];
   const chapterText = currentChapter.content.join('\n\n');
   
-  // Resolve translation language: Chapter override > Content override > Default (English, or Thai if lesson is English)
   const translationLanguage = currentChapter.translationLanguage || content.translationLanguage || (
     (['english', 'en'].includes(lesson.language.toLowerCase())) ? 'Thai' : 'English'
   );
 
-  const displayText = showTranslation[currentChapterIndex] ? currentChapter.translation : chapterText;
-  const currentLanguage = showTranslation[currentChapterIndex] ? translationLanguage : lesson.language;
+  const activeReadingLanguage = answers.activeReadingLanguage || 'original';
+  const isTranslated = activeReadingLanguage === 'translation';
+
+  const displayText = isTranslated ? currentChapter.translation : chapterText;
+  const currentLanguage = isTranslated ? translationLanguage : lesson.language;
   const [showReportCard, setShowReportCard] = useState(false);
   const [reportData, setReportData] = useState<ReportData | null>(null);
   
@@ -91,8 +93,9 @@ export const ChapterBookView: React.FC<ChapterBookViewProps> = ({
     }, 10);
   };
 
-  const toggleTranslation = (idx: number) => {
-    setShowTranslation(prev => ({ ...prev, [idx]: !prev[idx] }));
+  const toggleTranslation = () => {
+    const nextLang = activeReadingLanguage === 'original' ? 'translation' : 'original';
+    setAnswers(prev => ({ ...prev, activeReadingLanguage: nextLang }));
   };
 
   // Map ChapterQuizQuestion to the format expected by Comprehension component
@@ -113,6 +116,10 @@ export const ChapterBookView: React.FC<ChapterBookViewProps> = ({
   
   const chapterAnswers = answers.focusedReader?.[currentChapterIndex] || {};
   const isChapterCompleted = !!answers.completionStates?.[`chapter_${currentChapterIndex}`];
+
+  // Always compute voices for the current reading language at render time
+  // so the modal immediately reflects a language switch without waiting for the hook
+  const modalVoices = getVoicesForLang(getLangCode(currentLanguage));
 
   const calculateScore = () => {
     let totalScore = 0;
@@ -165,36 +172,82 @@ export const ChapterBookView: React.FC<ChapterBookViewProps> = ({
         />
 
         {/* Chapter Navigation Dots */}
-        <div className="flex justify-center flex-wrap gap-2 mb-4">
-          {content.chapters.map((_, idx) => (
+        <div className="flex justify-center items-center gap-3 my-4">
+          <button
+            onClick={() => handleChapterChange(Math.max(0, currentChapterIndex - 1))}
+            disabled={currentChapterIndex === 0}
+            className="p-1.5 rounded-full text-green-600 hover:bg-green-100 disabled:opacity-20 disabled:cursor-not-allowed transition-all"
+            title="Previous Chapter"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+
+          <div className="flex flex-wrap justify-center gap-2">
+            {content.chapters.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => handleChapterChange(idx)}
+                className={`h-3 rounded-full transition-all duration-300 ${
+                  currentChapterIndex === idx ? 'w-8 bg-green-600' : 'w-3 bg-green-200 hover:bg-green-300'
+                }`}
+                title={`Go to Chapter ${idx + 1}`}
+              />
+            ))}
+          </div>
+
+          <button
+            onClick={() => handleChapterChange(Math.min(content.chapters.length - 1, currentChapterIndex + 1))}
+            disabled={currentChapterIndex === content.chapters.length - 1}
+            className="p-1.5 rounded-full text-green-600 hover:bg-green-100 disabled:opacity-20 disabled:cursor-not-allowed transition-all"
+            title="Next Chapter"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+        
+        {/* Language Toggle */}
+        <div className="flex justify-center mb-6">
+          <div className="inline-flex p-1 bg-green-50/50 rounded-xl border border-green-100 shadow-sm overflow-hidden">
             <button
-              key={idx}
-              onClick={() => handleChapterChange(idx)}
-              className={`h-3 rounded-full transition-all duration-300 ${
-                currentChapterIndex === idx ? 'w-8 bg-green-600' : 'w-3 bg-green-200 hover:bg-green-300'
+              onClick={() => setAnswers(prev => ({ ...prev, activeReadingLanguage: 'original' }))}
+              className={`px-4 py-2 rounded-lg text-xs sm:text-sm font-black transition-all duration-300 ${
+                activeReadingLanguage === 'original' 
+                  ? 'bg-white text-green-700 shadow-sm ring-1 ring-black/5' 
+                  : 'text-green-600 hover:text-green-700'
               }`}
-              title={`Go to Chapter ${idx + 1}`}
-            />
-          ))}
+            >
+              READ IN {lesson.language.toUpperCase()}
+            </button>
+            <button
+              onClick={() => setAnswers(prev => ({ ...prev, activeReadingLanguage: 'translation' }))}
+              className={`px-4 py-2 rounded-lg text-xs sm:text-sm font-black transition-all duration-300 ${
+                activeReadingLanguage === 'translation' 
+                  ? 'bg-white text-green-700 shadow-sm ring-1 ring-black/5' 
+                  : 'text-green-600 hover:text-green-700'
+              }`}
+            >
+              READ IN {translationLanguage.toUpperCase()}
+            </button>
+          </div>
         </div>
 
         <div ref={readingPassageRef} className="scroll-mt-6" />
         
         <ReadingPassage
           text={displayText}
-          language={showTranslation[currentChapterIndex] ? translationLanguage : lesson.language}
+          language={isTranslated ? translationLanguage : lesson.language}
           title={currentChapter.title}
           onSlowToggle={() => toggleTTS(0.6, displayText, currentLanguage)}
           onListenToggle={() => toggleTTS(1.0, displayText, currentLanguage)}
           ttsStatus={ttsState.status}
           currentRate={ttsState.rate}
           hasVoices={availableVoices.length > 0}
-          onTranslate={() => toggleTranslation(currentChapterIndex)}
+          onTranslate={() => toggleTranslation()}
           onSwipeLeft={currentChapterIndex < content.chapters.length - 1 ? () => handleChapterChange(currentChapterIndex + 1) : undefined}
           onSwipeRight={currentChapterIndex > 0 ? () => handleChapterChange(currentChapterIndex - 1) : undefined}
-          onVoiceOpen={availableVoices.length > 0 ? () => setIsVoiceModalOpen(true) : undefined}
+          onVoiceOpen={modalVoices.length > 0 ? () => setIsVoiceModalOpen(true) : undefined}
           className="animate-slide-up"
-          showHighlightHelp={!showTranslation[currentChapterIndex]}
+          showHighlightHelp={!isTranslated}
         />
 
         {/* Quiz Section */}
@@ -286,10 +339,10 @@ export const ChapterBookView: React.FC<ChapterBookViewProps> = ({
       <VoiceSelectorModal
         isOpen={isVoiceModalOpen}
         onClose={() => setIsVoiceModalOpen(false)}
-        voices={availableVoices}
+        voices={modalVoices}
         selectedVoiceName={selectedVoiceName}
         onSelectVoice={setSelectedVoiceName}
-        language={lesson.language}
+        language={currentLanguage}
         hasRecordedAudio={!!lesson.audioFileUrl}
         audioPreference={audioPreference}
         onSelectPreference={setAudioPreference}
