@@ -1,7 +1,8 @@
 import React, { ReactNode, useState, useRef, useEffect } from 'react';
-import { HelpCircle, X, BookOpen, Volume2, Turtle, ChevronDown, ChevronUp } from 'lucide-react';
+import { HelpCircle, X, BookOpen, Volume2, Turtle, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react';
 import { AudioControls } from '../UI/AudioControls';
 import { TranslateButton } from '../UI/TranslateButton';
+import { Button } from '../UI/Button';
 import { speakText } from '../../utils/textUtils';
 import { WordLookupToast } from '../UI/WordLookupToast';
 
@@ -26,6 +27,11 @@ interface ReadingPassageProps {
   onSwipeLeft?: () => void;
   onSwipeRight?: () => void;
   
+  // Pagination Props
+  currentPage?: number;
+  totalPages?: number;
+  onPageChange?: (page: number) => void;
+  
   // UI Options
   showHighlightHelp?: boolean;
   className?: string;
@@ -46,6 +52,9 @@ export const ReadingPassage: React.FC<ReadingPassageProps> = ({
   onTranslate,
   onSwipeLeft,
   onSwipeRight,
+  currentPage,
+  totalPages,
+  onPageChange,
   showHighlightHelp = false,
   className = "",
   passageRef,
@@ -252,6 +261,42 @@ export const ReadingPassage: React.FC<ReadingPassageProps> = ({
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
+      {/* Top Pagination Dots */}
+      {totalPages && totalPages > 1 && (
+        <div className="flex justify-center items-center gap-3 mb-6 mt-2">
+          <button
+            onClick={() => onPageChange?.(Math.max(0, (currentPage || 0) - 1))}
+            disabled={currentPage === 0}
+            className="p-1.5 rounded-full text-green-600 hover:bg-green-100 disabled:opacity-20 disabled:cursor-not-allowed transition-all"
+            title="Previous Page"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+
+          <div className="flex flex-wrap justify-center gap-2">
+            {[...Array(totalPages)].map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => onPageChange?.(idx)}
+                className={`h-3 rounded-full transition-all duration-300 ${
+                  currentPage === idx ? 'w-8 bg-green-600' : 'w-3 bg-green-200 hover:bg-green-300'
+                }`}
+                title={`Go to Page ${idx + 1}`}
+              />
+            ))}
+          </div>
+
+          <button
+            onClick={() => onPageChange?.(Math.min(totalPages - 1, (currentPage || 0) + 1))}
+            disabled={currentPage === totalPages - 1}
+            className="p-1.5 rounded-full text-green-600 hover:bg-green-100 disabled:opacity-20 disabled:cursor-not-allowed transition-all"
+            title="Next Page"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-2 px-1">
         <div translate="no" className="min-w-0 flex-1">
           <h2 className="text-xl font-black text-green-900 uppercase tracking-tight wrap-break-word">{title}</h2>
@@ -288,6 +333,40 @@ export const ReadingPassage: React.FC<ReadingPassageProps> = ({
           </div>
         )}
       </div>
+
+      {/* Bottom Navigation Buttons */}
+      {totalPages && totalPages > 1 && onPageChange && (
+        <div className="mt-8 border-t pt-6">
+          <div className="flex justify-between items-center bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
+            <Button
+              variant="secondary"
+              onClick={() => onPageChange(Math.max(0, (currentPage || 0) - 1))}
+              disabled={currentPage === 0}
+              className="flex items-center gap-2"
+            >
+              <ChevronLeft className="w-5 h-5" /> Previous
+            </Button>
+
+            <span className="text-sm font-black text-gray-400 uppercase tracking-widest text-center px-2">
+              Page {(currentPage || 0) + 1} of {totalPages}
+            </span>
+
+            {currentPage < totalPages - 1 ? (
+              <Button
+                variant="primary"
+                onClick={() => onPageChange((currentPage || 0) + 1)}
+                className="flex items-center gap-2"
+              >
+                Next <ChevronRight className="w-5 h-5" />
+              </Button>
+            ) : (
+              <div className="text-green-600 font-black flex items-center gap-2 animate-bounce">
+                <CheckCircle2 className="w-6 h-6" /> All Pages Read!
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {selectedWord && (
         <WordLookupToast 

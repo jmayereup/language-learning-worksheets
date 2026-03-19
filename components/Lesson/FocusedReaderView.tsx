@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ParsedLesson, FocusedReaderContent, UserAnswers, ReportData } from '../../types';
 import { VoiceSelectorModal } from '../UI/VoiceSelectorModal';
 import { LessonFooter } from './LessonFooter';
-import { ChevronRight, ChevronLeft, CheckCircle2, Gamepad2, PenTool, Puzzle } from 'lucide-react';
+import { Gamepad2, PenTool, Puzzle } from 'lucide-react';
 import { Button } from '../UI/Button';
 import { Vocabulary } from '../Activities/Vocabulary';
 import { ReadingPassage } from '../Activities/ReadingPassage';
@@ -110,10 +110,6 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
   const handlePageChange = (newIndex: number) => {
     setCurrentPartIndex(newIndex);
     setAnswers(prev => ({ ...prev, focusedReaderPage: newIndex }));
-    
-    setTimeout(() => {
-      readingPassageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 10);
   };
 
   const {
@@ -148,21 +144,7 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
         />
 
 
-        {/* Navigation Dots */}
-        <div className="flex justify-center gap-2 mb-4">
-          {content.parts.map((_, idx) => (
-            <button
-              key={idx}
-              onClick={() => handlePageChange(idx)}
-              className={`h-3 rounded-full transition-all duration-300 ${
-                currentPartIndex === idx ? 'w-8 bg-blue-600' : 'w-3 bg-blue-200 hover:bg-blue-300'
-              }`}
-              title={`Go to Page ${idx + 1}`}
-            />
-          ))}
-        </div>
 
-        <div ref={readingPassageRef} className="scroll-mt-6" />
         <ReadingPassage
           text={currentPart.text}
           language={lesson.language}
@@ -178,6 +160,10 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
           onVoiceOpen={availableVoices.length > 0 ? () => setIsVoiceModalOpen(true) : undefined}
           showHighlightHelp={true}
           className="animate-slide-up"
+          currentPage={currentPartIndex}
+          totalPages={content.parts.length}
+          onPageChange={handlePageChange}
+          passageRef={readingPassageRef}
         />
 
         {/* Vocabulary Section */}
@@ -273,32 +259,6 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
           </section>
         )}
 
-        <hr className="border-gray-300 my-6"/>
-        {/* Controls */}
-        <div className="flex justify-between items-center">
-          <Button
-            variant="secondary"
-            onClick={() => handlePageChange(Math.max(0, currentPartIndex - 1))}
-            disabled={currentPartIndex === 0}
-            className="flex items-center gap-2"
-          >
-            <ChevronLeft className="w-5 h-5" /> Previous Page
-          </Button>
-
-          {currentPartIndex < content.parts.length - 1 ? (
-            <Button
-              variant="primary"
-              onClick={() => handlePageChange(currentPartIndex + 1)}
-              className="flex items-center gap-2"
-            >
-              Next Page <ChevronRight className="w-5 h-5" />
-            </Button>
-          ) : (
-            <div className="text-green-600 font-black animate-bounce flex items-center gap-2">
-              <CheckCircle2 className="w-6 h-6" /> All Pages Read!
-            </div>
-          )}
-        </div>
 
         {currentPartIndex === content.parts.length - 1 && (
           <ReferenceLinks references={content.references} />

@@ -2,7 +2,6 @@ import React, { useState, useRef } from 'react';
 import { ParsedLesson, ChapterBookContent, UserAnswers, ReportData, ChapterQuizQuestion } from '../../types';
 import { VoiceSelectorModal } from '../UI/VoiceSelectorModal';
 import { LessonFooter } from './LessonFooter';
-import { ChevronRight, ChevronLeft, CheckCircle2 } from 'lucide-react';
 import { Button } from '../UI/Button';
 import { ReadingPassage } from '../Activities/ReadingPassage';
 import { Comprehension } from '../Activities/Comprehension';
@@ -87,10 +86,6 @@ export const ChapterBookView: React.FC<ChapterBookViewProps> = ({
     if (typeof window !== 'undefined' && window.speechSynthesis) {
         window.speechSynthesis.cancel();
     }
-
-    setTimeout(() => {
-      readingPassageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 10);
   };
 
   const toggleTranslation = () => {
@@ -171,39 +166,6 @@ export const ChapterBookView: React.FC<ChapterBookViewProps> = ({
           title={currentChapter.title} 
         />
 
-        {/* Chapter Navigation Dots */}
-        <div className="flex justify-center items-center gap-3 my-4">
-          <button
-            onClick={() => handleChapterChange(Math.max(0, currentChapterIndex - 1))}
-            disabled={currentChapterIndex === 0}
-            className="p-1.5 rounded-full text-green-600 hover:bg-green-100 disabled:opacity-20 disabled:cursor-not-allowed transition-all"
-            title="Previous Chapter"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-
-          <div className="flex flex-wrap justify-center gap-2">
-            {content.chapters.map((_, idx) => (
-              <button
-                key={idx}
-                onClick={() => handleChapterChange(idx)}
-                className={`h-3 rounded-full transition-all duration-300 ${
-                  currentChapterIndex === idx ? 'w-8 bg-green-600' : 'w-3 bg-green-200 hover:bg-green-300'
-                }`}
-                title={`Go to Chapter ${idx + 1}`}
-              />
-            ))}
-          </div>
-
-          <button
-            onClick={() => handleChapterChange(Math.min(content.chapters.length - 1, currentChapterIndex + 1))}
-            disabled={currentChapterIndex === content.chapters.length - 1}
-            className="p-1.5 rounded-full text-green-600 hover:bg-green-100 disabled:opacity-20 disabled:cursor-not-allowed transition-all"
-            title="Next Chapter"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </button>
-        </div>
         
         {/* Language Toggle */}
         <div className="flex justify-center mb-6">
@@ -231,7 +193,6 @@ export const ChapterBookView: React.FC<ChapterBookViewProps> = ({
           </div>
         </div>
 
-        <div ref={readingPassageRef} className="scroll-mt-6" />
         
         <ReadingPassage
           text={displayText}
@@ -248,6 +209,10 @@ export const ChapterBookView: React.FC<ChapterBookViewProps> = ({
           onVoiceOpen={modalVoices.length > 0 ? () => setIsVoiceModalOpen(true) : undefined}
           className="animate-slide-up"
           showHighlightHelp={!isTranslated}
+          currentPage={currentChapterIndex}
+          totalPages={content.chapters.length}
+          onPageChange={handleChapterChange}
+          passageRef={readingPassageRef}
         />
 
         {/* Quiz Section */}
@@ -291,37 +256,6 @@ export const ChapterBookView: React.FC<ChapterBookViewProps> = ({
           </section>
         )}
 
-        <hr className="border-gray-200 my-6"/>
-
-        {/* Navigation Buttons */}
-        <div className="flex justify-between items-center bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
-          <Button
-            variant="secondary"
-            onClick={() => handleChapterChange(Math.max(0, currentChapterIndex - 1))}
-            disabled={currentChapterIndex === 0}
-            className="flex items-center gap-2"
-          >
-            <ChevronLeft className="w-5 h-5" /> Previous
-          </Button>
-
-          <span className="text-sm font-black text-gray-400 uppercase tracking-widest">
-            Chapter {currentChapterIndex + 1} of {content.chapters.length}
-          </span>
-
-          {currentChapterIndex < content.chapters.length - 1 ? (
-            <Button
-              variant="primary"
-              onClick={() => handleChapterChange(currentChapterIndex + 1)}
-              className="flex items-center gap-2"
-            >
-              Next <ChevronRight className="w-5 h-5" />
-            </Button>
-          ) : (
-            <div className="text-green-600 font-black flex items-center gap-2 animate-bounce">
-              <CheckCircle2 className="w-6 h-6" /> The End!
-            </div>
-          )}
-        </div>
 
         <LessonFooter
           studentName={studentName}
