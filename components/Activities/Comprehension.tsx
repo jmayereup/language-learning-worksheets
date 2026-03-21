@@ -18,6 +18,7 @@ interface Props {
   lessonId: string;
   title?: string;
   showReferenceText?: boolean;
+  shuffleQuestions?: boolean;
 }
 
 export const Comprehension: React.FC<Props> = ({
@@ -31,7 +32,8 @@ export const Comprehension: React.FC<Props> = ({
   ttsState,
   lessonId,
   title = "Reading Questions",
-  showReferenceText = true
+  showReferenceText = true,
+  shuffleQuestions = true
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isChecked, setIsChecked] = useState(false);
@@ -50,8 +52,8 @@ export const Comprehension: React.FC<Props> = ({
   // Randomize question order once on mount/data change
   const shuffledIndices = useMemo(() => {
     const indices = data.questions.map((_, i) => i);
-    return seededShuffle(indices, `${lessonId}-comprehension`);
-  }, [data.questions, lessonId]);
+    return shuffleQuestions ? seededShuffle(indices, `${lessonId}-comprehension`) : indices;
+  }, [data.questions, lessonId, shuffleQuestions]);
 
   if (!data || !data.questions || data.questions.length === 0) return null;
 

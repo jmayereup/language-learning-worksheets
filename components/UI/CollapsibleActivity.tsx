@@ -49,7 +49,7 @@ export const CollapsibleActivity: React.FC<CollapsibleActivityProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const lastHeightRef = useRef<number>(0);
   const isAdjustingRef = useRef<boolean>(false);
-  const hasPlayedFanfare = useRef(false);
+  const hasPlayedFanfare = useRef(isCompleted && isPerfectScore);
 
   useEffect(() => {
     if (!isCompleted) {

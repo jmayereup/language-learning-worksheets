@@ -245,6 +245,7 @@ export const ChapterBookView: React.FC<ChapterBookViewProps> = ({
                 title="Chapter Quiz"
                 showReferenceText={false}
                 savedIsCompleted={isChapterCompleted}
+                shuffleQuestions={false}
                 onComplete={(completed) => {
                     setAnswers(prev => ({
                         ...prev,
