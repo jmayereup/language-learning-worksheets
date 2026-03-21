@@ -157,7 +157,7 @@ export const Scrambled: React.FC<Props> = ({
       return normalizeString(savedAnswers[idx] || '') === normalizeString(item.answer) ? acc + 1 : acc;
     }, 0);
     return (
-      <section className="bg-white p-6 rounded-xl sm:shadow-sm sm:border sm:border-gray-100 mb-2 text-center">
+      <section className="mb-8 relative text-center">
         <h2 className="text-xl font-black text-green-900 uppercase tracking-tight mb-4">Scrambled Sentences</h2>
         <div className="text-2xl font-black mb-4 text-green-600">
           Activity Completed!
@@ -178,7 +178,7 @@ export const Scrambled: React.FC<Props> = ({
   const isCorrect = normalizeString(userAnswer) === normalizeString(currentItem?.answer || '');
 
   return (
-    <section className="bg-white p-2 sm:p-4 rounded-xl sm:shadow-sm sm:border sm:border-gray-100 mb-2 relative">
+    <section className="mb-8 relative">
       <div className="space-y-4 mb-2">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center justify-between w-full">

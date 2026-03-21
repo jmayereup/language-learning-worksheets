@@ -124,7 +124,7 @@ export const FillInBlanks: React.FC<Props> = ({
   }, 0);
 
   return (
-    <section className="bg-white p-2 sm:p-4 rounded-xl sm:shadow-sm sm:border sm:border-gray-100 mb-2 relative">
+    <section className="mb-8 relative">
       <div className="flex justify-between items-center mb-2">
         <h2 className="text-xl font-black text-green-900 uppercase tracking-tight">Fill in the blanks</h2>
         {isChecked && (
@@ -137,7 +137,7 @@ export const FillInBlanks: React.FC<Props> = ({
       <p className="text-gray-500 mb-4 text-sm font-medium">Fill in the missing words to complete the sentences.</p>
 
       <div className="bg-gray-50 p-4 rounded-xl mb-8 border border-gray-100 shadow-inner">
-        <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Word Bank</h3>
+        <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Word Bank</h3>
         <div className="flex flex-wrap justify-center gap-3" translate="no">
           {wordBank.map((word, idx) => {
             const isUsed = Object.values(savedAnswers).includes(word);
@@ -152,7 +152,7 @@ export const FillInBlanks: React.FC<Props> = ({
                 key={idx}
                 onClick={() => handleWordSelect(word)}
                 disabled={isChecked}
-                className={`px-4 py-2 rounded-full border-2 font-bold transition-all duration-200 shadow-sm ${colorClass}`}
+                className={`px-4 py-1.5 rounded-full border font-bold transition-all duration-200 shadow-sm ${colorClass}`}
               >
                 {word}
               </button>
@@ -169,7 +169,7 @@ export const FillInBlanks: React.FC<Props> = ({
           const isCorrect = normalizeString(userAnswer) === normalizeString(item.answer);
           const isSlotActive = selectedWord !== null;
 
-          let slotClass = "border-b-2 px-2 py-1 mx-2 focus:outline-none transition-all min-w-[100px] text-center font-bold cursor-pointer rounded-t-md";
+          let slotClass = "border-b-2 border-solid px-2 py-1 mx-2 focus:outline-none transition-all min-w-[100px] text-center font-bold cursor-pointer rounded-t-md";
 
           if (isChecked) {
             slotClass += isCorrect
@@ -180,33 +180,34 @@ export const FillInBlanks: React.FC<Props> = ({
           } else if (isSlotActive) {
             slotClass += " border-slate-300 bg-slate-50 ring-4 ring-slate-100 animate-pulse";
           } else {
-            slotClass += " border-gray-200 bg-gray-50/30 text-transparent";
+            slotClass += " border-slate-300 bg-gray-50/50 text-transparent";
           }
 
           return (
             <div key={originalIndex} className="leading-loose text-base text-gray-700 flex flex-wrap items-center">
-              {shouldShowAudioControls() && (
-                <AudioControls
-                  onSlowToggle={() => {
-                    setActiveSpeechIdx(originalIndex);
-                    toggleTTS(0.6, `${item.before} ${item.answer} ${item.after}`);
-                    if (ttsState.status === 'stopped') {
-                      setTimeout(() => setActiveSpeechIdx(null), 3000);
-                    }
-                  }}
-                  onListenToggle={() => {
-                    setActiveSpeechIdx(originalIndex);
-                    toggleTTS(1.0, `${item.before} ${item.answer} ${item.after}`);
-                    if (ttsState.status === 'stopped') {
-                      setTimeout(() => setActiveSpeechIdx(null), 3000);
-                    }
-                  }}
-                  ttsStatus={activeSpeechIdx === originalIndex ? ttsState.status : 'stopped'}
-                  currentRate={activeSpeechIdx === originalIndex ? ttsState.rate : 1.0}
-                  hasVoices={false}
-                  className="mr-2"
-                />
-              )}
+              <div className="flex items-center mr-3">
+                {shouldShowAudioControls() && (
+                  <AudioControls
+                    onSlowToggle={() => {
+                      setActiveSpeechIdx(originalIndex);
+                      toggleTTS(0.6, `${item.before} ${item.answer} ${item.after}`);
+                      if (ttsState.status === 'stopped') {
+                        setTimeout(() => setActiveSpeechIdx(null), 3000);
+                      }
+                    }}
+                    onListenToggle={() => {
+                      setActiveSpeechIdx(originalIndex);
+                      toggleTTS(1.0, `${item.before} ${item.answer} ${item.after}`);
+                      if (ttsState.status === 'stopped') {
+                        setTimeout(() => setActiveSpeechIdx(null), 3000);
+                      }
+                    }}
+                    ttsStatus={activeSpeechIdx === originalIndex ? ttsState.status : 'stopped'}
+                    currentRate={activeSpeechIdx === originalIndex ? ttsState.rate : 1.0}
+                    hasVoices={false}
+                  />
+                )}
+              </div>
               <div className="selectable-text flex flex-wrap items-center" translate="no">
                 <span>{item.before}</span>
                 <button
