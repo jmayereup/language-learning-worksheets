@@ -1,12 +1,12 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { FocusedReaderContent, ParsedLesson, VocabWord, ScrambledItem, FillInBlankItem } from '../../types';
+import { FocusedReaderContent, ChapterBookContent, ParsedLesson, VocabWord, ScrambledItem, FillInBlankItem } from '../../types';
 import { Scrambled } from '../Activities/Scrambled';
 import { FillInBlanks } from '../Activities/FillInBlanks';
 import { WordBlasterGame } from '../Activities/WordBlasterGame';
 import { X, Gamepad2, Trophy, Zap } from 'lucide-react';
 
 interface Props {
-  lesson: ParsedLesson & { content: FocusedReaderContent };
+  lesson: ParsedLesson & { content: FocusedReaderContent | ChapterBookContent };
   gameType: 'scramble' | 'fill' | 'wordblaster' | null;
   onClose: () => void;
   toggleTTS: (rate: number, overrideText?: string) => void;
@@ -78,25 +78,37 @@ export const PracticeGamesModal: React.FC<Props> = ({
 
   const vocabWords = useMemo(() => {
     const words: VocabWord[] = [];
-    if (!lesson.content.parts) return words;
-    lesson.content.parts.forEach(part => {
-      if (part.vocabulary_explanations) {
-        Object.entries(part.vocabulary_explanations).forEach(([word, def]) => {
-          words.push({ word, definition: def, sourceLessonId: lesson.id });
-        });
-      }
-    });
+    const content = lesson.content;
+    
+    if ('parts' in content) {
+      content.parts.forEach(part => {
+        if (part.vocabulary_explanations) {
+          Object.entries(part.vocabulary_explanations).forEach(([word, def]) => {
+            words.push({ word, definition: def, sourceLessonId: lesson.id });
+          });
+        }
+      });
+    }
+    // ChapterBookContent doesn't have explicit vocabulary_explanations in the current model
+    
     return words;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [lesson.id, lesson.content]);
 
   const scrambleItems = useMemo(() => {
-    if (lesson.content.activities?.scrambled && lesson.content.activities.scrambled.length > 0) {
-      return lesson.content.activities.scrambled;
+    const content = lesson.content;
+    if (!Array.isArray(content) && 'activities' in content && (content as any).activities?.scrambled && (content as any).activities.scrambled.length > 0) {
+      return (content as any).activities.scrambled;
     }
     
-    if (!lesson.content.parts) return [];
-    const allText = lesson.content.parts.map(p => p.text).join(' ');
+    let allText = '';
+    if ('parts' in content) {
+      allText = content.parts.map(p => p.text).join(' ');
+    } else if ('chapters' in content) {
+      allText = content.chapters.map(c => c.content.join(' ')).join(' ');
+    }
+
+    if (!allText) return [];
     
     // Split by punctuation (sentences and clauses) to get short phrases
     const phrases = allText.split(/[,;:!?。！？\n]+|\.\s+/g) || ([] as string[]);
@@ -125,13 +137,18 @@ export const PracticeGamesModal: React.FC<Props> = ({
   }, []);
 
   const fillItems = useMemo(() => {
-    if (lesson.content.activities?.fillInTheBlanks && lesson.content.activities.fillInTheBlanks.length > 0) {
-      return lesson.content.activities.fillInTheBlanks;
+    const content = lesson.content;
+    if (!Array.isArray(content) && 'activities' in content && (content as any).activities?.fillInTheBlanks && (content as any).activities.fillInTheBlanks.length > 0) {
+      return (content as any).activities.fillInTheBlanks;
     }
     
-    if (!lesson.content.parts) return [];
     const items: FillInBlankItem[] = [];
-    const allText = lesson.content.parts.map(p => p.text).join(' ');
+    let allText = '';
+    if ('parts' in content) {
+      allText = content.parts.map(p => p.text).join(' ');
+    } else if ('chapters' in content) {
+      allText = content.chapters.map(c => c.content.join(' ')).join(' ');
+    }
     const sentences = allText.match(/[^.!?。！？]+[.!?。！？]+/g) || ([] as string[]);
     
     const vocabList = vocabWords.map(vw => vw.word).filter(w => w.length > 1);

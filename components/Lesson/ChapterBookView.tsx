@@ -8,6 +8,8 @@ import { Comprehension } from '../Activities/Comprehension';
 import { CollapsibleActivity } from '../UI/CollapsibleActivity';
 import { LessonMedia } from '../UI/LessonMedia';
 import { ReportCard } from '../UI/ReportCard';
+import { Gamepad2, PenTool, Puzzle } from 'lucide-react';
+import { PracticeGamesModal } from './PracticeGamesModal';
 import { getVoicesForLang } from '../../utils/tts';
 import { getLangCode } from '../../utils/textUtils';
 
@@ -75,6 +77,7 @@ export const ChapterBookView: React.FC<ChapterBookViewProps> = ({
   const currentLanguage = isTranslated ? translationLanguage : lesson.language;
   const [showReportCard, setShowReportCard] = useState(false);
   const [reportData, setReportData] = useState<ReportData | null>(null);
+  const [activePracticeGame, setActivePracticeGame] = useState<'scramble' | 'fill' | 'wordblaster' | null>(null);
   
   const readingPassageRef = useRef<HTMLDivElement>(null);
 
@@ -257,6 +260,29 @@ export const ChapterBookView: React.FC<ChapterBookViewProps> = ({
         )}
 
 
+        {/* Practice Games Section */}
+        <section className="mt-8 animate-fade-in print:hidden">
+          <CollapsibleActivity
+            isCompleted={false}
+            title="Extra Practice Games"
+          >
+            <div className="p-4 bg-white rounded-xl">
+              <p className="text-gray-500 mb-4 font-medium text-sm">Practice what you've learned. These games are just for fun and don't affect your score.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <Button variant="secondary" onClick={() => setActivePracticeGame('scramble')} className="flex flex-col items-center justify-center gap-2 h-20 shadow-sm border border-gray-100 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 transition-all">
+                  <Puzzle className="w-6 h-6 text-indigo-500" /> Scrambled Sentences
+                </Button>
+                <Button variant="secondary" onClick={() => setActivePracticeGame('fill')} className="flex flex-col items-center justify-center gap-2 h-20 shadow-sm border border-gray-100 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 transition-all">
+                  <PenTool className="w-6 h-6 text-emerald-500" /> Fill-in-the-Blanks
+                </Button>
+                <Button variant="secondary" onClick={() => setActivePracticeGame('wordblaster')} className="flex flex-col items-center justify-center gap-2 h-20 shadow-sm border border-gray-100 hover:border-amber-300 hover:bg-amber-50 hover:text-amber-700 transition-all">
+                  <Gamepad2 className="w-6 h-6 text-amber-500" /> Word Blaster
+                </Button>
+              </div>
+            </div>
+          </CollapsibleActivity>
+        </section>
+
         <LessonFooter
           studentName={studentName}
           setStudentName={setStudentName}
@@ -288,6 +314,15 @@ export const ChapterBookView: React.FC<ChapterBookViewProps> = ({
           onClose={() => setShowReportCard(false)}
         />
       )}
+
+      <PracticeGamesModal
+        lesson={lesson}
+        gameType={activePracticeGame}
+        onClose={() => setActivePracticeGame(null)}
+        toggleTTS={toggleTTS}
+        ttsState={ttsState}
+        selectedVoiceName={selectedVoiceName}
+      />
     </div>
   );
 };
