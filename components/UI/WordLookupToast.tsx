@@ -3,6 +3,28 @@ import { X, BookOpen, ChevronDown, ChevronUp } from 'lucide-react';
 import { AudioControls } from './AudioControls';
 import { speakText } from '../../utils/textUtils';
 
+// Matches patterns like "plural of cat", "feminine plural of redouté", "past tense of run", etc.
+const ROOT_WORD_PATTERN = /^(.*?\bof\b )([\w\u00C0-\u024F\u1E00-\u1EFF'-]+)(\.?)$/i;
+
+const DefinitionText: React.FC<{ text: string; onWordClick: (w: string) => void }> = ({ text, onWordClick }) => {
+  const match = text.match(ROOT_WORD_PATTERN);
+  if (match) {
+    return (
+      <span>
+        {match[1]}
+        <button
+          onClick={() => onWordClick(match[2])}
+          className="text-blue-400 hover:text-blue-300 underline underline-offset-2 font-medium transition-colors"
+        >
+          {match[2]}
+        </button>
+        {match[3]}
+      </span>
+    );
+  }
+  return <span>{text}</span>;
+};
+
 interface WordLookupToastProps {
   word: string;
   language: string;
@@ -21,6 +43,7 @@ export const WordLookupToast: React.FC<WordLookupToastProps> = ({
   const [definitionData, setDefinitionData] = useState<{ type: 'dictionary' | 'translation' | 'google-search', content: any } | null>(null);
   const [isFetchingDefinition, setIsFetchingDefinition] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [currentWord, setCurrentWord] = useState(word);
 
   const getLanguageCode = (lang: string) => {
     const map: Record<string, string> = {
@@ -55,7 +78,7 @@ export const WordLookupToast: React.FC<WordLookupToastProps> = ({
     }
   };
 
-  const fetchDefinition = async (wordToFetch: string) => {
+  const fetchDefinition = async (wordToFetch: string, isRootWordLookup = false) => {
     setIsFetchingDefinition(true);
     setDefinitionData(null);
     setIsExpanded(false);
@@ -70,9 +93,10 @@ export const WordLookupToast: React.FC<WordLookupToastProps> = ({
             : `https://www.google.com/search?q=define+${encodeURIComponent(wordToFetch)}`;
           
           window.open(baseUrl, '_blank');
-          onClose(); // Close toast when redirecting to Google
+          if (!isRootWordLookup) onClose();
           return;
         }
+        setCurrentWord(wordToFetch);
         setDefinitionData(data as any);
       }
     } finally {
@@ -85,6 +109,7 @@ export const WordLookupToast: React.FC<WordLookupToastProps> = ({
     setDefinitionData(null);
     setIsExpanded(false);
     setIsFetchingDefinition(false);
+    setCurrentWord(word);
   }, [word]);
 
   return (
@@ -92,11 +117,11 @@ export const WordLookupToast: React.FC<WordLookupToastProps> = ({
       <div className="max-w-4xl mx-auto px-4 py-4 flex flex-col gap-3">
         <div className="flex justify-between items-center border-b border-gray-700 pb-2">
           <div className="flex items-center gap-3">
-            <span className="font-bold text-lg text-blue-400 capitalize">{word}</span>
+            <span className="font-bold text-lg text-blue-400 capitalize">{currentWord}</span>
             <div className="border-l border-gray-600 pl-3">
               <AudioControls 
-                onSlowToggle={() => speakText(word, language, 0.5)}
-                onListenToggle={() => speakText(word, language, 1.0)}
+                onSlowToggle={() => speakText(currentWord, language, 0.5)}
+                onListenToggle={() => speakText(currentWord, language, 1.0)}
                 ttsStatus={ttsStatus}
                 currentRate={currentRate}
                 variant="dark"
@@ -114,7 +139,7 @@ export const WordLookupToast: React.FC<WordLookupToastProps> = ({
         
         {!definitionData && !isFetchingDefinition && (
           <button 
-            onClick={() => fetchDefinition(word)}
+            onClick={() => fetchDefinition(currentWord)}
             className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-medium transition-colors w-full sm:w-auto self-start shadow-sm"
           >
             <BookOpen size={16} />
@@ -170,7 +195,7 @@ export const WordLookupToast: React.FC<WordLookupToastProps> = ({
                             </span>
                             {meaning.definitions?.slice(0, isExpanded ? 5 : 2).map((def: any, dIdx: number) => (
                               <div key={dIdx} className="mb-2 last:mb-0">
-                                <p className="text-sm sm:text-base">{def.definition}</p>
+                                <p className="text-sm sm:text-base"><DefinitionText text={def.definition} onWordClick={(w) => fetchDefinition(w, true)} /></p>
                                 {def.example && (
                                   <p className="text-xs sm:text-sm italic text-gray-400 mt-1">
                                     "{def.example}"
