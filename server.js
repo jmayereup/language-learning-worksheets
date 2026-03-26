@@ -53,7 +53,7 @@ async function fetchLessonMeta(lessonId) {
   const content = typeof record.content === 'string' ? JSON.parse(record.content) : record.content;
   const title = record.title || content?.title || 'Untitled Worksheet';
 
-  let description = content?.readingText || '';
+  let description = record.seo || content?.seo_intro || content?.readingText || '';
   if (description.startsWith(title)) {
     description = description.substring(title.length).trim();
   }

@@ -166,6 +166,11 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
 
   const displayTitle = lesson.title || (isStandard ? (lesson.content as StandardLessonContent).title : (isFocused ? (lesson.content as FocusedReaderContent).title : (isBlaster ? "Word Blaster" : (lesson.content as InformationGapContent).topic))) || 'Lesson';
 
+  const seoDescription = lesson.seo || 
+    (isStandard ? (lesson.content as StandardLessonContent).seo_intro : 
+     isFocused ? (lesson.content as FocusedReaderContent).seo_intro : 
+     isInfoGap ? (lesson.content as InformationGapContent).seo_intro : undefined);
+
   return (
     <div className="bg-white max-w-4xl mx-auto pb-4 px-1 py-4 sm:px-6 tj-printable-worksheet">
       {/* Page Title - Unified Layout */}
@@ -173,6 +178,11 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
         <h1 className="text-3xl md:text-4xl font-black text-green-900 mb-2 tracking-tight">
           {displayTitle}
         </h1>
+        {seoDescription && (
+          <p className="text-sm md:text-base text-gray-600 max-w-2xl mx-auto mt-2">
+            {seoDescription}
+          </p>
+        )}
       </div>
 
       <main>
