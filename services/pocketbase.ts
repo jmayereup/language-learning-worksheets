@@ -20,8 +20,8 @@ const createPB = () => {
 const pb = createPB();
 pb.autoCancellation(false);
 
-export const getFileUrl = (record: LessonRecord | { collectionId: string, id: string }, filename: string) => {
-  return pb.files.getURL(record as any, filename);
+export const getFileUrl = (record: LessonRecord | { collectionId: string, id: string }, filename: string, queryParams?: Record<string, any>) => {
+  return pb.files.getURL(record as any, filename, queryParams);
 };
 
 // Auth methods
@@ -92,7 +92,7 @@ export const fetchLessons = async (language: string, level: string) => {
       }
       description = description.substring(0, 120) + (description.length > 120 ? '...' : '');
 
-      let imageUrl = record.image ? getFileUrl(record, record.image) : undefined;
+      let imageUrl = record.image ? getFileUrl(record, record.image, { thumb: '640x360t' }) : undefined;
 
       // Fallback to YouTube thumbnail if no image uploaded
       if (!imageUrl && record.videoUrl) {
@@ -156,7 +156,7 @@ export const fetchAllLessons = async (creatorId?: string) => {
       const content = typeof record.content === 'string' ? JSON.parse(record.content) : record.content;
       const title = record.title || content.title || 'Untitled';
       
-      let imageUrl = record.image ? getFileUrl(record, record.image) : undefined;
+      let imageUrl = record.image ? getFileUrl(record, record.image, { thumb: '100x100t' }) : undefined;
       if (!imageUrl && record.videoUrl) {
         const ytId = getYouTubeId(record.videoUrl);
         if (ytId) imageUrl = `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`;
@@ -173,6 +173,73 @@ export const fetchAllLessons = async (creatorId?: string) => {
     });
   } catch (error) {
     console.error("Error fetching all lessons:", error);
+    throw error;
+  }
+};
+
+export interface PaginatedLessonsResponse {
+  page: number;
+  perPage: number;
+  totalItems: number;
+  totalPages: number;
+  items: any[];
+}
+
+export const fetchPaginatedLessons = async (
+  page: number = 1,
+  perPage: number = 20,
+  searchQuery?: string,
+  creatorId?: string
+): Promise<PaginatedLessonsResponse> => {
+  try {
+    const options: any = {
+      sort: '-created',
+      fields: 'id,collectionId,collectionName,title,level,language,lessonType,created,image,videoUrl,creatorId'
+    };
+
+    const filters: string[] = [];
+    if (creatorId) {
+      filters.push(`creatorId = "${creatorId}"`);
+    }
+    if (searchQuery) {
+      // Basic text search on title
+      filters.push(`title ~ "${searchQuery}"`); 
+    }
+
+    if (filters.length > 0) {
+      options.filter = filters.join(' && ');
+    }
+
+    const unparsedResult = await pb.collection('worksheets').getList(page, perPage, options);
+
+    const mappedItems = unparsedResult.items.map(record => {
+      const title = record.title || 'Untitled';
+      
+      let imageUrl = record.image ? getFileUrl({ collectionId: record.collectionId, id: record.id }, record.image, { thumb: '100x100t' }) : undefined;
+      
+      // Let's ensure getFileUrl works using the record even if partially populated.
+      // Since 'image' is returned, we need collectionId/collectionName or just use id.
+      if (!imageUrl && record.videoUrl) {
+        const ytId = getYouTubeId(record.videoUrl);
+        if (ytId) imageUrl = `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`;
+      }
+
+      return {
+        ...record,
+        title,
+        imageUrl,
+      };
+    });
+
+    return {
+      page: unparsedResult.page,
+      perPage: unparsedResult.perPage,
+      totalItems: unparsedResult.totalItems,
+      totalPages: unparsedResult.totalPages,
+      items: mappedItems
+    };
+  } catch (error) {
+    console.error("Error fetching paginated lessons:", error);
     throw error;
   }
 };

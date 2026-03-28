@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { getCurrentUser } from '../../services/pocketbase';
-import { useAllLessons, useDeleteLesson } from '../../hooks/useLessons';
+import React, { useState, useEffect } from 'react';
+import { getCurrentUser, fetchLessonById } from '../../services/pocketbase';
+import { usePaginatedLessons, useDeleteLesson } from '../../hooks/useLessons';
 import { Button } from '../UI/Button';
-import { Edit, Trash2, ExternalLink, RefreshCw, Layers, Globe, Calendar, Eye, Search, FileText, CheckSquare, Square, Rocket } from 'lucide-react';
+import { Edit, Trash2, ExternalLink, RefreshCw, Layers, Globe, Calendar, Eye, Search, FileText, CheckSquare, Square, Rocket, ChevronLeft, ChevronRight } from 'lucide-react';
 import { extractVocabularyFromLessons } from '../../utils/vocabularyExtractor';
 
 interface LessonListProps {
@@ -13,12 +13,36 @@ interface LessonListProps {
 
 export const LessonList: React.FC<LessonListProps> = ({ onEdit, onPreview, onAddNew }) => {
     const [searchQuery, setSearchQuery] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
+    const [page, setPage] = useState(1);
+    const perPage = 20;
+
     const [selectedLessonIds, setSelectedLessonIds] = useState<Set<string>>(new Set());
     const [isBuilding, setIsBuilding] = useState(false);
     const currentUser = getCurrentUser();
 
-    const { data: lessons = [], isLoading: loading, error: fetchError } = useAllLessons(currentUser?.id);
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(searchQuery);
+            setPage(1); // Reset page on new search
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
+    const { data: paginationData, isLoading: loading, error: fetchError } = usePaginatedLessons(page, perPage, debouncedSearch, currentUser?.id);
+    const lessons = paginationData?.items || [];
     const deleteMutation = useDeleteLesson();
+
+    const handlePreview = async (lessonStub: any) => {
+        try {
+            // Fetch the full lesson object
+            const fullLesson = await fetchLessonById(lessonStub.id);
+            onPreview(fullLesson);
+        } catch (error) {
+            console.error("Failed to fetch full lesson for preview", error);
+            alert("Failed to load lesson details.");
+        }
+    };
 
     const handleDelete = async (id: string, title: string) => {
         if (window.confirm(`Are you sure you want to delete "${title}"?`)) {
@@ -46,16 +70,19 @@ export const LessonList: React.FC<LessonListProps> = ({ onEdit, onPreview, onAdd
         if (selectedLessonIds.size === 0) return;
         setIsBuilding(true);
         try {
-            const selectedLessons = lessons.filter(l => selectedLessonIds.has(l.id));
+            // Fetch fully-hydrated lessons for extraction
+            const selectedLessonsFull = await Promise.all(
+                Array.from(selectedLessonIds).map(id => fetchLessonById(id))
+            );
 
-            const vocabWords = await extractVocabularyFromLessons(selectedLessons);
+            const vocabWords = await extractVocabularyFromLessons(selectedLessonsFull);
             
             // Calculate Highest Level
             const levelOrder = ['A1', 'A2', 'B1', 'B2'];
             let maxLevel = 'A1';
             let maxLevelIndex = -1;
             
-            selectedLessons.forEach(l => {
+            selectedLessonsFull.forEach(l => {
                 const index = levelOrder.indexOf(l.level);
                 if (index > maxLevelIndex) {
                     maxLevelIndex = index;
@@ -64,13 +91,13 @@ export const LessonList: React.FC<LessonListProps> = ({ onEdit, onPreview, onAdd
             });
             
             // Generate SEO string
-            const lessonTitles = selectedLessons.map(l => l.title).join(', ');
+            const lessonTitles = selectedLessonsFull.map(l => l.title).join(', ');
             const generatedSeo = `A vocabulary review game covering words from the following worksheets: ${lessonTitles}.`;
             
             const initialData = {
                 title: 'New Word Blaster Game',
                 lessonType: 'word-blaster',
-                language: lessons.find(l => l.id === selectedLessons[0]?.id)?.language || 'English',
+                language: selectedLessonsFull[0]?.language || 'English',
                 level: maxLevel,
                 seo: generatedSeo,
                 content: { words: vocabWords }
@@ -104,9 +131,7 @@ export const LessonList: React.FC<LessonListProps> = ({ onEdit, onPreview, onAdd
         );
     }
 
-    const filteredLessons = lessons.filter(lesson => 
-        lesson.title.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredLessons = lessons;
 
     return (
         <div className="space-y-4">
@@ -216,7 +241,7 @@ export const LessonList: React.FC<LessonListProps> = ({ onEdit, onPreview, onAdd
                                         <Button 
                                             variant="outline" 
                                             size="icon" 
-                                            onClick={() => onPreview(lesson)}
+                                            onClick={() => handlePreview(lesson)}
                                             title="Preview Worksheet"
                                             className="p-0 h-9 w-9 text-green-600 border-green-200 hover:bg-green-50"
                                         >
@@ -315,7 +340,7 @@ export const LessonList: React.FC<LessonListProps> = ({ onEdit, onPreview, onAdd
                                 <Button 
                                     variant="outline" 
                                     size="sm" 
-                                    onClick={() => onPreview(lesson)}
+                                    onClick={() => handlePreview(lesson)}
                                     className="flex flex-col items-center justify-center h-auto py-2 px-1 text-green-600 border-green-200 gap-1"
                                 >
                                     <Eye className="w-4 h-4" />
@@ -365,6 +390,65 @@ export const LessonList: React.FC<LessonListProps> = ({ onEdit, onPreview, onAdd
                     <p className="text-gray-500 font-medium">
                         {searchQuery ? `No worksheets matching "${searchQuery}"` : 'No worksheets found in the registry.'}
                     </p>
+                </div>
+            )}
+
+            {paginationData && paginationData.totalPages > 1 && (
+                <div className="flex items-center justify-between bg-white px-4 py-3 sm:px-6 rounded-2xl shadow-sm border border-gray-200">
+                    <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                        <div>
+                            <p className="text-sm text-gray-700">
+                                Showing <span className="font-medium">{(page - 1) * perPage + 1}</span> to <span className="font-medium">{Math.min(page * perPage, paginationData.totalItems)}</span> of{' '}
+                                <span className="font-medium">{paginationData.totalItems}</span> worksheets
+                            </p>
+                        </div>
+                        <div>
+                            <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                                <Button
+                                    variant="outline"
+                                    className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 hover:bg-gray-50 focus:z-20 border-gray-300 pointer-events-auto"
+                                    disabled={page === 1}
+                                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                                >
+                                    <span className="sr-only">Previous</span>
+                                    <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+                                </Button>
+                                {/* Simple page display */}
+                                <span className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 border-y border-gray-300">
+                                    Page {page} of {paginationData.totalPages}
+                                </span>
+                                <Button
+                                    variant="outline"
+                                    className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 hover:bg-gray-50 focus:z-20 border-gray-300"
+                                    disabled={page === paginationData.totalPages}
+                                    onClick={() => setPage(p => Math.min(paginationData.totalPages, p + 1))}
+                                >
+                                    <span className="sr-only">Next</span>
+                                    <ChevronRight className="h-5 w-5" aria-hidden="true" />
+                                </Button>
+                            </nav>
+                        </div>
+                    </div>
+                    {/* Mobile Pagination */}
+                    <div className="flex flex-1 justify-between sm:hidden">
+                        <Button
+                            variant="outline"
+                            disabled={page === 1}
+                            onClick={() => setPage(p => Math.max(1, p - 1))}
+                        >
+                            Previous
+                        </Button>
+                        <span className="text-sm text-gray-700 self-center">
+                            Page {page} of {paginationData.totalPages}
+                        </span>
+                        <Button
+                            variant="outline"
+                            disabled={page === paginationData.totalPages}
+                            onClick={() => setPage(p => Math.min(paginationData.totalPages, p + 1))}
+                        >
+                            Next
+                        </Button>
+                    </div>
                 </div>
             )}
         </div>
