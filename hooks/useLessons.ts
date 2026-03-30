@@ -16,8 +16,8 @@ export const lessonKeys = {
     list: (language: string, level: string) => [...lessonKeys.lists(), { language, level }] as const,
     adminLists: () => [...lessonKeys.all, 'admin-list'] as const,
     adminList: (creatorId?: string) => [...lessonKeys.adminLists(), { creatorId }] as const,
-    adminPaginatedList: (page: number, perPage: number, searchQuery: string, creatorId?: string) => 
-        [...lessonKeys.adminLists(), { page, perPage, searchQuery, creatorId }] as const,
+    adminPaginatedList: (page: number, perPage: number, searchQuery: string, creatorId?: string, language?: string, lessonType?: string) => 
+        [...lessonKeys.adminLists(), { page, perPage, searchQuery, creatorId, language, lessonType }] as const,
     details: () => [...lessonKeys.all, 'detail'] as const,
     detail: (id: string) => [...lessonKeys.details(), id] as const,
 };
@@ -36,10 +36,10 @@ export const useAllLessons = (creatorId?: string) => {
     });
 };
 
-export const usePaginatedLessons = (page: number, perPage: number, searchQuery: string = '', creatorId?: string) => {
+export const usePaginatedLessons = (page: number, perPage: number, searchQuery: string = '', creatorId?: string, language?: string, lessonType?: string) => {
     return useQuery({
-        queryKey: lessonKeys.adminPaginatedList(page, perPage, searchQuery, creatorId),
-        queryFn: () => fetchPaginatedLessons(page, perPage, searchQuery, creatorId),
+        queryKey: lessonKeys.adminPaginatedList(page, perPage, searchQuery, creatorId, language, lessonType),
+        queryFn: () => fetchPaginatedLessons(page, perPage, searchQuery, creatorId, language, lessonType),
     });
 };
 

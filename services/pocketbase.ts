@@ -189,7 +189,9 @@ export const fetchPaginatedLessons = async (
   page: number = 1,
   perPage: number = 20,
   searchQuery?: string,
-  creatorId?: string
+  creatorId?: string,
+  language?: string,
+  lessonType?: string
 ): Promise<PaginatedLessonsResponse> => {
   try {
     const options: any = {
@@ -204,6 +206,12 @@ export const fetchPaginatedLessons = async (
     if (searchQuery) {
       // Basic text search on title
       filters.push(`title ~ "${searchQuery}"`); 
+    }
+    if (language && language !== 'All') {
+      filters.push(`language = "${language}"`);
+    }
+    if (lessonType && lessonType !== 'All') {
+      filters.push(`lessonType = "${lessonType}"`);
     }
 
     if (filters.length > 0) {

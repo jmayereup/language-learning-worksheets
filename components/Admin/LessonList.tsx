@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { getCurrentUser, fetchLessonById } from '../../services/pocketbase';
 import { usePaginatedLessons, useDeleteLesson } from '../../hooks/useLessons';
 import { Button } from '../UI/Button';
-import { Edit, Trash2, ExternalLink, RefreshCw, Layers, Globe, Calendar, Eye, Search, FileText, CheckSquare, Square, Rocket, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Edit, Trash2, ExternalLink, RefreshCw, Layers, Globe, Calendar, Eye, Search, FileText, CheckSquare, Square, Rocket, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 import { extractVocabularyFromLessons } from '../../utils/vocabularyExtractor';
+import { LANGUAGE_OPTIONS, LESSON_TYPE_OPTIONS } from '../../types';
 
 interface LessonListProps {
     onEdit: (id: string) => void;
@@ -14,6 +15,8 @@ interface LessonListProps {
 export const LessonList: React.FC<LessonListProps> = ({ onEdit, onPreview, onAddNew }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
+    const [selectedLanguage, setSelectedLanguage] = useState('All');
+    const [selectedType, setSelectedType] = useState('All');
     const [page, setPage] = useState(1);
     const perPage = 20;
 
@@ -29,7 +32,19 @@ export const LessonList: React.FC<LessonListProps> = ({ onEdit, onPreview, onAdd
         return () => clearTimeout(timer);
     }, [searchQuery]);
 
-    const { data: paginationData, isLoading: loading, error: fetchError } = usePaginatedLessons(page, perPage, debouncedSearch, currentUser?.id);
+    // Reset to page 1 when filters change
+    useEffect(() => {
+        setPage(1);
+    }, [selectedLanguage, selectedType]);
+
+    const { data: paginationData, isLoading: loading, error: fetchError } = usePaginatedLessons(
+        page, 
+        perPage, 
+        debouncedSearch, 
+        currentUser?.id,
+        selectedLanguage,
+        selectedType
+    );
     const lessons = paginationData?.items || [];
     const deleteMutation = useDeleteLesson();
 
@@ -135,17 +150,59 @@ export const LessonList: React.FC<LessonListProps> = ({ onEdit, onPreview, onAdd
 
     return (
         <div className="space-y-4">
-            <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                    <Search className="h-4 w-4 text-gray-400 group-focus-within:text-green-500 transition-colors" />
+            <div className="flex flex-col md:flex-row gap-3">
+                <div className="relative group flex-1">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <Search className="h-4 w-4 text-gray-400 group-focus-within:text-green-500 transition-colors" />
+                    </div>
+                    <input
+                        type="text"
+                        placeholder="Search worksheets by title..."
+                        className="block w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all shadow-sm"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
                 </div>
-                <input
-                    type="text"
-                    placeholder="Search worksheets by title..."
-                    className="block w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all shadow-sm"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                />
+                
+                <div className="flex gap-2 shrink-0">
+                    <div className="relative group/select">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <Globe className="h-3.5 w-3.5 text-gray-400 group-focus-within/select:text-green-500 transition-colors" />
+                        </div>
+                        <select
+                            className="block w-full md:w-44 pl-9 pr-8 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all shadow-sm appearance-none cursor-pointer"
+                            value={selectedLanguage}
+                            onChange={(e) => setSelectedLanguage(e.target.value)}
+                        >
+                            <option value="All">All Languages</option>
+                            {LANGUAGE_OPTIONS.map(ln => (
+                                <option key={ln} value={ln}>{ln}</option>
+                            ))}
+                        </select>
+                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
+                            <ChevronDown className="h-3.5 w-3.5" />
+                        </div>
+                    </div>
+
+                    <div className="relative group/select">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <FileText className="h-3.5 w-3.5 text-gray-400 group-focus-within/select:text-green-500 transition-colors" />
+                        </div>
+                        <select
+                            className="block w-full md:w-44 pl-9 pr-8 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all shadow-sm appearance-none cursor-pointer"
+                            value={selectedType}
+                            onChange={(e) => setSelectedType(e.target.value)}
+                        >
+                            <option value="All">All Types</option>
+                            {LESSON_TYPE_OPTIONS.map(type => (
+                                <option key={type} value={type}>{type.replace('-', ' ')}</option>
+                            ))}
+                        </select>
+                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
+                            <ChevronDown className="h-3.5 w-3.5" />
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {selectedLessonIds.size > 0 && (
