@@ -20,8 +20,19 @@ const createPB = () => {
 const pb = createPB();
 pb.autoCancellation(false);
 
-export const getFileUrl = (record: LessonRecord | { collectionId: string, id: string }, filename: string, queryParams?: Record<string, any>) => {
-  return pb.files.getURL(record as any, filename, queryParams);
+const FILES_BASE_URL = 'https://files.teacherjake.com';
+
+export const getFileUrl = (record: LessonRecord | { collectionId: string, id: string }, filename: string, _queryParams?: Record<string, any>) => {
+  if (!filename) return '';
+  const collection = (record as any).collectionId || (record as any).collectionName;
+  const id = (record as any).id;
+  
+  if (collection && id) {
+    return `${FILES_BASE_URL}/${collection}/${id}/${filename}`;
+  }
+  
+  // Fallback to SDK if record is incomplete (though should be avoided for S3 direct access)
+  return pb.files.getURL(record as any, filename);
 };
 
 // Auth methods
@@ -92,7 +103,7 @@ export const fetchLessons = async (language: string, level: string) => {
       }
       description = description.substring(0, 120) + (description.length > 120 ? '...' : '');
 
-      let imageUrl = record.image ? getFileUrl(record, record.image, { thumb: '640x360t' }) : undefined;
+      let imageUrl = record.image ? getFileUrl(record, record.image) : undefined;
 
       // Fallback to YouTube thumbnail if no image uploaded
       if (!imageUrl && record.videoUrl) {
@@ -156,7 +167,7 @@ export const fetchAllLessons = async (creatorId?: string) => {
       const content = typeof record.content === 'string' ? JSON.parse(record.content) : record.content;
       const title = record.title || content.title || 'Untitled';
       
-      let imageUrl = record.image ? getFileUrl(record, record.image, { thumb: '100x100t' }) : undefined;
+      let imageUrl = record.image ? getFileUrl(record, record.image) : undefined;
       if (!imageUrl && record.videoUrl) {
         const ytId = getYouTubeId(record.videoUrl);
         if (ytId) imageUrl = `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`;
@@ -223,7 +234,7 @@ export const fetchPaginatedLessons = async (
     const mappedItems = unparsedResult.items.map(record => {
       const title = record.title || 'Untitled';
       
-      let imageUrl = record.image ? getFileUrl({ collectionId: record.collectionId, id: record.id }, record.image, { thumb: '100x100t' }) : undefined;
+      let imageUrl = record.image ? getFileUrl({ collectionId: record.collectionId, id: record.id }, record.image) : undefined;
       
       // Let's ensure getFileUrl works using the record even if partially populated.
       // Since 'image' is returned, we need collectionId/collectionName or just use id.

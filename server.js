@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.PORT || 3000;
 const PB_URL = 'https://blog.teacherjake.com';
+const FILES_BASE_URL = 'https://files.teacherjake.com';
 // Base path where the app is served (e.g. '/worksheets' on blog.teacherjake.com)
 const BASE_PATH = process.env.BASE_PATH || '/worksheets';
 
@@ -63,7 +64,7 @@ async function fetchLessonMeta(lessonId) {
   // Build image URL
   let imageUrl = '';
   if (record.image) {
-    imageUrl = `${PB_URL}/api/files/${record.collectionId}/${record.id}/${record.image}`;
+    imageUrl = `${FILES_BASE_URL}/${record.collectionId}/${record.id}/${record.image}`;
   } else if (record.videoUrl) {
     const ytId = getYouTubeId(record.videoUrl);
     if (ytId) imageUrl = `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`;
