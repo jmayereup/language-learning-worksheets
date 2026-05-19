@@ -150,9 +150,9 @@ export const useTTS = ({
     if (onStartCallback) onStartCallback();
   }, [language, selectedVoiceName, ttsState, onStartCallback]);
 
-  const toggleTTS = useCallback((rate: number, overrideText?: string, overrideLang?: string) => {
-    // Use audio file if available and preferred, but ONLY if no override text is provided
-    if (!overrideText && audioFileUrl && audioPreference === 'recorded') {
+  const toggleTTS = useCallback((rate: number, overrideText?: string, overrideLang?: string, isPassage?: boolean) => {
+    // Use audio file if available and preferred, but ONLY if no override text is provided OR if it is explicitly a passage text
+    if (audioFileUrl && audioPreference === 'recorded' && (!overrideText || isPassage)) {
       if (!audioRef.current) {
         audioRef.current = new Audio(audioFileUrl);
         audioRef.current.onended = () => {

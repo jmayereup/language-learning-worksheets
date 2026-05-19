@@ -367,13 +367,13 @@ export const InformationGapView: React.FC<InformationGapViewProps> = ({
         onListenToggle={() => toggleTTS(1.0, myTextBlocks.map(b => b.text).join(' '))}
         ttsStatus={ttsState.status}
         currentRate={ttsState.rate}
-        hasVoices={availableVoices.length > 0}
-        onVoiceOpen={availableVoices.length > 0 ? () => setIsVoiceModalOpen(true) : undefined}
+        hasVoices={availableVoices.length > 0 || !!lesson.audioFileUrl}
+        onVoiceOpen={availableVoices.length > 0 || !!lesson.audioFileUrl ? () => setIsVoiceModalOpen(true) : undefined}
         passageRef={passageRef}
         className="mb-8"
       />
 
-      {availableVoices.length > 0 && (
+      {(availableVoices.length > 0 || !!lesson.audioFileUrl) && (
         <VoiceSelectorModal
           isOpen={isVoiceModalOpen}
           onClose={() => setIsVoiceModalOpen(false)}

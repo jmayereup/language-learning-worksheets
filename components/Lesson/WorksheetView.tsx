@@ -209,8 +209,8 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
           onListenToggle={() => toggleTTS(1.0)}
           ttsStatus={ttsState.status}
           currentRate={ttsState.rate}
-          hasVoices={availableVoices.length > 0}
-          onVoiceOpen={availableVoices.length > 0 ? () => setIsVoiceModalOpen(true) : undefined}
+          hasVoices={availableVoices.length > 0 || !!lesson.audioFileUrl}
+          onVoiceOpen={availableVoices.length > 0 || !!lesson.audioFileUrl ? () => setIsVoiceModalOpen(true) : undefined}
           onTranslate={handleTranslate}
           passageRef={passageRef}
           showHighlightHelp={true}
@@ -218,7 +218,7 @@ export const WorksheetView: React.FC<WorksheetViewProps> = ({
       </div>
 
       <div className="print:hidden">
-        {availableVoices.length > 0 && (
+        {(availableVoices.length > 0 || !!lesson.audioFileUrl) && (
           <VoiceSelectorModal
             isOpen={isVoiceModalOpen}
             onClose={() => setIsVoiceModalOpen(false)}

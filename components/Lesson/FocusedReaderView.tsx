@@ -30,7 +30,7 @@ interface FocusedReaderViewProps {
   onReset: () => void;
   answers: UserAnswers;
   setAnswers: React.Dispatch<React.SetStateAction<UserAnswers>>;
-  toggleTTS: (rate: number, overrideText?: string) => void;
+  toggleTTS: (rate: number, overrideText?: string, overrideLang?: string, isPassage?: boolean) => void;
   ttsState: { status: 'playing' | 'paused' | 'stopped', rate: number };
   availableVoices: SpeechSynthesisVoice[];
   selectedVoiceName: string | null;
@@ -150,14 +150,14 @@ export const FocusedReaderView: React.FC<FocusedReaderViewProps> = ({
           language={lesson.language}
           title={`Page ${currentPart.part_number}`}
           vocabularyExplanations={currentPart.vocabulary_explanations}
-          onSlowToggle={() => toggleTTS(0.6, currentPart.text)}
-          onListenToggle={() => toggleTTS(1.0, currentPart.text)}
+          onSlowToggle={() => toggleTTS(0.6, currentPart.text, undefined, true)}
+          onListenToggle={() => toggleTTS(1.0, currentPart.text, undefined, true)}
           ttsStatus={ttsState.status}
           currentRate={ttsState.rate}
-          hasVoices={availableVoices.length > 0}
+          hasVoices={availableVoices.length > 0 || !!lesson.audioFileUrl}
           onSwipeLeft={currentPartIndex < content.parts.length - 1 ? () => handlePageChange(currentPartIndex + 1) : undefined}
           onSwipeRight={currentPartIndex > 0 ? () => handlePageChange(currentPartIndex - 1) : undefined}
-          onVoiceOpen={availableVoices.length > 0 ? () => setIsVoiceModalOpen(true) : undefined}
+          onVoiceOpen={availableVoices.length > 0 || !!lesson.audioFileUrl ? () => setIsVoiceModalOpen(true) : undefined}
           showHighlightHelp={true}
           className="animate-slide-up"
           currentPage={currentPartIndex}

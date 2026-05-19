@@ -26,7 +26,7 @@ interface ChapterBookViewProps {
   onReset: () => void;
   answers: UserAnswers;
   setAnswers: React.Dispatch<React.SetStateAction<UserAnswers>>;
-  toggleTTS: (rate: number, overrideText?: string, overrideLang?: string) => void;
+  toggleTTS: (rate: number, overrideText?: string, overrideLang?: string, isPassage?: boolean) => void;
   ttsState: { status: 'playing' | 'paused' | 'stopped', rate: number };
   availableVoices: SpeechSynthesisVoice[];
   selectedVoiceName: string | null;
@@ -84,11 +84,6 @@ export const ChapterBookView: React.FC<ChapterBookViewProps> = ({
   const handleChapterChange = (newIndex: number) => {
     setCurrentChapterIndex(newIndex);
     setAnswers(prev => ({ ...prev, focusedReaderPage: newIndex }));
-    
-    // Stop TTS when changing chapters
-    if (typeof window !== 'undefined' && window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-    }
   };
 
   const toggleTranslation = () => {
@@ -201,15 +196,15 @@ export const ChapterBookView: React.FC<ChapterBookViewProps> = ({
           text={displayText}
           language={isTranslated ? translationLanguage : lesson.language}
           title={currentChapter.title}
-          onSlowToggle={() => toggleTTS(0.6, displayText, currentLanguage)}
-          onListenToggle={() => toggleTTS(1.0, displayText, currentLanguage)}
+          onSlowToggle={() => toggleTTS(0.6, displayText, currentLanguage, true)}
+          onListenToggle={() => toggleTTS(1.0, displayText, currentLanguage, true)}
           ttsStatus={ttsState.status}
           currentRate={ttsState.rate}
-          hasVoices={availableVoices.length > 0}
+          hasVoices={availableVoices.length > 0 || !!lesson.audioFileUrl}
           onTranslate={() => toggleTranslation()}
           onSwipeLeft={currentChapterIndex < content.chapters.length - 1 ? () => handleChapterChange(currentChapterIndex + 1) : undefined}
           onSwipeRight={currentChapterIndex > 0 ? () => handleChapterChange(currentChapterIndex - 1) : undefined}
-          onVoiceOpen={modalVoices.length > 0 ? () => setIsVoiceModalOpen(true) : undefined}
+          onVoiceOpen={modalVoices.length > 0 || !!lesson.audioFileUrl ? () => setIsVoiceModalOpen(true) : undefined}
           className="animate-slide-up"
           showHighlightHelp={!isTranslated}
           currentPage={currentChapterIndex}
