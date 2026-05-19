@@ -29,11 +29,26 @@ export const InformationGapExportActions: React.FC<InformationGapExportActionsPr
       }] : []));
 
   const handleCopyForGoogleDocs = async () => {
-    const originalImageUrl = lesson.image
-      ? (lesson.image.startsWith('http://') || lesson.image.startsWith('https://')
-          ? lesson.image
-          : `https://files.teacherjake.com/${lesson.collectionId || lesson.collectionName}/${lesson.id}/${lesson.image}`)
-      : lesson.imageUrl;
+    const getOriginalImageUrl = () => {
+      const img = lesson.image || lesson.imageUrl || '';
+      if (!img) return '';
+      if (img.startsWith('http') && !img.includes('teacherjake.com')) {
+        return img;
+      }
+      const last = img.split('/').pop() || '';
+      let filename = last;
+      if (last.endsWith('.webp')) {
+        const parts = last.split('.');
+        if (parts.length >= 3) {
+          const base = parts.slice(0, parts.length - 2).join('.');
+          const ext = base.startsWith('pasted_image') ? 'png' : 'jpg';
+          filename = `${base}.${ext}`;
+        }
+      }
+      return `https://files.teacherjake.com/${lesson.collectionId || lesson.collectionName}/${lesson.id}/${filename}`;
+    };
+
+    const originalImageUrl = getOriginalImageUrl();
     
     // Generate HTML for a specific player
     const getPlayerHtml = (playerNum: number) => {
