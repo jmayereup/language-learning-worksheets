@@ -23,6 +23,12 @@ export const FocusedReaderExportActions: React.FC<FocusedReaderExportActionsProp
   const content = lesson.content;
 
   const handleCopyForGoogleDocs = async () => {
+    const originalImageUrl = lesson.image
+      ? (lesson.image.startsWith('http://') || lesson.image.startsWith('https://')
+          ? lesson.image
+          : `https://files.teacherjake.com/${lesson.collectionId || lesson.collectionName}/${lesson.id}/${lesson.image}`)
+      : lesson.imageUrl;
+
     const partsHtml = content.parts.map((part, pIndex) => {
       const allVocabWords = Object.keys(part.vocabulary_explanations);
       let printWords: string[] = [];
@@ -84,7 +90,7 @@ Name <u>&nbsp;&nbsp;&nbsp;&nbsp;${studentName || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <h1 style="font-size:18px;font-weight:bold;margin:0 0 4px 0">${displayTitle}</h1>
 <p style="color:#666;margin:0 0 16px 0;font-size:11px">Language: ${lesson.language} | Level: ${lesson.level}</p>
 
-${lesson.imageUrl ? `<div style="text-align:center;margin:16px 0"><img src="${lesson.imageUrl}" alt="Lesson image" style="max-width:100%;height:auto;border-radius:6px" /></div>` : ''}
+${originalImageUrl ? `<div style="text-align:center;margin:16px 0"><img src="${originalImageUrl}" alt="Lesson image" style="max-width:100%;height:auto;border-radius:6px" /></div>` : ''}
 
 ${partsHtml}
 

@@ -22,6 +22,12 @@ export const WorksheetExportActions: React.FC<WorksheetExportActionsProps> = ({
   const standardContent = lesson.content;
 
   const handleCopyForGoogleDocs = async () => {
+    const originalImageUrl = lesson.image
+      ? (lesson.image.startsWith('http://') || lesson.image.startsWith('https://')
+          ? lesson.image
+          : `https://files.teacherjake.com/${lesson.collectionId || lesson.collectionName}/${lesson.id}/${lesson.image}`)
+      : lesson.imageUrl;
+
     const vocabItems = seededShuffle([...standardContent.activities.vocabulary.items], `${lesson.id}-print-vocab`);
     const scrambledItems = standardContent.activities.scrambled.map((item, idx) => {
       const words = item.answer.replace(/[.!?]+$/, '').split(/\s+/).filter((w: string) => w);
@@ -39,7 +45,7 @@ Name <u>&nbsp;&nbsp;&nbsp;&nbsp;${studentName || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <h1 style="font-size:18px;font-weight:bold;margin:0 0 4px 0">${displayTitle}</h1>
 <p style="color:#666;margin:0 0 16px 0;font-size:11px">Language: ${lesson.language} | Level: ${lesson.level}</p>
 
-${lesson.imageUrl ? `<div style="text-align:center;margin:16px 0"><img src="${lesson.imageUrl}" alt="Lesson image" style="max-width:100%;height:auto;border-radius:6px" /></div>` : ''}
+${originalImageUrl ? `<div style="text-align:center;margin:16px 0"><img src="${originalImageUrl}" alt="Lesson image" style="max-width:100%;height:auto;border-radius:6px" /></div>` : ''}
 
 <h2 style="font-size:13px;font-weight:bold;background:#f3f4f6;padding:4px 6px;margin:8px 0 4px">Reading Passage</h2>
 <p style="font-size:12px;line-height:1.6;margin:0">${standardContent.readingText.replace(/\n/g, '<br>')}</p>
