@@ -48,7 +48,7 @@ ${lesson.imageUrl ? `<div style="text-align:center;margin:16px 0"><img src="${le
 <table style="width:100%;border-collapse:collapse">
 <tr>
 <td style="width:50%;vertical-align:top;padding-right:12px">
-${vocabItems.map((item) => `<p style="margin:3px 0;font-size:12px">☐ &nbsp; ${item.label}</p>`).join('')}
+${vocabItems.map((item) => `<p style="margin:3px 0;font-size:12px">____ &nbsp; ${item.label}</p>`).join('')}
 </td>
 <td style="width:50%;vertical-align:top">
 ${standardContent.activities.vocabulary.definitions.map((def, i) => `<p style="margin:3px 0;font-size:12px"><strong>${String.fromCharCode(97 + i)}.</strong> ${def.text}</p>`).join('')}
@@ -57,7 +57,7 @@ ${standardContent.activities.vocabulary.definitions.map((def, i) => `<p style="m
 </table>
 
 <h2 style="font-size:13px;font-weight:bold;background:#f3f4f6;padding:4px 6px;margin:10px 0 4px">2. Fill in the Blanks</h2>
-${standardContent.activities.fillInTheBlanks.map((item, i) => `<p style="margin:4px 0;font-size:12px">${i + 1}. ${item.before} <u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u> ${item.after}</p>`).join('')}
+${standardContent.activities.fillInTheBlanks.map((item, i) => `<p style="margin:4px 0;font-size:12px">${i + 1}. ${item.before} _________________ ${item.after}</p>`).join('')}
 
 <h2 style="font-size:13px;font-weight:bold;background:#f3f4f6;padding:4px 6px;margin:10px 0 4px">3. Reading Comprehension</h2>
 ${standardContent.activities.comprehension.questions.map((q, i) => `<p style="margin:4px 0;font-size:12px">${i + 1}. ${q.text} &nbsp;&nbsp; <strong>True</strong> &nbsp; <strong>False</strong></p>`).join('')}

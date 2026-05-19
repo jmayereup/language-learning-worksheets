@@ -41,7 +41,7 @@ export const FocusedReaderExportActions: React.FC<FocusedReaderExportActionsProp
 <table style="width:100%;border-collapse:collapse">
 <tr>
 <td style="width:40%;vertical-align:top;padding-right:12px">
-${printWords.map((word) => `<p style="margin:3px 0;font-size:12px">☐ &nbsp; ${word}</p>`).join('')}
+${printWords.map((word) => `<p style="margin:3px 0;font-size:12px">____ &nbsp; ${word}</p>`).join('')}
 </td>
 <td style="width:60%;vertical-align:top">
 ${printDefs.map((def, i) => `<p style="margin:3px 0;font-size:12px"><strong>${String.fromCharCode(97 + i)}.</strong> ${def}</p>`).join('')}
@@ -119,7 +119,7 @@ ${partsHtml}
 <table style="width:100%;border-collapse:collapse">
 <tr>
 <td style="width:40%;vertical-align:top;padding-right:12px">
-${printWords.map((word) => `<p style="margin:3px 0;font-size:12px">☐ &nbsp; ${word}</p>`).join('')}
+${printWords.map((word) => `<p style="margin:3px 0;font-size:12px">____ &nbsp; ${word}</p>`).join('')}
 </td>
 <td style="width:60%;vertical-align:top">
 ${printDefs.map((def, i) => {
