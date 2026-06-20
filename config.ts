@@ -1,3 +1,3 @@
 export const config = {
-    submissionUrl: 'https://script.google.com/macros/s/AKfycbxDI_qYNK5NOfUCN7iN-1ebmwRapBcDzptYDEPKLdZh_vGuCb-UB6EsSgdEbSFAFuIekw/exec'
+    submissionUrl: 'https://script.google.com/macros/s/AKfycbzGofdFez5xIl7hfVAuPZSaHbvcXBjWFLLteNKYRuAAuCsDfs8dz5_WPoqyWiNc5SkZHg/exec'
 };
