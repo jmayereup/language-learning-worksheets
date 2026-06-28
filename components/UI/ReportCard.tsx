@@ -34,13 +34,20 @@ export const ReportCard: React.FC<Props> = ({ data, onClose }) => {
       return;
     }
 
+    const writtenAnswers = data.writtenResponses && data.writtenResponses.length > 0
+      ? data.writtenResponses
+          .map((res, i) => `Q${i + 1}: ${res.question}\nA: ${res.answer}`)
+          .join('\n\n')
+      : '';
+
     await submitScore({
       nickname: data.nickname,
       homeroom: data.homeroom,
       studentId: data.studentId,
       quizName: data.title,
       score: data.totalScore,
-      total: data.maxScore
+      total: data.maxScore,
+      writtenAnswers
     });
   };
 

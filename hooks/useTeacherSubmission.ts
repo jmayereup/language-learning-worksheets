@@ -8,6 +8,7 @@ export interface SubmissionPayload {
   quizName: string;
   score: number;
   total: number;
+  writtenAnswers?: string;
 }
 
 export type SubmissionStatus = 'idle' | 'success' | 'error';
@@ -29,6 +30,7 @@ export const useTeacherSubmission = () => {
     setSubmissionMessage('');
 
     try {
+      console.log('Sending score submission payload:', payload);
       await fetch(submissionUrl, {
         method: 'POST',
         mode: 'no-cors',

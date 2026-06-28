@@ -32,11 +32,11 @@ export const useLessonProgress = (lessonId: string) => {
       if (saved) {
         const parsed = JSON.parse(saved);
         return {
-          answers: parsed.answers ?? defaultAnswers,
+          answers: parsed.answers ? { ...defaultAnswers, ...parsed.answers } : defaultAnswers,
           studentName: parsed.studentName ?? '',
           studentId: parsed.studentId ?? '',
           homeroom: parsed.homeroom ?? '',
-          completionStates: parsed.completionStates ?? defaultCompletionStates
+          completionStates: parsed.completionStates ? { ...defaultCompletionStates, ...parsed.completionStates } : defaultCompletionStates
         };
       }
     } catch (e) {

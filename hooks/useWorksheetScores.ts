@@ -88,10 +88,12 @@ export const useWorksheetScores = (
       standardContent.activities.scrambled.length;
 
     const writtenResponses: ReportWrittenResponse[] = 
-      standardContent.activities.writtenExpression.questions.map((q, i) => ({
-        question: q.text,
-        answer: answers.writing[i] || ''
-      }));
+      standardContent.activities.writtenExpression?.questions
+        ? standardContent.activities.writtenExpression.questions.map((q, i) => ({
+            question: q.text,
+            answer: (answers.writing && answers.writing[i]) || ''
+          }))
+        : [];
 
     const now = new Date();
     const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
