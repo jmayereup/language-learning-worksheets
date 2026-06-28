@@ -38,11 +38,22 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
     const [jsonContent, setJsonContent] = useState('');
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [audioFile, setAudioFile] = useState<File | null>(null);
+    const [audioPreviewUrl, setAudioPreviewUrl] = useState<string | null>(null);
     const [lessonType, setLessonType] = useState('');
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [showVisualEditor, setShowVisualEditor] = useState(false);
     const [seo, setSeo] = useState('');
     const [isMinified, setIsMinified] = useState(false);
+
+    useEffect(() => {
+        if (audioFile) {
+            const url = URL.createObjectURL(audioFile);
+            setAudioPreviewUrl(url);
+            return () => URL.revokeObjectURL(url);
+        } else {
+            setAudioPreviewUrl(null);
+        }
+    }, [audioFile]);
 
     const isPocketbaseSupportedLanguage = React.useMemo(() => {
         if (!language) return false;
@@ -600,21 +611,66 @@ ${embedData}
 
                                 <div>
                                     <label className="block text-sm font-black text-gray-700 mb-2 ml-1 uppercase tracking-wider">Audio File (MP3)</label>
-                                    <div className="relative">
-                                        <input
-                                            type="file"
-                                            accept="audio/mpeg,audio/mp3"
-                                            onChange={(e) => setAudioFile(e.target.files?.[0] || null)}
-                                            className="hidden"
-                                            id="audio-upload"
-                                        />
-                                        <label
-                                            htmlFor="audio-upload"
-                                            className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-white border-2 border-dashed border-gray-300 rounded-xl hover:border-blue-500 hover:bg-blue-50 cursor-pointer transition-all text-gray-600 font-bold text-sm"
-                                        >
-                                            <Music className="w-4 h-4" />
-                                            {audioFile ? audioFile.name : 'Upload Audio (MP3)'}
-                                        </label>
+                                    <div className="flex flex-col gap-3">
+                                        {/* New Audio File Preview */}
+                                        {audioFile && (
+                                            <div className="flex flex-col gap-2 p-3 bg-blue-50/50 rounded-xl border border-blue-200">
+                                                <div className="flex items-center gap-2 text-sm text-blue-700 font-medium">
+                                                    <Music className="w-4 h-4 text-blue-500 shrink-0" />
+                                                    <span className="font-bold text-blue-800 shrink-0">New:</span>
+                                                    <span className="truncate" title={audioFile.name}>{audioFile.name}</span>
+                                                    <button 
+                                                        type="button" 
+                                                        onClick={() => setAudioFile(null)}
+                                                        className="ml-auto text-xs text-red-500 hover:text-red-700 font-bold"
+                                                    >
+                                                        Remove
+                                                    </button>
+                                                </div>
+                                                {audioPreviewUrl && (
+                                                    <audio 
+                                                        src={audioPreviewUrl} 
+                                                        controls 
+                                                        className="w-full h-8 text-xs" 
+                                                    />
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {/* Existing Audio File Preview */}
+                                        {!audioFile && lessonData?.audioFile && (
+                                            <div className="flex flex-col gap-2 p-3 bg-gray-50 rounded-xl border border-gray-200">
+                                                <div className="flex items-center gap-2 text-sm text-gray-600 font-medium">
+                                                    <Music className="w-4 h-4 text-blue-500 shrink-0" />
+                                                    <span className="font-bold text-gray-800 shrink-0">Current:</span>
+                                                    <span className="truncate" title={lessonData.audioFile}>{lessonData.audioFile}</span>
+                                                </div>
+                                                {lessonData?.audioFileUrl && (
+                                                    <audio 
+                                                        src={lessonData.audioFileUrl} 
+                                                        controls 
+                                                        className="w-full h-8 text-xs" 
+                                                    />
+                                                )}
+                                            </div>
+                                        )}
+
+                                        <div className="relative">
+                                            <input
+                                                type="file"
+                                                accept="audio/mpeg,audio/mp3"
+                                                onChange={(e) => setAudioFile(e.target.files?.[0] || null)}
+                                                className="hidden"
+                                                id="audio-upload"
+                                            />
+                                            <label
+                                                htmlFor="audio-upload"
+                                                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-white border-2 border-dashed border-gray-300 rounded-xl hover:border-blue-500 hover:bg-blue-50 cursor-pointer transition-all text-gray-600 font-bold text-sm"
+                                            >
+                                                <Music className="w-4 h-4" />
+                                                {audioFile ? 'Change New Audio' : (lessonData?.audioFile ? 'Replace Audio (MP3)' : 'Upload Audio (MP3)')}
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
                             </>

@@ -30,7 +30,7 @@ npm run dev
 
 For detailed information on design patterns, submissions, and technical implementations, please refer to the following guides:
 
-- **[Style Guide](file:///home/jmayer/Dev/tj-language-learning-worksheets/STYLE_GUIDE.md)**: Design tokens, CSS variables, and building premium UI components.
+- **[Design Document](file:///var/home/jmayer/Dev/language-learning-worksheets/DESIGN.md)**: Design tokens, CSS variables, and building premium UI components.
 - **[Submission Guide](file:///home/jmayer/Dev/tj-language-learning-worksheets/SUBMISSION_GUIDE.md)**: Setting up Google Sheets and Apps Script for score tracking.
 - **[TTS Guide](file:///home/jmayer/Dev/tj-language-learning-worksheets/TTS_GUIDE%201.2.md)**: Best practices for Web Speech API and high-quality voice selection.
 
