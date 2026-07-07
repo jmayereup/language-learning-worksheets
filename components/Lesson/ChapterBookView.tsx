@@ -307,7 +307,10 @@ export const ChapterBookView: React.FC<ChapterBookViewProps> = ({
       {showReportCard && reportData && (
         <ReportCard
           data={reportData}
-          onClose={() => setShowReportCard(false)}
+          onClose={() => {
+            setShowReportCard(false);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
         />
       )}
 
