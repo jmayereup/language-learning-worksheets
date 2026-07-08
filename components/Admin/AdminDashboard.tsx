@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { LoginForm } from './LoginForm';
 import { LessonList } from './LessonList';
 import { LessonEditor } from './LessonEditor';
-import { isAuthenticated, logout } from '../../services/pocketbase';
+import { isAuthenticated } from '../../services/pocketbase';
 import { Button } from '../UI/Button';
-import { LayoutDashboard, LogOut, ArrowLeft, Plus } from 'lucide-react';
+import { LayoutDashboard, ArrowLeft, Plus } from 'lucide-react';
 
 interface AdminDashboardProps {
     onBack: () => void;
@@ -20,12 +20,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, onPrevie
 
     const handleLoginSuccess = () => {
         setIsLoggedIn(true);
-    };
-
-    const handleLogout = () => {
-        logout();
-        setIsLoggedIn(false);
-        onLogout();
     };
 
     useEffect(() => {
@@ -83,15 +77,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, onPrevie
                         <h1 className="text-2xl font-black text-gray-900 tracking-tight">Admin Dashboard</h1>
                         <p className="text-gray-500 text-sm font-medium">Manage your interactive worksheets</p>
                     </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                    <Button variant="outline" onClick={onBack} className="items-center gap-2">
-                        <ArrowLeft className="w-4 h-4" /> Exit Admin
-                    </Button>
-                    <Button variant="danger" onClick={handleLogout} className="items-center gap-2">
-                        <LogOut className="w-4 h-4" /> Logout
-                    </Button>
                 </div>
             </header>
 

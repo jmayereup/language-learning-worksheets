@@ -187,6 +187,7 @@ const App: React.FC = () => {
                                 </button>
                                 <button
                                     onClick={() => handleViewChange('admin')}
+                                    title="Manage live worksheets in the online library"
                                     className={`px-3 py-1.5 text-sm font-bold rounded-lg transition-all ${
                                         view === 'admin'
                                             ? 'text-green-700 bg-green-50 border border-green-150 shadow-sm'
@@ -197,6 +198,7 @@ const App: React.FC = () => {
                                 </button>
                                 <button
                                     onClick={() => handleViewChange('create')}
+                                    title="Generate standalone HTML files for offline/personal use"
                                     className={`px-3 py-1.5 text-sm font-bold rounded-lg transition-all ${
                                         view === 'create'
                                             ? 'text-green-700 bg-green-50 border border-green-150 shadow-sm'
