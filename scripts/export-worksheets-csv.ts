@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import PocketBase from 'pocketbase';
 import fs from 'fs';
 import path from 'path';
@@ -7,8 +8,31 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Connection details from services/pocketbase.ts
-const PB_URL = 'https://blog.teacherjake.com';
+const PB_URL = process.env.POCKETBASE_URL || 'https://blog.teacherjake.com';
 const pb = new PocketBase(PB_URL);
+
+async function authenticate() {
+    const email = process.env.POCKETBASE_ADMIN_EMAIL;
+    const password = process.env.POCKETBASE_ADMIN_PASSWORD;
+    if (email && password) {
+        console.log(`Authenticating with admin credentials from .env (${email})...`);
+        try {
+            // Try to authenticate as a regular user first
+            await pb.collection('users').authWithPassword(email, password);
+            console.log('Successfully authenticated as user.');
+        } catch (e) {
+            try {
+                // Try to authenticate as a superuser (admin) in PocketBase v0.23+
+                await pb.collection('_superusers').authWithPassword(email, password);
+                console.log('Successfully authenticated as superuser.');
+            } catch (se) {
+                console.warn('Failed to authenticate as user or superuser:', se.message);
+            }
+        }
+    } else {
+        console.log('No admin credentials found in .env. Attempting anonymous request...');
+    }
+}
 
 /**
  * Escapes a string for use in a CSV file.
@@ -27,6 +51,7 @@ function escapeCSV(val: any): string {
 
 async function exportToCSV() {
     console.log(`Connecting to ${PB_URL} for CSV export...`);
+    await authenticate();
     
     try {
         // Fetch all lessons from the worksheets collection

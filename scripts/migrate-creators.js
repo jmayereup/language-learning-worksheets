@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import PocketBase from 'pocketbase';
 import readline from 'readline';
 
@@ -6,7 +7,7 @@ import readline from 'readline';
  * Target ID: hauvrgcm22u94dc
  */
 
-const PB_URL = 'https://blog.teacherjake.com';
+const PB_URL = process.env.POCKETBASE_URL || 'https://blog.teacherjake.com';
 const TARGET_CREATOR_ID = 'kjksljovpk623jy';
 
 const pb = new PocketBase(PB_URL);
@@ -21,12 +22,25 @@ const question = (query) => new Promise((resolve) => rl.question(query, resolve)
 async function runMigration() {
     console.log(`Connecting to ${PB_URL}...`);
 
-    const email = await question('Enter PocketBase Admin/User Email: ');
-    const password = await question('Enter Password: ');
+    let email = process.env.POCKETBASE_ADMIN_EMAIL;
+    let password = process.env.POCKETBASE_ADMIN_PASSWORD;
+
+    if (!email || !password) {
+        email = await question('Enter PocketBase Admin/User Email: ');
+        password = await question('Enter Password: ');
+    } else {
+        console.log(`Using admin credentials from .env (${email})`);
+    }
 
     try {
         console.log('Authenticating...');
-        await pb.collection('users').authWithPassword(email, password);
+        try {
+            // Try regular user authentication first
+            await pb.collection('users').authWithPassword(email, password);
+        } catch (err) {
+            // Try superuser authentication next
+            await pb.collection('_superusers').authWithPassword(email, password);
+        }
         console.log('Successfully authenticated.');
 
         console.log('Fetching worksheets with missing creatorId...');

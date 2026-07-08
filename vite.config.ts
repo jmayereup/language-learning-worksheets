@@ -16,7 +16,9 @@ export default defineConfig(({ mode }) => {
       define: {
         'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
         'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-        'process.env.NODE_ENV': JSON.stringify(mode)
+        'process.env.NODE_ENV': JSON.stringify(mode),
+        'process.env.POCKETBASE_URL': JSON.stringify(env.POCKETBASE_URL || 'https://blog.teacherjake.com'),
+        'process.env.FILES_BASE_URL': JSON.stringify(env.FILES_BASE_URL || 'https://files.teacherjake.com')
       },
       resolve: {
         alias: {

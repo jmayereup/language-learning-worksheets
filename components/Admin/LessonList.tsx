@@ -24,6 +24,9 @@ export const LessonList: React.FC<LessonListProps> = ({ onEdit, onPreview, onAdd
     const [isBuilding, setIsBuilding] = useState(false);
     const currentUser = getCurrentUser();
 
+    const isSystemAdmin = currentUser?.collectionName === '_superusers' || currentUser?.isAdmin === true;
+    const filterCreatorId = isSystemAdmin ? undefined : currentUser?.id;
+
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedSearch(searchQuery);
@@ -41,7 +44,7 @@ export const LessonList: React.FC<LessonListProps> = ({ onEdit, onPreview, onAdd
         page, 
         perPage, 
         debouncedSearch, 
-        currentUser?.id,
+        filterCreatorId,
         selectedLanguage,
         selectedType
     );
@@ -313,7 +316,7 @@ export const LessonList: React.FC<LessonListProps> = ({ onEdit, onPreview, onAdd
                                         >
                                             <ExternalLink className="w-4 h-4" /> 
                                         </Button>
-                                        {lesson.creatorId === currentUser?.id && (
+                                        {(lesson.creatorId === currentUser?.id || isSystemAdmin) && (
                                             <>
                                                 <Button 
                                                     variant="secondary" 
@@ -412,7 +415,7 @@ export const LessonList: React.FC<LessonListProps> = ({ onEdit, onPreview, onAdd
                                     <ExternalLink className="w-4 h-4" />
                                     <span className="text-[9px] font-black uppercase tracking-tighter">Public</span>
                                 </Button>
-                                {lesson.creatorId === currentUser?.id && (
+                                {(lesson.creatorId === currentUser?.id || isSystemAdmin) && (
                                     <>
                                         <Button 
                                             variant="secondary" 

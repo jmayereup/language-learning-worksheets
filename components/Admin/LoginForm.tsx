@@ -5,9 +5,17 @@ import { AlertCircle, Lock, Mail } from 'lucide-react';
 
 interface LoginFormProps {
     onLoginSuccess: () => void;
+    title?: string;
+    subtitle?: string;
+    className?: string;
 }
 
-export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
+export const LoginForm: React.FC<LoginFormProps> = ({ 
+    onLoginSuccess,
+    title = "Admin Login",
+    subtitle = "Enter your credentials to manage worksheets",
+    className = "mt-12"
+}) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -29,11 +37,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     };
 
     return (
-        <div className="max-w-md mx-auto mt-12">
+        <div className={`max-w-md mx-auto ${className}`}>
             <div className="bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
                 <div className="text-center mb-8">
-                    <h2 className="text-3xl font-extrabold text-green-900 mb-2">Admin Login</h2>
-                    <p className="text-gray-600">Enter your credentials to manage worksheets</p>
+                    <h2 className="text-3xl font-extrabold text-green-900 mb-2">{title}</h2>
+                    <p className="text-gray-600">{subtitle}</p>
                 </div>
 
                 {error && (

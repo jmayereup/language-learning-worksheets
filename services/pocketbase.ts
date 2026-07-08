@@ -3,24 +3,25 @@ import { LessonRecord, ParsedLesson, LessonContent } from '../types';
 
 // Initialize PocketBase
 // Note: We use the URL provided in the original application
+const PB_URL = (typeof process !== 'undefined' && process.env?.POCKETBASE_URL) || 'https://blog.teacherjake.com';
+const FILES_BASE_URL = (typeof process !== 'undefined' && process.env?.FILES_BASE_URL) || 'https://files.teacherjake.com';
+
 const createPB = () => {
   try {
     // Check if localStorage is available
     localStorage.getItem('test');
-    return new PocketBase('https://blog.teacherjake.com');
+    return new PocketBase(PB_URL);
   } catch (e) {
     console.warn("localStorage not available, using memory store");
     // PocketBase automatically falls back to an internal memory store 
     // if it can't find a global localStorage or if it fails.
     // But we can be explicit or just handle the error.
-    return new PocketBase('https://blog.teacherjake.com');
+    return new PocketBase(PB_URL);
   }
 };
 
 const pb = createPB();
 pb.autoCancellation(false);
-
-const FILES_BASE_URL = 'https://files.teacherjake.com';
 
 export const getFileUrl = (record: LessonRecord | { collectionId: string, id: string }, filename: string, _queryParams?: Record<string, any>) => {
   if (!filename) return '';
@@ -37,7 +38,18 @@ export const getFileUrl = (record: LessonRecord | { collectionId: string, id: st
 
 // Auth methods
 export const loginWithEmail = async (email: string, password: string) => {
-  return await pb.collection('users').authWithPassword(email, password);
+  try {
+    // Try to authenticate as a regular user first
+    return await pb.collection('users').authWithPassword(email, password);
+  } catch (error) {
+    // If that fails, try to authenticate as a superuser (admin) in PocketBase v0.23+
+    try {
+      return await pb.collection('_superusers').authWithPassword(email, password);
+    } catch (superuserError) {
+      // Throw the original user auth error if both fail
+      throw error;
+    }
+  }
 };
 
 export const logout = () => {

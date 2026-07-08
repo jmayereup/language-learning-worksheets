@@ -9,9 +9,10 @@ import { LayoutDashboard, LogOut, ArrowLeft, Plus } from 'lucide-react';
 interface AdminDashboardProps {
     onBack: () => void;
     onPreview: (lesson: any) => void;
+    onLogout: () => void;
 }
 
-export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, onPreview }) => {
+export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, onPreview, onLogout }) => {
     const [isLoggedIn, setIsLoggedIn] = useState(isAuthenticated());
     const [adminView, setAdminView] = useState<'list' | 'add' | 'edit'>('list');
     const [editingLessonId, setEditingLessonId] = useState<string | null>(null);
@@ -24,6 +25,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, onPrevie
     const handleLogout = () => {
         logout();
         setIsLoggedIn(false);
+        onLogout();
     };
 
     useEffect(() => {
@@ -35,7 +37,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, onPrevie
                 // Remove the edit param from the URL to prevent reopening on refresh
                 const url = new URL(window.location.href);
                 url.searchParams.delete('edit');
-                url.searchParams.set('view', 'admin');
+                url.searchParams.delete('view');
                 window.history.replaceState({}, '', url.toString());
             }
         }

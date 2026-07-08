@@ -22,10 +22,11 @@ export const lessonKeys = {
     detail: (id: string) => [...lessonKeys.details(), id] as const,
 };
 
-export const useLessons = (language: string, level: string) => {
+export const useLessons = (language: string, level: string, enabled: boolean = true) => {
     return useQuery({
         queryKey: lessonKeys.list(language, level),
         queryFn: () => fetchLessons(language, level),
+        enabled,
     });
 };
 
@@ -43,11 +44,11 @@ export const usePaginatedLessons = (page: number, perPage: number, searchQuery: 
     });
 };
 
-export const useLesson = (id: string | null) => {
+export const useLesson = (id: string | null, enabled: boolean = true) => {
     return useQuery({
         queryKey: lessonKeys.detail(id || ''),
         queryFn: () => fetchLessonById(id!),
-        enabled: !!id,
+        enabled: enabled && !!id,
     });
 };
 

@@ -3,26 +3,39 @@ import { useLessons, useLesson } from './hooks/useLessons';
 import { ParsedLesson, LANGUAGE_OPTIONS, LEVEL_OPTIONS, TAG_OPTIONS } from './types';
 import { LessonView } from './components/Lesson/LessonView';
 import { Button } from './components/UI/Button';
-import { BookOpen, Search, FlaskConical, Video, Feather, FileText, X, LogIn, AlertTriangle } from 'lucide-react';
+import { BookOpen, Search, FlaskConical, Video, Feather, FileText, X, LogIn, LogOut, AlertTriangle, User, ChevronDown } from 'lucide-react';
 import { BrowserSupportWarning } from './components/UI/BrowserSupportWarning';
 import { AdminDashboard } from './components/Admin/AdminDashboard';
 import { LessonEditor } from './components/Admin/LessonEditor';
 import { WebComponentPreview } from './components/Lesson/WebComponentPreview';
 import { SearchableSelect } from './components/UI/SearchableSelect';
+import { LoginForm } from './components/Admin/LoginForm';
+import { isAuthenticated, logout, getCurrentUser } from './services/pocketbase';
 import logo from './assets/tj-logo.svg';
 
 const App: React.FC = () => {
+    const [isLoggedIn, setIsLoggedIn] = useState(isAuthenticated());
     const [view, setView] = useState<'home' | 'lesson' | 'admin' | 'create'>('home');
     const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
     const [showPreview, setShowPreview] = useState(false);
+    const [showProfileDropdown, setShowProfileDropdown] = useState(false);
 
     // Filter States
     const [language, setLanguage] = useState('English');
     const [level, setLevel] = useState('All');
     const [tag, setTag] = useState('All');
 
-    const { data: lessons = [], isLoading: loading } = useLessons(language, level);
-    const { data: currentLessonFromQuery, isLoading: loadingLesson } = useLesson(selectedLessonId);
+    const { data: lessons = [], isLoading: loading } = useLessons(language, level, isLoggedIn);
+    const { data: currentLessonFromQuery, isLoading: loadingLesson } = useLesson(selectedLessonId, isLoggedIn);
+
+    const handleLogout = () => {
+        logout();
+        setIsLoggedIn(false);
+        setView('home');
+        setSelectedLessonId(null);
+        setCurrentLesson(null);
+        updateURL({ lesson: '', view: '', language, level, category: tag });
+    };
 
     // currentLesson state is kept for cases where it's passed from admin/create preview
     const [currentLesson, setCurrentLesson] = useState<ParsedLesson | null>(null);
@@ -61,8 +74,6 @@ const App: React.FC = () => {
                 setView('home');
                 setSelectedLessonId(null);
                 setCurrentLesson(null);
-            } else if (!viewParam && view === 'admin') {
-                setView('home');
             }
         };
 
@@ -117,8 +128,11 @@ const App: React.FC = () => {
         } else if (newView === 'admin') {
             setSelectedLessonId(null);
             setCurrentLesson(null);
+            updateURL({ lesson: '', view: '' });
         } else if (newView === 'create') {
-            updateURL({ lesson: '', view: 'create' });
+            setSelectedLessonId(null);
+            setCurrentLesson(null);
+            updateURL({ lesson: '', view: '' });
         }
     };
 
@@ -149,74 +163,159 @@ const App: React.FC = () => {
             {/* Navbar - Hidden on print */}
             <nav className="bg-white border-b border-gray-200 sticky top-0 z-50 print:hidden">
                 <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-                    <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleViewChange('home')}>
-                        {/* <img src="https://blog.teacherjake.com/apps/assets/tj-logo.png" alt="Logo" className="h-10 w-auto" /> */}
-                        <a href="https://www.teacherjake.com" className="hover:opacity-80 transition-opacity">
-                            <img src={logo} alt="Teacher Jake Logo"
-                                className="h-10 w-auto "></img>
-                        </a>
-                        <span className="hidden md:block font-bold text-gray-700">Worksheets</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        {view === 'lesson' && (
-                            <>
-                                <div className="hidden sm:block text-sm font-medium text-green-600 bg-green-50 px-3 py-1 rounded-full truncate sm:max-w-[200px] md:max-w-[300px]">
-                                    {currentLesson?.title}
-                                </div>
-                                <Button
-                                    size="sm"
-                                    variant="secondary"
-                                    onClick={() => {
-                                        navigator.clipboard.writeText(window.location.href);
-                                        alert('Link copied to clipboard!');
-                                    }}
-                                    className="hidden sm:inline-flex"
-                                >
-                                    Share
-                                </Button>
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleViewChange('home')}>
+                            {/* <img src="https://blog.teacherjake.com/apps/assets/tj-logo.png" alt="Logo" className="h-10 w-auto" /> */}
+                            <a href="https://www.teacherjake.com" className="hover:opacity-80 transition-opacity">
+                                <img src={logo} alt="Teacher Jake Logo"
+                                    className="h-10 w-auto "></img>
+                            </a>
+                            <span className="hidden md:block font-bold text-gray-700">Worksheets</span>
+                        </div>
 
-                                <button 
-                                    onClick={() => {
-                                        handleViewChange('home');
-                                        try {
-                                            localStorage.removeItem(`lesson-progress-${currentLesson?.id}`);
-                                        } catch (e) {}
-                                    }}
-                                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
-                                    title="Close Lesson"
+                        {isLoggedIn && (
+                            <div className="flex items-center gap-1 sm:gap-2 ml-4">
+                                <button
+                                    onClick={() => handleViewChange('home')}
+                                    className={`px-3 py-1.5 text-sm font-bold rounded-lg transition-all ${
+                                        (view === 'home' || view === 'lesson')
+                                            ? 'text-green-700 bg-green-50 border border-green-150 shadow-sm'
+                                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 border border-transparent'
+                                    }`}
                                 >
-                                    <X className="w-6 h-6" />
+                                    Library
                                 </button>
-                            </>
-                        )}
-                        
-                        
-                        {view !== 'admin' && (
-                            <div className="flex items-center gap-2">
-                                {view !== 'create' && (
-                                    <button 
-                                        onClick={() => handleViewChange('create')}
-                                        className="hidden md:flex items-center gap-2 px-3 py-1.5 text-sm font-bold text-green-700 bg-green-50 border border-green-200 hover:bg-green-100 rounded-lg transition-all"
-                                        title="Create Worksheet"
-                                    >
-                                        <FileText className="w-4 h-4" /> Create
-                                    </button>
-                                )}
-                                <button 
+                                <button
                                     onClick={() => handleViewChange('admin')}
-                                    className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all"
-                                    title="Admin UI"
+                                    className={`px-3 py-1.5 text-sm font-bold rounded-lg transition-all ${
+                                        view === 'admin'
+                                            ? 'text-green-700 bg-green-50 border border-green-150 shadow-sm'
+                                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 border border-transparent'
+                                    }`}
                                 >
-                                    <LogIn className="w-5 h-5" />
+                                    Admin
+                                </button>
+                                <button
+                                    onClick={() => handleViewChange('create')}
+                                    className={`px-3 py-1.5 text-sm font-bold rounded-lg transition-all ${
+                                        view === 'create'
+                                            ? 'text-green-700 bg-green-50 border border-green-150 shadow-sm'
+                                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 border border-transparent'
+                                    }`}
+                                >
+                                    Create
                                 </button>
                             </div>
+                        )}
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                        {isLoggedIn ? (
+                            <>
+                                {view === 'lesson' && (
+                                    <>
+                                        <div className="hidden lg:block text-sm font-medium text-green-600 bg-green-50 px-3 py-1 rounded-full truncate max-w-[150px] sm:max-w-[200px] md:max-w-[300px]" title={currentLesson?.title}>
+                                            {currentLesson?.title}
+                                        </div>
+                                        <Button
+                                            size="sm"
+                                            variant="secondary"
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(window.location.href);
+                                                alert('Link copied to clipboard!');
+                                            }}
+                                            className="hidden sm:inline-flex"
+                                        >
+                                            Share
+                                        </Button>
+
+                                        <button 
+                                            onClick={() => {
+                                                handleViewChange('home');
+                                                try {
+                                                    localStorage.removeItem(`lesson-progress-${currentLesson?.id}`);
+                                                } catch (e) {}
+                                            }}
+                                            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
+                                            title="Close Lesson"
+                                        >
+                                            <X className="w-6 h-6" />
+                                        </button>
+                                    </>
+                                )}
+
+                                <div className="relative">
+                                    <button
+                                        onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                                        className="flex items-center gap-1.5 p-1.5 px-3 text-gray-600 hover:text-gray-900 hover:bg-gray-50 border border-gray-200 rounded-xl transition-all font-semibold text-sm"
+                                        title="Profile menu"
+                                    >
+                                        <User className="w-4 h-4 text-gray-500" />
+                                        <span className="hidden sm:inline max-w-[100px] truncate">
+                                            {getCurrentUser()?.name || getCurrentUser()?.username || getCurrentUser()?.email || 'User'}
+                                        </span>
+                                        <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
+                                    </button>
+
+                                    {showProfileDropdown && (
+                                        <>
+                                            <div className="fixed inset-0 z-40" onClick={() => setShowProfileDropdown(false)} />
+                                            <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-lg py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                                                <div className="px-4 py-2.5 border-b border-gray-100">
+                                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Signed In As</p>
+                                                    <p className="text-sm font-semibold text-gray-700 truncate" title={getCurrentUser()?.email || getCurrentUser()?.username}>
+                                                        {getCurrentUser()?.email || getCurrentUser()?.username || 'User'}
+                                                    </p>
+                                                </div>
+                                                <button
+                                                    onClick={() => {
+                                                        setShowProfileDropdown(false);
+                                                        handleLogout();
+                                                    }}
+                                                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 font-semibold transition-colors flex items-center gap-2"
+                                                >
+                                                    <LogOut className="w-4 h-4" /> Logout
+                                                </button>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            </>
+                        ) : (
+                            <span className="text-sm font-medium text-gray-400">Please sign in</span>
                         )}
                     </div>
                 </div>
             </nav>
 
             <main className="container mx-auto px-0 py-4 print:p-0 print:m-0 print:max-w-none">
-                {view === 'home' ? (
+                {!isLoggedIn ? (
+                    <div className="py-12 px-4">
+                        <div className="max-w-md mx-auto bg-amber-50 border-l-4 border-amber-400 p-4 mb-6 rounded-r-xl shadow-sm animate-in fade-in slide-in-from-top-2 duration-500">
+                            <div className="flex items-start gap-3">
+                                <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                                <div className="text-sm text-amber-900 leading-relaxed font-medium">
+                                    This site is for development purposes only. You can find the same lessons and more on{' '}
+                                    <a 
+                                        href="https://www.teacherjake.com" 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="font-bold underline decoration-amber-300 hover:decoration-amber-500 transition-all text-amber-700 hover:text-amber-800"
+                                    >
+                                        www.teacherjake.com
+                                    </a>{' '}
+                                    which is located on a faster server.
+                                </div>
+                            </div>
+                        </div>
+                        <LoginForm 
+                            onLoginSuccess={() => setIsLoggedIn(true)} 
+                            title="Worksheets Sign In"
+                            subtitle="Please sign in to view and practice worksheets"
+                            className="mt-4"
+                        />
+                    </div>
+                ) : view === 'home' ? (
                     <div className="max-w-3xl mx-auto print:hidden">
                         <div className="bg-amber-50 border-l-4 border-amber-400 p-4 mb-8 rounded-r-xl shadow-sm animate-in fade-in slide-in-from-top-2 duration-500">
                             <div className="flex items-start gap-3">
@@ -385,6 +484,7 @@ const App: React.FC = () => {
                             setCurrentLesson(lesson);
                             setShowPreview(true);
                         }}
+                        onLogout={handleLogout}
                     />
                 ) : view === 'create' ? (
                     <div className="max-w-6xl mx-auto px-4 sm:px-6">
