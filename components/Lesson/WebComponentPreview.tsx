@@ -37,7 +37,8 @@ export const WebComponentPreview: React.FC<WebComponentPreviewProps> = ({ lesson
     content: lesson.content,
     lessonType: lesson.lessonType,
     creatorId: lesson.creatorId,
-    seo: lesson.seo
+    seo: lesson.seo,
+    html: lesson.html
   }, null, 2);
 
   const componentConfig = getComponentConfig(lesson.lessonType);
@@ -116,13 +117,35 @@ ${embedData}
       attrs.push(`audio-listening="${escapeHtml(lesson.audioFileUrl)}"`);
     }
 
-    const htmlString = `
+    const elementHtml = `
       <${componentConfig.tag} ${attrs.join(' ')}>
         ${JSON.stringify(lesson.content, null, 2)}
       </${componentConfig.tag}>
     `;
 
-    return <div dangerouslySetInnerHTML={{ __html: htmlString }} />;
+    const htmlContent = lesson.html || '';
+    const placeholderRegex = /<(?:lesson-component|web-component)\b[^>]*>(?:<\/(?:lesson-component|web-component)>)?|<(?:lesson-component|web-component)\b[^>]*\/>/i;
+    const hasPlaceholder = placeholderRegex.test(htmlContent);
+
+    if (hasPlaceholder) {
+      const parts = htmlContent.split(placeholderRegex);
+      const beforeHtml = parts[0];
+      const afterHtml = parts.slice(1).join('');
+      return (
+        <div className="p-4 sm:p-6">
+          {beforeHtml && <div className="tj-html-content prose max-w-none mb-6" dangerouslySetInnerHTML={{ __html: beforeHtml }} />}
+          <div dangerouslySetInnerHTML={{ __html: elementHtml }} />
+          {afterHtml && <div className="tj-html-content prose max-w-none mt-6" dangerouslySetInnerHTML={{ __html: afterHtml }} />}
+        </div>
+      );
+    } else {
+      return (
+        <div className="p-4 sm:p-6">
+          {htmlContent && <div className="tj-html-content prose max-w-none mb-6" dangerouslySetInnerHTML={{ __html: htmlContent }} />}
+          <div dangerouslySetInnerHTML={{ __html: elementHtml }} />
+        </div>
+      );
+    }
   };
 
   return (

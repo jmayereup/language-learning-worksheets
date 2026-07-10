@@ -289,6 +289,7 @@ export interface LessonRecord {
   creatorId?: string;
   seo?: string;
   description?: string;
+  html?: string;
 }
 
 export interface ParsedLesson extends Omit<LessonRecord, 'content'> {

@@ -251,6 +251,7 @@ export type WorksheetsRecord<Tcontent = unknown> = {
 	content?: null | Tcontent
 	created: IsoAutoDateString
 	creatorId?: string
+	html?: HTMLString
 	id: string
 	image?: FileNameString
 	isVideoLesson?: boolean

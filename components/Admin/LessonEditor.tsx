@@ -43,6 +43,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [showVisualEditor, setShowVisualEditor] = useState(false);
     const [seo, setSeo] = useState('');
+    const [html, setHtml] = useState('');
     const [isMinified, setIsMinified] = useState(false);
 
     useEffect(() => {
@@ -72,6 +73,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
             setLessonType(lesson.lessonType || 'worksheet');
             setJsonContent(JSON.stringify(lesson.content, null, isMinified ? 0 : 2));
             setSeo(lesson.seo || '');
+            setHtml(lesson.html || '');
             if (lesson.imageUrl) setImagePreview(lesson.imageUrl);
         }
     }, [lesson]);
@@ -90,6 +92,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
                     setLanguage(initialData.language || '');
                     setLevel(initialData.level || '');
                     setSeo(initialData.seo || '');
+                    setHtml(initialData.html || '');
                 } catch (e) {
                     console.error("Failed to parse init data in LessonEditor", e);
                     setJsonContent('');
@@ -104,6 +107,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
                 setVideoUrl('');
                 setIsVideoLesson(false);
                 setSeo('');
+                setHtml('');
                 setImagePreview(null);
             }
         }
@@ -136,6 +140,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
                 isVideoLesson,
                 lessonType,
                 seo,
+                html,
                 content: parsedContent,
                 imageUrl: imagePreview,
                 audioFileUrl: lessonData?.audioFileUrl, // Keep existing if not changed, file upload preview for audio is harder
@@ -179,6 +184,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
             formData.append('isVideoLesson', String(isVideoLesson));
             formData.append('lessonType', lessonType);
             formData.append('seo', seo);
+            formData.append('html', html);
             formData.append('content', JSON.stringify(parsedContent));
 
             if (imageFile) {
@@ -223,6 +229,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
                 isVideoLesson,
                 lessonType,
                 seo,
+                html,
                 content: parsedContent,
             };
 
@@ -262,6 +269,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
                 isVideoLesson,
                 lessonType,
                 seo,
+                html,
                 content: parsedContent,
                 isStandalone: isPublicCreator
             }, null, 2);
@@ -721,6 +729,21 @@ ${embedData}
                     <p className="mt-2 text-sm text-blue-400 font-medium ml-1 italic">
                         This summary appears on the lesson list page and helps with search engine visibility. You only need it if you plan to use your worksheet on websites.
                     </p>
+                </div>
+
+                <div className="mb-8 p-6 bg-green-50/30 border border-green-100 rounded-2xl">
+                    <label className="text-sm font-black text-green-900 mb-2 ml-1 uppercase tracking-wider flex items-center gap-2">
+                        <Code className="w-4 h-4 text-green-600" /> HTML Content / Lesson Instructions
+                    </label>
+                    <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-4 mb-3 text-xs text-blue-700 leading-relaxed">
+                        <strong>Tip:</strong> You can enter standard HTML here. To place the interactive web component / game in the middle of your text on occasion, simply insert the <code>&lt;lesson-component&gt;&lt;/lesson-component&gt;</code> or <code>&lt;web-component&gt;&lt;/web-component&gt;</code> tag where you want it to appear. If omitted, the web component renders automatically at the bottom.
+                    </div>
+                    <textarea
+                        value={html}
+                        onChange={(e) => setHtml(e.target.value)}
+                        className="w-full h-48 px-4 py-3 bg-white border border-green-100 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all font-mono text-sm leading-relaxed"
+                        placeholder="<p>Read the story below, then answer the questions...</p>"
+                    />
                 </div>
 
                 <div className="mb-10">

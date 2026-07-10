@@ -191,6 +191,149 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
      isFocused ? (lesson.content as FocusedReaderContent).seo_intro : 
      isInfoGap ? (lesson.content as InformationGapContent).seo_intro : undefined);
 
+  const htmlContent = lesson.html || '';
+  const placeholderRegex = /<(?:lesson-component|web-component)\b[^>]*>(?:<\/(?:lesson-component|web-component)>)?|<(?:lesson-component|web-component)\b[^>]*\/>/i;
+  const hasPlaceholder = placeholderRegex.test(htmlContent);
+
+  const renderLessonContent = () => (
+    <React.Suspense fallback={<div className="flex items-center justify-center p-20"><Loader className="w-8 h-8 animate-spin text-green-600" /></div>}>
+      {['lbl-reader', 'grammar-hearts', 'listening', 'speed-review', 'pronunciation'].includes(effectiveLessonType) ? (
+        <div className="tj-external-wc-container min-h-[500px]">
+          {(() => {
+            const config = getComponentConfig(effectiveLessonType);
+            if (!config) return null;
+            
+            const attrs: Record<string, string> = {};
+            if (effectiveLessonType === 'lbl-reader') {
+              attrs['lang-original'] = lesson.language;
+              attrs['lang-translation'] = translationLanguage;
+              attrs['story-title'] = lesson.title || '';
+            } else if (effectiveLessonType === 'listening' && lesson.audioFileUrl) {
+              attrs['audio-listening'] = lesson.audioFileUrl;
+            }
+            
+            const htmlString = `
+              <${config.tag} ${Object.entries(attrs).map(([k, v]) => `${k}="${v.replace(/"/g, '&quot;')}"`).join(' ')}>
+                ${JSON.stringify(lesson.content)}
+              </${config.tag}>
+            `;
+            return <div dangerouslySetInnerHTML={{ __html: htmlString }} />;
+          })()}
+        </div>
+      ) : effectiveLessonType === 'information-gap' ? (
+        <InformationGapView 
+          key={`info-gap-${resetKey}`}
+          lesson={{...lesson, content: lesson.content as InformationGapContent}} 
+          onReset={handleReset}
+          onFinish={handleFinish}
+          studentName={studentName}
+          setStudentName={setStudentName}
+          studentId={studentId}
+          setStudentId={setStudentId}
+          homeroom={homeroom}
+          setHomeroom={setHomeroom}
+          isNameLocked={isNameLocked}
+          toggleTTS={toggleTTS}
+          ttsState={ttsState}
+          availableVoices={availableVoices}
+          selectedVoiceName={selectedVoiceName}
+          setSelectedVoiceName={setSelectedVoiceName}
+          isVoiceModalOpen={isVoiceModalOpen}
+          setIsVoiceModalOpen={setIsVoiceModalOpen}
+          audioPreference={audioPreference}
+          setAudioPreference={setAudioPreference}
+          answers={answers}
+          setAnswers={setAnswers}
+        />
+      ) : effectiveLessonType === 'focused-reading' ? (
+        <FocusedReaderView
+          key={`focused-reader-${resetKey}`}
+          lesson={{...lesson, content: lesson.content as FocusedReaderContent}}
+          studentName={studentName}
+          setStudentName={setStudentName}
+          studentId={studentId}
+          setStudentId={setStudentId}
+          homeroom={homeroom}
+          setHomeroom={setHomeroom}
+          isNameLocked={isNameLocked}
+          onFinish={handleFinish}
+          onReset={handleReset}
+          answers={answers}
+          setAnswers={setAnswers}
+          toggleTTS={toggleTTS}
+          ttsState={ttsState}
+          availableVoices={availableVoices}
+          selectedVoiceName={selectedVoiceName}
+          setSelectedVoiceName={setSelectedVoiceName}
+          isVoiceModalOpen={isVoiceModalOpen}
+          setIsVoiceModalOpen={setIsVoiceModalOpen}
+          audioPreference={audioPreference}
+          setAudioPreference={setAudioPreference}
+        />
+      ) : effectiveLessonType === 'word-blaster' ? (
+        <WordBlasterView
+          key={`word-blaster-${resetKey}`}
+          lesson={{...lesson, content: lesson.content as WordBlasterContent}}
+          onFinish={handleFinish}
+          onReset={handleReset}
+        />
+      ) : effectiveLessonType === 'chapter-book' ? (
+        <ChapterBookView
+          key={`chapter-book-${resetKey}`}
+          lesson={{...lesson, content: lesson.content as ChapterBookContent}}
+          studentName={studentName}
+          setStudentName={setStudentName}
+          studentId={studentId}
+          setStudentId={setStudentId}
+          homeroom={homeroom}
+          setHomeroom={setHomeroom}
+          isNameLocked={isNameLocked}
+          onFinish={handleFinish}
+          onReset={handleReset}
+          answers={answers}
+          setAnswers={setAnswers}
+          toggleTTS={toggleTTS}
+          ttsState={ttsState}
+          availableVoices={availableVoices}
+          selectedVoiceName={selectedVoiceName}
+          setSelectedVoiceName={setSelectedVoiceName}
+          isVoiceModalOpen={isVoiceModalOpen}
+          setIsVoiceModalOpen={setIsVoiceModalOpen}
+          audioPreference={audioPreference}
+          setAudioPreference={setAudioPreference}
+        />
+      ) : (
+        <WorksheetView
+          key={`worksheet-${resetKey}`}
+          lesson={{...lesson, content: lesson.content as StandardLessonContent}}
+          studentName={studentName}
+          setStudentName={setStudentName}
+          studentId={studentId}
+          setStudentId={setStudentId}
+          homeroom={homeroom}
+          setHomeroom={setHomeroom}
+          isNameLocked={isNameLocked}
+          onFinish={handleFinish}
+          onReset={handleReset}
+          answers={answers}
+          setAnswers={setAnswers}
+          completionStates={completionStates}
+          setCompletionStates={setCompletionStates}
+          toggleTTS={toggleTTS}
+          ttsState={ttsState}
+          availableVoices={availableVoices}
+          selectedVoiceName={selectedVoiceName}
+          setSelectedVoiceName={setSelectedVoiceName}
+          isVoiceModalOpen={isVoiceModalOpen}
+          setIsVoiceModalOpen={setIsVoiceModalOpen}
+          audioPreference={audioPreference}
+          setAudioPreference={setAudioPreference}
+          passageRef={passageRef}
+        />
+      )}
+    </React.Suspense>
+  );
+
   return (
     <div className="bg-white max-w-4xl mx-auto pb-4 px-1 py-4 sm:px-6 tj-printable-worksheet">
       {/* Page Title - Unified Layout */}
@@ -205,144 +348,46 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
         )}
       </div>
 
-      <main>
-        <React.Suspense fallback={<div className="flex items-center justify-center p-20"><Loader className="w-8 h-8 animate-spin text-green-600" /></div>}>
-          {['lbl-reader', 'grammar-hearts', 'listening', 'speed-review', 'pronunciation'].includes(effectiveLessonType) ? (
-            <div className="tj-external-wc-container min-h-[500px]">
-              {(() => {
-                const config = getComponentConfig(effectiveLessonType);
-                if (!config) return null;
-                
-                const attrs: Record<string, string> = {};
-                if (effectiveLessonType === 'lbl-reader') {
-                  attrs['lang-original'] = lesson.language;
-                  attrs['lang-translation'] = translationLanguage;
-                  attrs['story-title'] = lesson.title || '';
-                } else if (effectiveLessonType === 'listening' && lesson.audioFileUrl) {
-                  attrs['audio-listening'] = lesson.audioFileUrl;
-                }
-                
-                const htmlString = `
-                  <${config.tag} ${Object.entries(attrs).map(([k, v]) => `${k}="${v.replace(/"/g, '&quot;')}"`).join(' ')}>
-                    ${JSON.stringify(lesson.content)}
-                  </${config.tag}>
-                `;
-                return <div dangerouslySetInnerHTML={{ __html: htmlString }} />;
-              })()}
-            </div>
-          ) : effectiveLessonType === 'information-gap' ? (
-            <InformationGapView 
-              key={`info-gap-${resetKey}`}
-              lesson={{...lesson, content: lesson.content as InformationGapContent}} 
-              onReset={handleReset}
-              onFinish={handleFinish}
-              studentName={studentName}
-              setStudentName={setStudentName}
-              studentId={studentId}
-              setStudentId={setStudentId}
-              homeroom={homeroom}
-              setHomeroom={setHomeroom}
-              isNameLocked={isNameLocked}
-              toggleTTS={toggleTTS}
-              ttsState={ttsState}
-              availableVoices={availableVoices}
-              selectedVoiceName={selectedVoiceName}
-              setSelectedVoiceName={setSelectedVoiceName}
-              isVoiceModalOpen={isVoiceModalOpen}
-              setIsVoiceModalOpen={setIsVoiceModalOpen}
-              audioPreference={audioPreference}
-              setAudioPreference={setAudioPreference}
-              answers={answers}
-              setAnswers={setAnswers}
-            />
-          ) : effectiveLessonType === 'focused-reading' ? (
-            <FocusedReaderView
-              key={`focused-reader-${resetKey}`}
-              lesson={{...lesson, content: lesson.content as FocusedReaderContent}}
-              studentName={studentName}
-              setStudentName={setStudentName}
-              studentId={studentId}
-              setStudentId={setStudentId}
-              homeroom={homeroom}
-              setHomeroom={setHomeroom}
-              isNameLocked={isNameLocked}
-              onFinish={handleFinish}
-              onReset={handleReset}
-              answers={answers}
-              setAnswers={setAnswers}
-              toggleTTS={toggleTTS}
-              ttsState={ttsState}
-              availableVoices={availableVoices}
-              selectedVoiceName={selectedVoiceName}
-              setSelectedVoiceName={setSelectedVoiceName}
-              isVoiceModalOpen={isVoiceModalOpen}
-              setIsVoiceModalOpen={setIsVoiceModalOpen}
-              audioPreference={audioPreference}
-              setAudioPreference={setAudioPreference}
-            />
-          ) : effectiveLessonType === 'word-blaster' ? (
-            <WordBlasterView
-              key={`word-blaster-${resetKey}`}
-              lesson={{...lesson, content: lesson.content as WordBlasterContent}}
-              onFinish={handleFinish}
-              onReset={handleReset}
-            />
-          ) : effectiveLessonType === 'chapter-book' ? (
-            <ChapterBookView
-              key={`chapter-book-${resetKey}`}
-              lesson={{...lesson, content: lesson.content as ChapterBookContent}}
-              studentName={studentName}
-              setStudentName={setStudentName}
-              studentId={studentId}
-              setStudentId={setStudentId}
-              homeroom={homeroom}
-              setHomeroom={setHomeroom}
-              isNameLocked={isNameLocked}
-              onFinish={handleFinish}
-              onReset={handleReset}
-              answers={answers}
-              setAnswers={setAnswers}
-              toggleTTS={toggleTTS}
-              ttsState={ttsState}
-              availableVoices={availableVoices}
-              selectedVoiceName={selectedVoiceName}
-              setSelectedVoiceName={setSelectedVoiceName}
-              isVoiceModalOpen={isVoiceModalOpen}
-              setIsVoiceModalOpen={setIsVoiceModalOpen}
-              audioPreference={audioPreference}
-              setAudioPreference={setAudioPreference}
-            />
-          ) : (
-            <WorksheetView
-              key={`worksheet-${resetKey}`}
-              lesson={{...lesson, content: lesson.content as StandardLessonContent}}
-              studentName={studentName}
-              setStudentName={setStudentName}
-              studentId={studentId}
-              setStudentId={setStudentId}
-              homeroom={homeroom}
-              setHomeroom={setHomeroom}
-              isNameLocked={isNameLocked}
-              onFinish={handleFinish}
-              onReset={handleReset}
-              answers={answers}
-              setAnswers={setAnswers}
-              completionStates={completionStates}
-              setCompletionStates={setCompletionStates}
-              toggleTTS={toggleTTS}
-              ttsState={ttsState}
-              availableVoices={availableVoices}
-              selectedVoiceName={selectedVoiceName}
-              setSelectedVoiceName={setSelectedVoiceName}
-              isVoiceModalOpen={isVoiceModalOpen}
-              setIsVoiceModalOpen={setIsVoiceModalOpen}
-              audioPreference={audioPreference}
-              setAudioPreference={setAudioPreference}
-              passageRef={passageRef}
-            />
-          )}
-        </React.Suspense>
-      </main>
+      {(() => {
+        if (hasPlaceholder) {
+          const parts = htmlContent.split(placeholderRegex);
+          const beforeHtml = parts[0];
+          const afterHtml = parts.slice(1).join('');
+          return (
+            <>
+              {beforeHtml && (
+                <div 
+                  className="tj-html-content prose max-w-none mb-6 print:mb-4"
+                  dangerouslySetInnerHTML={{ __html: beforeHtml }} 
+                />
+              )}
+              <main>
+                {renderLessonContent()}
+              </main>
+              {afterHtml && (
+                <div 
+                  className="tj-html-content prose max-w-none mt-6 print:mt-4"
+                  dangerouslySetInnerHTML={{ __html: afterHtml }} 
+                />
+              )}
+            </>
+          );
+        } else {
+          return (
+            <>
+              {htmlContent && (
+                <div 
+                  className="tj-html-content prose max-w-none mb-6 print:mb-4"
+                  dangerouslySetInnerHTML={{ __html: htmlContent }} 
+                />
+              )}
+              <main>
+                {renderLessonContent()}
+              </main>
+            </>
+          );
+        }
+      })()}
 
       {showReportCard && reportData && (
         <ReportCard 
