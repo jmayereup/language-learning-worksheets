@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ParsedLesson, StandardLessonContent, InformationGapContent, FocusedReaderContent, LessonContent, ReportData, WordBlasterContent, ChapterBookContent } from '../../types';
 import { selectElementText } from '../../utils/textUtils';
 import { Loader } from 'lucide-react';
+import { getComponentConfig } from '../../utils/componentMapper';
 import confetti from 'canvas-confetti';
 import { useTTS } from '../../hooks/useTTS';
 import { useLessonProgress } from '../../hooks/useLessonProgress';
@@ -31,7 +32,9 @@ const isWordBlaster = (content: LessonContent): content is WordBlasterContent =>
 };
 
 const isInformationGapLesson = (content: LessonContent): content is InformationGapContent => {
-  if (Array.isArray(content)) return true;
+  if (Array.isArray(content)) {
+    return content.length > 0 && typeof content[0] === 'object' && content[0] !== null && ('topic' in content[0] || 'blocks' in content[0]);
+  }
   return content !== null && typeof content === 'object' && ('topic' in content || 'player_count' in content || ('activities' in content && Array.isArray((content as any).activities)));
 };
 
@@ -46,14 +49,15 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
   const isInfoGap = isInformationGapLesson(lesson.content);
   const isChapter = isChapterBook(lesson.content);
 
-  // Determine effective lesson type to handle previews where the dropdown hasn't been saved yet
-  const effectiveLessonType = 
+  // Determine effective lesson type - trust explicit database field first, fall back to structure detection
+  const effectiveLessonType = lesson.lessonType || (
     isBlaster ? 'word-blaster' :
     isFocused ? 'focused-reading' :
     isChapter ? 'chapter-book' :
     isInfoGap ? 'information-gap' :
     isStandard ? 'standard' :
-    lesson.lessonType;
+    'worksheet'
+  );
 
   const {
     answers,
@@ -76,6 +80,22 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
   const passageRef = React.useRef<HTMLDivElement>(null);
   const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
   const [resetKey, setResetKey] = useState(0);
+
+  // Dynamically load the CDN script on mount for external web components
+  useEffect(() => {
+    const componentConfig = getComponentConfig(effectiveLessonType);
+    if (componentConfig) {
+      const scriptId = `script-view-${effectiveLessonType}`;
+      if (!document.getElementById(scriptId)) {
+        const script = document.createElement('script');
+        script.id = scriptId;
+        script.src = componentConfig.script;
+        script.type = 'module';
+        script.defer = true;
+        document.body.appendChild(script);
+      }
+    }
+  }, [effectiveLessonType]);
 
   // Determine Translation Language
   const getTranslationLanguage = () => {
@@ -187,7 +207,30 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
 
       <main>
         <React.Suspense fallback={<div className="flex items-center justify-center p-20"><Loader className="w-8 h-8 animate-spin text-green-600" /></div>}>
-          {effectiveLessonType === 'information-gap' ? (
+          {['lbl-reader', 'grammar-hearts', 'listening', 'speed-review', 'pronunciation'].includes(effectiveLessonType) ? (
+            <div className="tj-external-wc-container min-h-[500px]">
+              {(() => {
+                const config = getComponentConfig(effectiveLessonType);
+                if (!config) return null;
+                
+                const attrs: Record<string, string> = {};
+                if (effectiveLessonType === 'lbl-reader') {
+                  attrs['lang-original'] = lesson.language;
+                  attrs['lang-translation'] = translationLanguage;
+                  attrs['story-title'] = lesson.title || '';
+                } else if (effectiveLessonType === 'listening' && lesson.audioFileUrl) {
+                  attrs['audio-listening'] = lesson.audioFileUrl;
+                }
+                
+                const htmlString = `
+                  <${config.tag} ${Object.entries(attrs).map(([k, v]) => `${k}="${v.replace(/"/g, '&quot;')}"`).join(' ')}>
+                    ${JSON.stringify(lesson.content)}
+                  </${config.tag}>
+                `;
+                return <div dangerouslySetInnerHTML={{ __html: htmlString }} />;
+              })()}
+            </div>
+          ) : effectiveLessonType === 'information-gap' ? (
             <InformationGapView 
               key={`info-gap-${resetKey}`}
               lesson={{...lesson, content: lesson.content as InformationGapContent}} 

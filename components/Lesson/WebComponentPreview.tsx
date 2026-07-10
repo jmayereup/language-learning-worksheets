@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Copy, Check, Eye, Code } from 'lucide-react';
 import { Button } from '../UI/Button';
 import { ParsedLesson } from '../../types';
+import { getComponentConfig } from '../../utils/componentMapper';
 
 interface WebComponentPreviewProps {
   lesson: ParsedLesson;
@@ -11,6 +12,14 @@ interface WebComponentPreviewProps {
 export const WebComponentPreview: React.FC<WebComponentPreviewProps> = ({ lesson, onClose }) => {
   const [activeTab, setActiveTab] = useState<'code' | 'preview'>('preview');
   const [copied, setCopied] = useState(false);
+
+  const escapeHtml = (str: string) => {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  };
 
   // Minimal lesson data for the embed script
   const embedData = JSON.stringify({
@@ -31,7 +40,27 @@ export const WebComponentPreview: React.FC<WebComponentPreviewProps> = ({ lesson
     seo: lesson.seo
   }, null, 2);
 
-  const embedCode = `<!-- TJ Worksheet Embed -->
+  const componentConfig = getComponentConfig(lesson.lessonType);
+
+  let embedCode = '';
+  if (componentConfig) {
+    const attrs: string[] = [];
+    if (lesson.lessonType === 'lbl-reader') {
+      attrs.push(`lang-original="${escapeHtml(lesson.language)}"`);
+      attrs.push('lang-translation="Thai"'); // default translation fallback
+      attrs.push(`story-title="${escapeHtml(lesson.title || '')}"`);
+    } else if (lesson.lessonType === 'listening' && lesson.audioFileUrl) {
+      attrs.push(`audio-listening="${escapeHtml(lesson.audioFileUrl)}"`);
+    }
+
+    embedCode = `<!-- TJ ${componentConfig.tag} Embed -->
+<${componentConfig.tag} ${attrs.join(' ')}>
+${JSON.stringify(lesson.content, null, 2)}
+</${componentConfig.tag}>
+
+<script src="${componentConfig.script}" type="module"></script>`;
+  } else {
+    embedCode = `<!-- TJ Worksheet Embed -->
 <link rel="stylesheet" href="https://worksheets.teacherjake.com/wc/language-learning-worksheets.css">
 
 <tj-pocketbase-worksheet>
@@ -41,6 +70,7 @@ ${embedData}
 </tj-pocketbase-worksheet>
 
 <script src="https://worksheets.teacherjake.com/wc/tj-pocketbase-worksheet.umd.js"></script>`;
+  }
 
   const handleCopy = () => {
     navigator.clipboard.writeText(embedCode);
@@ -50,9 +80,50 @@ ${embedData}
 
   // Register the custom element once when previewing if not already defined
   useEffect(() => {
-    // This side-effect import handles registration
-    import('../../pocketbase-worksheet');
-  }, []);
+    if (componentConfig) {
+      const scriptId = `script-preview-${lesson.lessonType}`;
+      if (!document.getElementById(scriptId)) {
+        const script = document.createElement('script');
+        script.id = scriptId;
+        script.src = componentConfig.script;
+        script.type = 'module';
+        script.defer = true;
+        document.body.appendChild(script);
+      }
+    } else {
+      // This side-effect import handles registration
+      import('../../pocketbase-worksheet');
+    }
+  }, [lesson.lessonType, componentConfig]);
+
+  const renderPreview = () => {
+    if (!componentConfig) {
+      return (
+        <tj-pocketbase-worksheet>
+          <script type="application/json">
+            {embedData}
+          </script>
+        </tj-pocketbase-worksheet>
+      );
+    }
+
+    const attrs: string[] = [];
+    if (lesson.lessonType === 'lbl-reader') {
+      attrs.push(`lang-original="${escapeHtml(lesson.language)}"`);
+      attrs.push('lang-translation="Thai"');
+      attrs.push(`story-title="${escapeHtml(lesson.title || '')}"`);
+    } else if (lesson.lessonType === 'listening' && lesson.audioFileUrl) {
+      attrs.push(`audio-listening="${escapeHtml(lesson.audioFileUrl)}"`);
+    }
+
+    const htmlString = `
+      <${componentConfig.tag} ${attrs.join(' ')}>
+        ${JSON.stringify(lesson.content, null, 2)}
+      </${componentConfig.tag}>
+    `;
+
+    return <div dangerouslySetInnerHTML={{ __html: htmlString }} />;
+  };
 
   return (
     <div className="fixed inset-0 z-60 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-fade-in">
@@ -124,13 +195,7 @@ ${embedData}
             </div>
           ) : (
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden min-h-[400px]">
-              {/* Note: In a real app we'd need to handle the custom element definition
-                  But here we are importing it above which defines it globally */}
-              <tj-pocketbase-worksheet>
-                <script type="application/json">
-                  {embedData}
-                </script>
-              </tj-pocketbase-worksheet>
+              {renderPreview()}
             </div>
           )}
         </div>

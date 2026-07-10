@@ -165,7 +165,81 @@ export interface ChapterBookContent {
   chapters: Chapter[];
 }
 
-export type LessonContent = StandardLessonContent | InformationGapContent | InformationGapActivity[] | FocusedReaderContent | WordBlasterContent | ChapterBookContent;
+export interface LBLReaderItem {
+  original: string;
+  fullTranslation: string;
+  translationOptions: string[];
+  correctTranslationIndex: number;
+  highlightIndex?: number;
+}
+
+export interface GrammarHeartsQuestion {
+  type: 'multiple-choice' | 'fill-in-the-blank' | 'scramble';
+  question: string;
+  options?: string[];
+  correctIndex?: number;
+  answer?: string;
+}
+
+export interface GrammarHeartsContent {
+  title: string;
+  hearts?: number;
+  roundSize?: number;
+  hint?: { summary: string; content: string };
+  questions: GrammarHeartsQuestion[];
+}
+
+export interface ListeningVocabItem {
+  word: string;
+  definition: string;
+  example?: string;
+}
+
+export interface ListeningQuestion {
+  question: string;
+  options: string[];
+  correct: string;
+}
+
+export interface ListeningContent {
+  title: string;
+  lang?: string;
+  intro?: { text: string };
+  vocab: ListeningVocabItem[];
+  listening: {
+    transcript: string;
+    questions: ListeningQuestion[];
+  };
+}
+
+export interface SpeedReviewQuestion {
+  question: string;
+  options: string[];
+  correctIndex: number;
+}
+
+export interface SpeedReviewContent {
+  title: string;
+  questions: SpeedReviewQuestion[];
+}
+
+export interface PronunciationContent {
+  title: string;
+  phrases: string[];
+}
+
+export type LessonContent = 
+  | StandardLessonContent 
+  | InformationGapContent 
+  | InformationGapActivity[] 
+  | FocusedReaderContent 
+  | WordBlasterContent 
+  | ChapterBookContent
+  | LBLReaderItem[]
+  | GrammarHeartsContent
+  | ListeningContent
+  | SpeedReviewContent
+  | PronunciationContent;
 
 // Define extended language list manually
 export const POCKETBASE_SUPPORTED_LANGUAGES = ['English', 'Spanish', 'French', 'Thai', 'German'] as const;
@@ -273,6 +347,13 @@ declare module 'react' {
     interface IntrinsicElements {
       'tj-pocketbase-worksheet': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
       'tj-chapter-book': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
+      'lbl-reader': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
+      'grammar-hearts': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
+      'tj-grammar-hearts': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
+      'tj-info-gap': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
+      'tj-listening': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
+      'tj-speed-review': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
+      'tj-pronunciation': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
     }
   }
 }

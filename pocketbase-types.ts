@@ -239,6 +239,12 @@ export enum WorksheetsLessonTypeOptions {
 	"information-gap" = "information-gap",
 	"focused-reading" = "focused-reading",
 	"word-blaster" = "word-blaster",
+	"lbl-reader" = "lbl-reader",
+	"grammar-hearts" = "grammar-hearts",
+	"listening" = "listening",
+	"speed-review" = "speed-review",
+	"chapter-book" = "chapter-book",
+	"pronunciation" = "pronunciation",
 }
 export type WorksheetsRecord<Tcontent = unknown> = {
 	audioFile?: FileNameString
