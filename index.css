@@ -88,3 +88,59 @@ body {
         }
     }
 }
+
+/* Styles for HTML content injected into worksheets (reversing Tailwind's Preflight resets) */
+.tj-html-content h1 {
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    color: #064e3b;
+}
+
+.tj-html-content h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-top: 1.25rem;
+    margin-bottom: 0.5rem;
+    color: #064e3b;
+}
+
+.tj-html-content h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    color: #065f46;
+}
+
+.tj-html-content p {
+    margin-bottom: 0.75rem;
+    line-height: 1.625;
+    color: #1f2937;
+}
+
+.tj-html-content ul {
+    list-style-type: disc;
+    padding-left: 1.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.tj-html-content ol {
+    list-style-type: decimal;
+    padding-left: 1.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.tj-html-content a {
+    color: #2563eb;
+    text-decoration: underline;
+}
+
+.tj-html-content strong {
+    font-weight: 750;
+}
+
+.tj-html-content em {
+    font-style: italic;
+}

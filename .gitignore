@@ -23,3 +23,5 @@ Reference/
 *.njsproj
 *.sln
 *.sw?
+public/tinymce/
+

@@ -7,6 +7,7 @@ import confetti from 'canvas-confetti';
 import { useTTS } from '../../hooks/useTTS';
 import { useLessonProgress } from '../../hooks/useLessonProgress';
 import { ReportCard } from '../UI/ReportCard';
+import { LessonMedia } from '../UI/LessonMedia';
 
 
 const InformationGapView = React.lazy(() => import('./InformationGapView').then(m => ({ default: m.InformationGapView })));
@@ -199,6 +200,12 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
     <React.Suspense fallback={<div className="flex items-center justify-center p-20"><Loader className="w-8 h-8 animate-spin text-green-600" /></div>}>
       {['lbl-reader', 'grammar-hearts', 'listening', 'speed-review', 'pronunciation'].includes(effectiveLessonType) ? (
         <div className="tj-external-wc-container min-h-[500px]">
+          <LessonMedia
+            videoUrl={lesson.videoUrl}
+            imageUrl={lesson.imageUrl}
+            isVideoLesson={lesson.isVideoLesson}
+            title={displayTitle}
+          />
           {(() => {
             const config = getComponentConfig(effectiveLessonType);
             if (!config) return null;

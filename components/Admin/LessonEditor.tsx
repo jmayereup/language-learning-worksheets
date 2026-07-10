@@ -6,6 +6,7 @@ import { Save, X, AlertCircle, FileJson, Info, Globe, Layers, Tag as TagIcon, Vi
 import { Modal } from '../UI/Modal';
 import { JSONKeyValueEditor } from './JSONKeyValueEditor';
 import { SearchableSelect } from '../UI/SearchableSelect';
+import { VisualHTMLEditor } from './VisualHTMLEditor';
 import geminiCopyExample from '../../assets/copy-from-gemini-example.png';
 
 
@@ -738,11 +739,9 @@ ${embedData}
                     <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-4 mb-3 text-xs text-blue-700 leading-relaxed">
                         <strong>Tip:</strong> You can enter standard HTML here. To place the interactive web component / game in the middle of your text on occasion, simply insert the <code>&lt;lesson-component&gt;&lt;/lesson-component&gt;</code> or <code>&lt;web-component&gt;&lt;/web-component&gt;</code> tag where you want it to appear. If omitted, the web component renders automatically at the bottom.
                     </div>
-                    <textarea
+                    <VisualHTMLEditor
                         value={html}
-                        onChange={(e) => setHtml(e.target.value)}
-                        className="w-full h-48 px-4 py-3 bg-white border border-green-100 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all font-mono text-sm leading-relaxed"
-                        placeholder="<p>Read the story below, then answer the questions...</p>"
+                        onChange={setHtml}
                     />
                 </div>
 
