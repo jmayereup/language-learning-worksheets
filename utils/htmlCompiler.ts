@@ -94,7 +94,7 @@ ${embedData}
   return `<!-- TJ Language Learning Worksheet (Pre-compiled) -->
 <link rel="stylesheet" href="https://worksheets.teacherjake.com/wc/language-learning-worksheets.css">
 
-<article class="tj-worksheet-compiled prose max-w-4xl mx-auto p-4 sm:p-6 bg-white rounded-3xl shadow-sm">
+<article class="tj-worksheet-compiled prose mx-auto p-4 sm:p-6">
   <header class="tj-worksheet-header mb-6 text-center">
     <h1 class="text-3xl font-black text-green-900 tracking-tight mb-2">${escapeHtml(title)}</h1>
     ${description ? `<p class="text-sm text-gray-500 font-medium italic mt-1">${escapeHtml(description)}</p>` : ''}
