@@ -47,6 +47,8 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
     const [html, setHtml] = useState('');
     const [isMinified, setIsMinified] = useState(false);
     const [teacherCode, setTeacherCode] = useState('');
+    const [customConfig, setConfig] = useState<Record<string, any>>({});
+    const [testMode, setTestMode] = useState(false);
 
     useEffect(() => {
         if (audioFile) {
@@ -73,10 +75,16 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
             setVideoUrl(lesson.videoUrl || '');
             setIsVideoLesson(lesson.isVideoLesson || false);
             setLessonType(lesson.lessonType || 'worksheet');
-            setJsonContent(JSON.stringify(lesson.content, null, isMinified ? 0 : 2));
+            const rawContent = typeof lesson.content === 'string'
+                ? lesson.content
+                : JSON.stringify(lesson.content, null, isMinified ? 0 : 2);
+            setJsonContent(rawContent);
             setSeo(lesson.seo || '');
             setHtml(lesson.html || '');
             setTeacherCode(lesson.teacherCode || '');
+            const configObj = lesson.customConfig || {};
+            setConfig(configObj);
+            setTestMode(configObj.testMode || false);
             if (lesson.imageUrl) setImagePreview(lesson.imageUrl);
         }
     }, [lesson]);
@@ -89,7 +97,9 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
                     setTitle(initialData.title || '');
                     setLessonType(initialData.lessonType || '');
                     
-                    const newJsonContent = initialData.content ? JSON.stringify(initialData.content, null, isMinified ? 0 : 2) : '';
+                    const newJsonContent = typeof initialData.content === 'string'
+                        ? initialData.content
+                        : initialData.content ? JSON.stringify(initialData.content, null, isMinified ? 0 : 2) : '';
                     
                     setJsonContent(newJsonContent);
                     setLanguage(initialData.language || '');
@@ -97,6 +107,9 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
                     setSeo(initialData.seo || '');
                     setHtml(initialData.html || '');
                     setTeacherCode(initialData.teacherCode || '');
+                    const configObj = initialData.customConfig || {};
+                    setConfig(configObj);
+                    setTestMode(configObj.testMode || false);
                 } catch (e) {
                     console.error("Failed to parse init data in LessonEditor", e);
                     setJsonContent('');
@@ -113,6 +126,8 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
                 setSeo('');
                 setHtml('');
                 setTeacherCode('');
+                setConfig({});
+                setTestMode(false);
                 setImagePreview(null);
             }
         }
@@ -134,7 +149,16 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
 
     const handlePreview = () => {
         try {
-            const parsedContent = JSON.parse(jsonContent);
+            let parsedContent;
+            try {
+                parsedContent = JSON.parse(jsonContent);
+            } catch (e) {
+                if (lessonType === 'quiz-element') {
+                    parsedContent = jsonContent;
+                } else {
+                    throw e;
+                }
+            }
             const tempLesson = {
                 id: `preview-${lessonId || 'new'}-${Date.now()}`,
                 title,
@@ -147,6 +171,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
                 seo,
                 html,
                 teacherCode,
+                customConfig: { ...customConfig, testMode },
                 content: parsedContent,
                 imageUrl: imagePreview,
                 audioFileUrl: lessonData?.audioFileUrl, // Keep existing if not changed, file upload preview for audio is harder
@@ -178,7 +203,11 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
                     parsedContent.title = title;
                 }
             } catch (err) {
-                throw new Error('Invalid JSON content. Please check for syntax errors.');
+                if (lessonType === 'quiz-element') {
+                    parsedContent = jsonContent;
+                } else {
+                    throw new Error('Invalid JSON content. Please check for syntax errors.');
+                }
             }
 
             const formData = new FormData();
@@ -192,6 +221,13 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
             formData.append('seo', seo);
             formData.append('html', html);
             formData.append('teacherCode', teacherCode);
+
+            const finalConfig = {
+                ...customConfig,
+                testMode
+            };
+            formData.append('customConfig', JSON.stringify(finalConfig));
+
             formData.append('content', JSON.stringify(parsedContent));
 
             if (imageFile) {
@@ -223,8 +259,12 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
                     parsedContent.title = title;
                 }
             } catch (err) {
-                setError('Invalid JSON content. Please check for syntax errors before downloading.');
-                return;
+                if (lessonType === 'quiz-element') {
+                    parsedContent = jsonContent;
+                } else {
+                    setError('Invalid JSON content. Please check for syntax errors before downloading.');
+                    return;
+                }
             }
 
             const lessonData = {
@@ -238,6 +278,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
                 seo,
                 html,
                 teacherCode,
+                customConfig: { ...customConfig, testMode },
                 content: parsedContent,
             };
 
@@ -264,8 +305,12 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
                     parsedContent.title = title;
                 }
             } catch (err) {
-                setError('Invalid JSON content. Please check for syntax errors before generating embed code.');
-                return null;
+                if (lessonType === 'quiz-element') {
+                    parsedContent = jsonContent;
+                } else {
+                    setError('Invalid JSON content. Please check for syntax errors before generating embed code.');
+                    return null;
+                }
             }
 
             const embedData = JSON.stringify({
@@ -279,6 +324,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
                 seo,
                 html,
                 teacherCode,
+                customConfig: { ...customConfig, testMode },
                 content: parsedContent,
                 isStandalone: isPublicCreator
             }, null, 2);
@@ -591,20 +637,43 @@ ${embedData}
                             </div>
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-black text-gray-700 mb-2 ml-1 uppercase tracking-wider">Teacher Code</label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                    <span className="text-gray-400 font-bold text-sm">#</span>
+                        <div className={lessonType === 'quiz-element' ? "grid grid-cols-1 md:grid-cols-2 gap-4" : ""}>
+                            <div>
+                                <label className="block text-sm font-black text-gray-700 mb-2 ml-1 uppercase tracking-wider">Teacher Code</label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                        <span className="text-gray-400 font-bold text-sm">#</span>
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={teacherCode}
+                                        onChange={(e) => setTeacherCode(e.target.value)}
+                                        className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none"
+                                        placeholder="6767 (Default)"
+                                    />
                                 </div>
-                                <input
-                                    type="text"
-                                    value={teacherCode}
-                                    onChange={(e) => setTeacherCode(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none"
-                                    placeholder="6767 (Default)"
-                                />
                             </div>
+ 
+                            {lessonType === 'quiz-element' && (
+                                <div>
+                                    <label className="block text-sm font-black text-gray-700 mb-2 ml-1 uppercase tracking-wider">Quiz Settings</label>
+                                    <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl min-h-[50px]">
+                                        <div className="flex flex-col">
+                                            <span className="text-sm font-bold text-gray-800">Test Mode</span>
+                                            <span className="text-xs text-gray-400">Lock quiz behind Teacher Code</span>
+                                        </div>
+                                        <label className="relative inline-flex items-center cursor-pointer">
+                                            <input 
+                                                type="checkbox" 
+                                                checked={testMode} 
+                                                onChange={(e) => setTestMode(e.target.checked)}
+                                                className="sr-only peer"
+                                            />
+                                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                                        </label>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {!isPublicCreator && (
@@ -786,15 +855,17 @@ ${embedData}
                                     Check JSON
                                 </label>
                             </div>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setShowVisualEditor(true)}
-                                className="text-[10px] font-bold flex items-center gap-1.5"
-                            >
-                                <Layout className="w-4 h-4" /> Visual Editor
-                            </Button>
+                            {lessonType !== 'quiz-element' && (
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setShowVisualEditor(true)}
+                                    className="text-[10px] font-bold flex items-center gap-1.5"
+                                >
+                                    <Layout className="w-4 h-4" /> Visual Editor
+                                </Button>
+                            )}
                             <Button
                                 type="button"
                                 variant="outline"

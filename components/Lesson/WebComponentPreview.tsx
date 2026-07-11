@@ -54,9 +54,17 @@ export const WebComponentPreview: React.FC<WebComponentPreviewProps> = ({ lesson
       attrs.push(`audio-listening="${escapeHtml(lesson.audioFileUrl)}"`);
     }
 
+    if (lesson.customConfig?.testMode) {
+      attrs.push('test-mode');
+    }
+
+    const contentHtml = typeof lesson.content === 'string'
+      ? `<script type="text/markdown">\n${lesson.content}\n</script>`
+      : JSON.stringify(lesson.content, null, 2);
+
     embedCode = `<!-- TJ ${componentConfig.tag} Embed -->
 <${componentConfig.tag} ${attrs.join(' ')}>
-${JSON.stringify(lesson.content, null, 2)}
+${contentHtml}
 </${componentConfig.tag}>
 
 <script src="${componentConfig.script}" type="module"></script>`;
@@ -117,9 +125,17 @@ ${embedData}
       attrs.push(`audio-listening="${escapeHtml(lesson.audioFileUrl)}"`);
     }
 
+    if (lesson.customConfig?.testMode) {
+      attrs.push('test-mode');
+    }
+
+    const contentHtml = typeof lesson.content === 'string'
+      ? `<script type="text/markdown">\n${lesson.content}\n</script>`
+      : JSON.stringify(lesson.content, null, 2);
+
     const elementHtml = `
       <${componentConfig.tag} ${attrs.join(' ')}>
-        ${JSON.stringify(lesson.content, null, 2)}
+        ${contentHtml}
       </${componentConfig.tag}>
     `;
 

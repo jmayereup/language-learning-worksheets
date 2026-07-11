@@ -216,7 +216,7 @@ export const LessonView: React.FC<Props> = ({ lesson, teacherCode }) => {
 
   const renderLessonContent = () => (
     <React.Suspense fallback={<div className="flex items-center justify-center p-20"><Loader className="w-8 h-8 animate-spin text-green-600" /></div>}>
-      {['lbl-reader', 'grammar-hearts', 'listening', 'speed-review', 'pronunciation'].includes(effectiveLessonType) ? (
+      {['lbl-reader', 'grammar-hearts', 'listening', 'speed-review', 'pronunciation', 'quiz-element'].includes(effectiveLessonType) ? (
         <div className="tj-external-wc-container min-h-[500px]">
           <LessonMedia
             videoUrl={lesson.videoUrl}
@@ -237,9 +237,17 @@ export const LessonView: React.FC<Props> = ({ lesson, teacherCode }) => {
               attrs['audio-listening'] = lesson.audioFileUrl;
             }
             
+            if (lesson.customConfig?.testMode) {
+              attrs['test-mode'] = '';
+            }
+            
+            const contentHtml = typeof lesson.content === 'string'
+              ? `<script type="text/markdown">${lesson.content}</script>`
+              : JSON.stringify(lesson.content);
+
             const htmlString = `
               <${config.tag} ${Object.entries(attrs).map(([k, v]) => `${k}="${v.replace(/"/g, '&quot;')}"`).join(' ')}>
-                ${JSON.stringify(lesson.content)}
+                ${contentHtml}
               </${config.tag}>
             `;
             return <div dangerouslySetInnerHTML={{ __html: htmlString }} />;

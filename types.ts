@@ -291,6 +291,7 @@ export interface LessonRecord {
   description?: string;
   html?: string;
   teacherCode?: string;
+  customConfig?: any;
 }
 
 export interface ParsedLesson extends Omit<LessonRecord, 'content'> {
@@ -356,6 +357,7 @@ declare module 'react' {
       'tj-listening': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
       'tj-speed-review': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
       'tj-pronunciation': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
+      'tj-quiz-element': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
     }
   }
 }

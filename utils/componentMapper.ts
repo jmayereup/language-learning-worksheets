@@ -19,6 +19,8 @@ export const getComponentConfig = (lessonType: string): ComponentConfig | null =
       return { tag: 'tj-chapter-book', script: 'https://scripts.teacherjake.com/tj-chapter-book.js' };
     case 'pronunciation':
       return { tag: 'tj-pronunciation', script: 'https://scripts.teacherjake.com/tj-pronunciation.js' };
+    case 'quiz-element':
+      return { tag: 'tj-quiz-element', script: 'https://scripts.teacherjake.com/tj-quiz-element.js' };
     default:
       return null;
   }

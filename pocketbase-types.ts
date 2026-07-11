@@ -245,10 +245,12 @@ export enum WorksheetsLessonTypeOptions {
 	"speed-review" = "speed-review",
 	"chapter-book" = "chapter-book",
 	"pronunciation" = "pronunciation",
+	"quiz-element" = "quiz-element",
 }
-export type WorksheetsRecord<Tcontent = unknown> = {
+export type WorksheetsRecord<Tcontent = unknown, TcustomConfig = any> = {
 	audioFile?: FileNameString
 	content?: null | Tcontent
+	customConfig?: null | TcustomConfig
 	created: IsoAutoDateString
 	creatorId?: string
 	html?: HTMLString
