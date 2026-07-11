@@ -261,6 +261,7 @@ export type WorksheetsRecord<Tcontent = unknown> = {
 	seo?: string
 	tags: WorksheetsTagsOptions[]
 	title?: string
+	teacherCode?: string
 	updated: IsoAutoDateString
 	videoUrl?: string
 }

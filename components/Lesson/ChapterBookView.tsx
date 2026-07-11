@@ -35,6 +35,7 @@ interface ChapterBookViewProps {
   setIsVoiceModalOpen: (isOpen: boolean) => void;
   audioPreference: 'recorded' | 'tts';
   setAudioPreference: (pref: 'recorded' | 'tts') => void;
+  teacherCode?: string;
 }
 
 export const ChapterBookView: React.FC<ChapterBookViewProps> = ({
@@ -59,6 +60,7 @@ export const ChapterBookView: React.FC<ChapterBookViewProps> = ({
   setIsVoiceModalOpen,
   audioPreference,
   setAudioPreference,
+  teacherCode,
 }) => {
   const content = lesson.content;
   const [currentChapterIndex, setCurrentChapterIndex] = useState(answers.focusedReaderPage || 0);
@@ -307,6 +309,7 @@ export const ChapterBookView: React.FC<ChapterBookViewProps> = ({
       {showReportCard && reportData && (
         <ReportCard
           data={reportData}
+          teacherCode={teacherCode || lesson.teacherCode || '6767'}
           onClose={() => {
             setShowReportCard(false);
             window.scrollTo({ top: 0, behavior: 'smooth' });

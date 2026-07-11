@@ -18,6 +18,7 @@ const ChapterBookView = React.lazy(() => import('./ChapterBookView').then(m => (
 
 interface Props {
   lesson: ParsedLesson;
+  teacherCode?: string;
 }
 
 const isStandardLesson = (content: LessonContent): content is StandardLessonContent => {
@@ -43,12 +44,13 @@ const isChapterBook = (content: LessonContent): content is ChapterBookContent =>
   return content !== null && typeof content === 'object' && 'chapters' in content && Array.isArray((content as any).chapters);
 };
 
-export const LessonView: React.FC<Props> = ({ lesson }) => {
+export const LessonView: React.FC<Props> = ({ lesson, teacherCode }) => {
   const isStandard = isStandardLesson(lesson.content);
   const isFocused = isFocusedReader(lesson.content);
   const isBlaster = isWordBlaster(lesson.content);
   const isInfoGap = isInformationGapLesson(lesson.content);
   const isChapter = isChapterBook(lesson.content);
+  const containerRef = React.useRef<HTMLDivElement>(null);
 
   // Determine effective lesson type - trust explicit database field first, fall back to structure detection
   const effectiveLessonType = lesson.lessonType || (
@@ -97,6 +99,22 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
       }
     }
   }, [effectiveLessonType]);
+
+  // Automatically apply teacher code to nested custom elements in the HTML content
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const effectiveCode = (teacherCode || lesson.teacherCode || '6767').trim();
+
+    // Find all custom elements containing a hyphen in their tag name
+    const elements = containerRef.current.querySelectorAll('*');
+    elements.forEach(el => {
+      // Skip the main worksheet wrapper tag itself to avoid infinite setting loop
+      if (el.tagName.includes('-') && el.tagName.toLowerCase() !== 'tj-pocketbase-worksheet') {
+        el.setAttribute('code', effectiveCode);
+        (el as any).code = effectiveCode;
+      }
+    });
+  }, [htmlContent, teacherCode, lesson.teacherCode, resetKey]);
 
   // Determine Translation Language
   const getTranslationLanguage = () => {
@@ -342,7 +360,7 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
   );
 
   return (
-    <div className="bg-white max-w-4xl mx-auto pb-4 px-1 py-4 sm:px-6 tj-printable-worksheet">
+    <div ref={containerRef} className="bg-white max-w-4xl mx-auto pb-4 px-1 py-4 sm:px-6 tj-printable-worksheet">
       {/* Page Title - Unified Layout */}
       <div className="mb-4 text-center print:hidden">
         <h1 className="text-3xl md:text-4xl font-black text-green-900 mb-2 tracking-tight">
@@ -399,6 +417,7 @@ export const LessonView: React.FC<Props> = ({ lesson }) => {
       {showReportCard && reportData && (
         <ReportCard 
           data={reportData} 
+          teacherCode={teacherCode || lesson.teacherCode || '6767'}
           onClose={() => {
             setShowReportCard(false);
             window.scrollTo({ top: 0, behavior: 'smooth' });

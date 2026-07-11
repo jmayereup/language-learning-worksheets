@@ -7,6 +7,7 @@ import { useTeacherSubmission } from '../../hooks/useTeacherSubmission';
 interface Props {
   data: ReportData;
   onClose: () => void;
+  teacherCode?: string;
 }
 
 const ScorePill = ({ label, score, total }: { label: string, score: number, total: number }) => (
@@ -18,7 +19,7 @@ const ScorePill = ({ label, score, total }: { label: string, score: number, tota
   </div>
 );
 
-export const ReportCard: React.FC<Props> = ({ data, onClose }) => {
+export const ReportCard: React.FC<Props> = ({ data, onClose, teacherCode = '6767' }) => {
   const {
     isSubmitting,
     submissionStatus,
@@ -26,10 +27,11 @@ export const ReportCard: React.FC<Props> = ({ data, onClose }) => {
     submitScore
   } = useTeacherSubmission();
 
-  const [teacherCode, setTeacherCode] = useState('');
+  const [enteredCode, setEnteredCode] = useState('');
 
   const handleSubmitScore = async () => {
-    if (teacherCode.trim() !== '6767') {
+    const targetCode = (teacherCode || '6767').trim();
+    if (enteredCode.trim() !== targetCode) {
       alert('Incorrect Teacher Code. Please take a screenshot of your report card and show it to your teacher.');
       return;
     }
@@ -129,23 +131,23 @@ export const ReportCard: React.FC<Props> = ({ data, onClose }) => {
               <div className="space-y-3">
                 <input
                   type="text"
-                  placeholder="Enter 4-digit Teacher Code"
-                  value={teacherCode}
-                  onChange={(e) => setTeacherCode(e.target.value)}
+                  placeholder="Enter Teacher Code"
+                  value={enteredCode}
+                  onChange={(e) => setEnteredCode(e.target.value)}
                   disabled={isSubmitting}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-400 focus:outline-none text-sm transition-all"
                 />
 
                 {submissionStatus === 'error' && (
                   <div className="flex items-start gap-2 text-red-700 text-xs bg-red-50 p-3 rounded-lg border border-red-100">
-                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                     <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                     <p className="font-medium">{submissionMessage}</p>
                   </div>
                 )}
 
                 <Button
                   onClick={handleSubmitScore}
-                  disabled={isSubmitting || !teacherCode.trim()}
+                  disabled={isSubmitting || !enteredCode.trim()}
                   className="w-full py-4 font-black shadow-lg"
                 >
                   {isSubmitting ? (

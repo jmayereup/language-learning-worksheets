@@ -16,10 +16,41 @@ class TJChapterBook extends HTMLElement {
     this.attachShadow({ mode: 'open' });
   }
 
+  static get observedAttributes() {
+    return ['code'];
+  }
+
+  attributeChangedCallback(name: string, oldValue: string, newValue: string) {
+    if (name === 'code' && oldValue !== newValue) {
+      this.render();
+    }
+  }
+
+  get code(): string {
+    return this.getAttribute('code') || '';
+  }
+
+  set code(val: string) {
+    if (val) {
+      this.setAttribute('code', val);
+    } else {
+      this.removeAttribute('code');
+    }
+  }
+
   connectedCallback() {
     this.classList.add('tj-printable-worksheet');
     this.injectGlobalPrintStyles();
+    this.upgradeProperty('code');
     this.render();
+  }
+
+  private upgradeProperty(prop: string) {
+    if (this.hasOwnProperty(prop)) {
+      const value = (this as any)[prop];
+      delete (this as any)[prop];
+      (this as any)[prop] = value;
+    }
   }
 
   private injectGlobalPrintStyles() {
@@ -96,7 +127,8 @@ class TJChapterBook extends HTMLElement {
         collectionName: '',
         lessonType: 'chapter-book' as any,
         isVideoLesson: false,
-        videoUrl: ''
+        videoUrl: '',
+        teacherCode: (bookData as any).teacherCode
       };
 
       if (!this.mountPoint) {
@@ -118,7 +150,7 @@ class TJChapterBook extends HTMLElement {
         this.root.render(
           <React.StrictMode>
             <ErrorBoundary>
-              <ChapterBookWrapper lesson={lessonData} />
+              <ChapterBookWrapper lesson={lessonData} teacherCode={this.code} />
             </ErrorBoundary>
           </React.StrictMode>
         );
@@ -129,7 +161,7 @@ class TJChapterBook extends HTMLElement {
   }
 }
 
-const ChapterBookWrapper: React.FC<{ lesson: ParsedLesson & { content: ChapterBookContent } }> = ({ lesson }) => {
+const ChapterBookWrapper: React.FC<{ lesson: ParsedLesson & { content: ChapterBookContent }; teacherCode?: string }> = ({ lesson, teacherCode }) => {
   const {
     answers,
     setAnswers,
@@ -195,6 +227,7 @@ const ChapterBookWrapper: React.FC<{ lesson: ParsedLesson & { content: ChapterBo
         setIsVoiceModalOpen={setIsVoiceModalOpen}
         audioPreference={audioPreference}
         setAudioPreference={setAudioPreference}
+        teacherCode={teacherCode}
       />
     </>
   );

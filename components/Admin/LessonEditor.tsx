@@ -46,6 +46,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
     const [seo, setSeo] = useState('');
     const [html, setHtml] = useState('');
     const [isMinified, setIsMinified] = useState(false);
+    const [teacherCode, setTeacherCode] = useState('');
 
     useEffect(() => {
         if (audioFile) {
@@ -75,6 +76,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
             setJsonContent(JSON.stringify(lesson.content, null, isMinified ? 0 : 2));
             setSeo(lesson.seo || '');
             setHtml(lesson.html || '');
+            setTeacherCode(lesson.teacherCode || '');
             if (lesson.imageUrl) setImagePreview(lesson.imageUrl);
         }
     }, [lesson]);
@@ -94,6 +96,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
                     setLevel(initialData.level || '');
                     setSeo(initialData.seo || '');
                     setHtml(initialData.html || '');
+                    setTeacherCode(initialData.teacherCode || '');
                 } catch (e) {
                     console.error("Failed to parse init data in LessonEditor", e);
                     setJsonContent('');
@@ -109,6 +112,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
                 setIsVideoLesson(false);
                 setSeo('');
                 setHtml('');
+                setTeacherCode('');
                 setImagePreview(null);
             }
         }
@@ -142,6 +146,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
                 lessonType,
                 seo,
                 html,
+                teacherCode,
                 content: parsedContent,
                 imageUrl: imagePreview,
                 audioFileUrl: lessonData?.audioFileUrl, // Keep existing if not changed, file upload preview for audio is harder
@@ -186,6 +191,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
             formData.append('lessonType', lessonType);
             formData.append('seo', seo);
             formData.append('html', html);
+            formData.append('teacherCode', teacherCode);
             formData.append('content', JSON.stringify(parsedContent));
 
             if (imageFile) {
@@ -231,6 +237,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
                 lessonType,
                 seo,
                 html,
+                teacherCode,
                 content: parsedContent,
             };
 
@@ -271,6 +278,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
                 lessonType,
                 seo,
                 html,
+                teacherCode,
                 content: parsedContent,
                 isStandalone: isPublicCreator
             }, null, 2);
@@ -579,6 +587,22 @@ ${embedData}
                                     onChange={(e) => setVideoUrl(e.target.value)}
                                     className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none"
                                     placeholder="https://www.youtube.com/watch?v=..."
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-black text-gray-700 mb-2 ml-1 uppercase tracking-wider">Teacher Code</label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                    <span className="text-gray-400 font-bold text-sm">#</span>
+                                </div>
+                                <input
+                                    type="text"
+                                    value={teacherCode}
+                                    onChange={(e) => setTeacherCode(e.target.value)}
+                                    className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none"
+                                    placeholder="6767 (Default)"
                                 />
                             </div>
                         </div>
