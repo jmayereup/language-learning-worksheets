@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { LoginForm } from './LoginForm';
 import { LessonList } from './LessonList';
 import { LessonEditor } from './LessonEditor';
-import { isAuthenticated } from '../../services/pocketbase';
+import { isAdmin } from '../../services/pocketbase';
 import { Button } from '../UI/Button';
 import { LayoutDashboard, ArrowLeft, Plus } from 'lucide-react';
 
@@ -13,7 +13,7 @@ interface AdminDashboardProps {
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, onPreview, onLogout }) => {
-    const [isLoggedIn, setIsLoggedIn] = useState(isAuthenticated());
+    const [isLoggedIn, setIsLoggedIn] = useState(isAdmin());
     const [adminView, setAdminView] = useState<'list' | 'add' | 'edit'>('list');
     const [editingLessonId, setEditingLessonId] = useState<string | null>(null);
     const [editorInitData, setEditorInitData] = useState<any>(null);

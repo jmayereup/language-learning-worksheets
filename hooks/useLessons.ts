@@ -8,7 +8,6 @@ import {
     updateLesson, 
     deleteLesson 
 } from '../services/pocketbase';
-import { triggerRebuild } from '../services/deploy';
 
 export const lessonKeys = {
     all: ['lessons'] as const,
@@ -58,22 +57,25 @@ export const useCreateLesson = () => {
         mutationFn: createLesson,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: lessonKeys.all });
-            triggerRebuild();
         },
     });
 };
 
 export const useUpdateLesson = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: ({ id, data }: { id: string; data: any }) => updateLesson(id, data),
-        onSuccess: (data, variables) => {
-            queryClient.invalidateQueries({ queryKey: lessonKeys.all });
-            // Also update the individual lesson cache
-            queryClient.invalidateQueries({ queryKey: lessonKeys.detail(variables.id) });
-            triggerRebuild();
-        },
-    });
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => updateLesson(id, data),
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: lessonKeys.all });
+      queryClient.invalidateQueries({ queryKey: lessonKeys.detail(variables.id) });
+    },
+    onError: (err: any, variables) => {
+      if (err?.code === 'RECORD_NOT_FOUND') {
+        queryClient.removeQueries({ queryKey: lessonKeys.detail(variables.id) });
+        queryClient.invalidateQueries({ queryKey: lessonKeys.all });
+      }
+    },
+  });
 };
 
 export const useDeleteLesson = () => {
@@ -83,7 +85,6 @@ export const useDeleteLesson = () => {
         onSuccess: (data, id) => {
             queryClient.invalidateQueries({ queryKey: lessonKeys.all });
             queryClient.removeQueries({ queryKey: lessonKeys.detail(id) });
-            triggerRebuild();
         },
     });
 };

@@ -24,8 +24,6 @@ const createPB = () => {
 const pb = createPB();
 pb.autoCancellation(false);
 
-export { pb };
-
 export const getFileUrl = (record: LessonRecord | { collectionId: string, id: string }, filename: string, _queryParams?: Record<string, any>) => {
   if (!filename) return '';
   const collection = (record as any).collectionId || (record as any).collectionName;
@@ -41,17 +39,23 @@ export const getFileUrl = (record: LessonRecord | { collectionId: string, id: st
 
 // Auth methods
 export const loginWithEmail = async (email: string, password: string) => {
+  // Auth against the `users` collection. The worksheets rule
+  // `@request.auth.isAdmin = true` checks the isAdmin boolean on the
+  // authenticated user record, so we also verify that here and surface
+  // a clear error if the account is not an admin.
   try {
-    // Try to authenticate as a regular user first
-    return await pb.collection('users').authWithPassword(email, password);
-  } catch (error) {
-    // If that fails, try to authenticate as a superuser (admin) in PocketBase v0.23+
-    try {
-      return await pb.collection('_superusers').authWithPassword(email, password);
-    } catch (superuserError) {
-      // Throw the original user auth error if both fail
-      throw error;
+    const auth = await pb.collection('users').authWithPassword(email, password);
+    const record: any = pb.authStore.record;
+    if (!record || record.isAdmin !== true) {
+      pb.authStore.clear();
+      throw new Error('This account does not have admin access.');
     }
+    return auth;
+  } catch (err: any) {
+    if (err?.status === 400 || err?.status === 401) {
+      throw new Error('Invalid email or password.');
+    }
+    throw err;
   }
 };
 
@@ -65,6 +69,39 @@ export const getCurrentUser = () => {
 
 export const isAuthenticated = () => {
   return pb.authStore.isValid;
+};
+
+export const isAdmin = () => {
+  const record: any = pb.authStore.record;
+  return pb.authStore.isValid && record?.collectionName === 'users' && record?.isAdmin === true;
+};
+
+// Re-validates the current session by calling authRefresh, which re-fetches
+// the user record and updates the JWT snapshot. This catches:
+//   - tokens issued before isAdmin was set to true
+//   - tokens whose user account has since had isAdmin revoked
+//   - deleted user accounts
+// Returns true if the refreshed session is still an admin, false otherwise
+// (and clears the auth store in the non-admin case).
+export const requireAdmin = async (): Promise<boolean> => {
+  if (!pb.authStore.isValid) return false;
+  const record: any = pb.authStore.record;
+  if (record?.collectionName !== 'users') return false;
+
+  try {
+    await pb.collection('users').authRefresh();
+  } catch (err: any) {
+    if (err?.status === 401 || err?.status === 404) {
+      pb.authStore.clear();
+    }
+    return false;
+  }
+
+  if (!isAdmin()) {
+    pb.authStore.clear();
+    return false;
+  }
+  return true;
 };
 
 const parseLessonContent = (content: string | LessonContent): LessonContent => {
@@ -316,27 +353,54 @@ const compileHtmlForRecord = (record: any): string => {
   return compileLessonHtml(lessonForCompile, record.html || '');
 };
 
+// Detect whether a payload already carries a pre-computed htmlCompiled value
+// derived from the caller's current input state. When present we trust it
+// and skip the post-update recomputation.
+const hasPreComputedHtmlCompiled = (data: any): boolean => {
+  if (data == null) return false;
+  if (typeof FormData !== 'undefined' && data instanceof FormData) {
+    return data.has('htmlCompiled');
+  }
+  return Object.prototype.hasOwnProperty.call(data, 'htmlCompiled');
+};
+
 // CRUD methods
 export const createLesson = async (data: any) => {
   const user = getCurrentUser();
   let record: any;
-  
-  if (data instanceof FormData) {
-    if (user?.id) {
-      data.append('creatorId', user.id);
+
+  try {
+    if (data instanceof FormData) {
+      if (user?.id) {
+        data.append('creatorId', user.id);
+      }
+      record = await pb.collection('worksheets').create(data);
+    } else {
+      const payload = {
+        ...data,
+        creatorId: user?.id
+      };
+      record = await pb.collection('worksheets').create(payload);
     }
-    record = await pb.collection('worksheets').create(data);
-  } else {
-    const payload = {
-      ...data,
-      creatorId: user?.id
-    };
-    record = await pb.collection('worksheets').create(payload);
+  } catch (err: any) {
+    const detail = err?.response?.data || err?.data;
+    console.error('createLesson failed:', { status: err?.status, message: err?.message, data: detail });
+    const e: any = new Error(detail?.message || err?.message || 'Failed to create worksheet.');
+    e.status = err?.status;
+    e.code = 'CREATE_FAILED';
+    e.fieldErrors = detail?.data || null;
+    e.original = err;
+    throw e;
   }
 
   try {
-    const compiled = compileHtmlForRecord(record);
-    record = await pb.collection('worksheets').update(record.id, { htmlCompiled: compiled });
+    // Only recompute htmlCompiled if the caller did not already supply a
+    // value derived from the current input state (e.g. the LessonEditor
+    // computes it from form state and appends it to the same request).
+    if (!hasPreComputedHtmlCompiled(data)) {
+      const compiled = compileHtmlForRecord(record);
+      record = await pb.collection('worksheets').update(record.id, { htmlCompiled: compiled });
+    }
   } catch (err) {
     console.error('Failed to compile and save HTML block on create:', err);
   }
@@ -345,11 +409,36 @@ export const createLesson = async (data: any) => {
 };
 
 export const updateLesson = async (id: string, data: any) => {
-  let record = await pb.collection('worksheets').update(id, data);
+  let record;
+  try {
+    record = await pb.collection('worksheets').update(id, data);
+  } catch (err: any) {
+    if (err?.status === 404) {
+      const e: any = new Error(`Worksheet ${id} no longer exists on the server.`);
+      e.status = 404;
+      e.code = 'RECORD_NOT_FOUND';
+      throw e;
+    }
+    // Surface the actual server validation message so we can see which field failed.
+    const detail = err?.response?.data || err?.data;
+    const msg = err?.message || 'Failed to update worksheet.';
+    console.error('updateLesson failed: status=' + err?.status + ' message=' + (detail?.message || msg) + ' fieldErrors=' + JSON.stringify(detail?.data || null));
+    const e: any = new Error(detail?.message || msg);
+    e.status = err?.status;
+    e.code = 'UPDATE_FAILED';
+    e.fieldErrors = detail?.data || null;
+    e.original = err;
+    throw e;
+  }
 
   try {
-    const compiled = compileHtmlForRecord(record);
-    record = await pb.collection('worksheets').update(record.id, { htmlCompiled: compiled });
+    // Only recompute htmlCompiled if the caller did not already supply a
+    // value derived from the current input state (e.g. the LessonEditor
+    // computes it from form state and appends it to the same request).
+    if (!hasPreComputedHtmlCompiled(data)) {
+      const compiled = compileHtmlForRecord(record);
+      record = await pb.collection('worksheets').update(record.id, { htmlCompiled: compiled });
+    }
   } catch (err) {
     console.error('Failed to compile and save HTML block on update:', err);
   }

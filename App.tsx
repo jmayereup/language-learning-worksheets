@@ -10,11 +10,11 @@ import { LessonEditor } from './components/Admin/LessonEditor';
 import { WebComponentPreview } from './components/Lesson/WebComponentPreview';
 import { SearchableSelect } from './components/UI/SearchableSelect';
 import { LoginForm } from './components/Admin/LoginForm';
-import { isAuthenticated, logout, getCurrentUser } from './services/pocketbase';
+import { isAuthenticated, isAdmin, requireAdmin, logout, getCurrentUser } from './services/pocketbase';
 import logo from './assets/tj-logo.svg';
 
 const App: React.FC = () => {
-    const [isLoggedIn, setIsLoggedIn] = useState(isAuthenticated());
+    const [isLoggedIn, setIsLoggedIn] = useState(isAdmin());
     const [view, setView] = useState<'home' | 'lesson' | 'admin' | 'create'>('home');
     const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
     const [showPreview, setShowPreview] = useState(false);
@@ -27,6 +27,18 @@ const App: React.FC = () => {
 
     const { data: lessons = [], isLoading: loading } = useLessons(language, level, isLoggedIn);
     const { data: currentLessonFromQuery, isLoading: loadingLesson } = useLesson(selectedLessonId, isLoggedIn);
+
+    // On mount, refresh the auth token to confirm the current user still has
+    // isAdmin=true. Catches stale tokens (logged in before the flag was set)
+    // and revoked admin access.
+    useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            const ok = await requireAdmin();
+            if (!cancelled) setIsLoggedIn(ok);
+        })();
+        return () => { cancelled = true; };
+    }, []);
 
     const handleLogout = () => {
         logout();

@@ -148,40 +148,53 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
         }
     }, [jsonContent, seo]);
 
+    // Build a lesson object from the current form state. Used by both preview
+    // and save so the htmlCompiled field is always derived from the same
+    // current input values, and the save path can attach it to the same
+    // request that writes the rest of the record.
+    const buildLessonForCompile = (idOverride?: string) => {
+        let parsedContent: any;
+        try {
+            parsedContent = JSON.parse(jsonContent);
+            // Sync title from form to content if they differ
+            if (title && parsedContent.title !== title) {
+                parsedContent.title = title;
+            }
+        } catch (e) {
+            if (lessonType === 'quiz-element') {
+                parsedContent = jsonContent;
+            } else {
+                throw new Error('Invalid JSON content. Please check for syntax errors.');
+            }
+        }
+
+        return {
+            id: idOverride || lessonId || undefined,
+            title,
+            language,
+            level,
+            tags: selectedTags,
+            videoUrl,
+            isVideoLesson,
+            lessonType,
+            seo,
+            html,
+            teacherCode,
+            customConfig: { ...customConfig, testMode },
+            content: parsedContent,
+            imageUrl: imagePreview || lessonData?.imageUrl,
+            audioFileUrl: lessonData?.audioFileUrl,
+            created: lessonData?.created || new Date().toISOString(),
+            updated: new Date().toISOString()
+        };
+    };
+
     const handlePreview = () => {
         try {
-            let parsedContent;
-            try {
-                parsedContent = JSON.parse(jsonContent);
-            } catch (e) {
-                if (lessonType === 'quiz-element') {
-                    parsedContent = jsonContent;
-                } else {
-                    throw e;
-                }
-            }
-            const tempLesson = {
-                id: `preview-${lessonId || 'new'}-${Date.now()}`,
-                title,
-                language,
-                level,
-                tags: selectedTags,
-                videoUrl,
-                isVideoLesson,
-                lessonType,
-                seo,
-                html,
-                teacherCode,
-                customConfig: { ...customConfig, testMode },
-                content: parsedContent,
-                imageUrl: imagePreview,
-                audioFileUrl: lessonData?.audioFileUrl, // Keep existing if not changed, file upload preview for audio is harder
-                created: lessonData?.created || new Date().toISOString(),
-                updated: new Date().toISOString()
-            };
+            const tempLesson = buildLessonForCompile(`preview-${lessonId || 'new'}-${Date.now()}`);
             onPreview(tempLesson);
-        } catch (e) {
-            setError('Cannot preview: Invalid JSON content.');
+        } catch (e: any) {
+            setError(e.message || 'Cannot preview: Invalid JSON content.');
         }
     };
 
@@ -195,21 +208,12 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
         }
 
         try {
-            // Validate JSON
-            let parsedContent;
-            try {
-                parsedContent = JSON.parse(jsonContent);
-                // Sync title from form to content if they differ
-                if (title && parsedContent.title !== title) {
-                    parsedContent.title = title;
-                }
-            } catch (err) {
-                if (lessonType === 'quiz-element') {
-                    parsedContent = jsonContent;
-                } else {
-                    throw new Error('Invalid JSON content. Please check for syntax errors.');
-                }
-            }
+            const lessonForCompile = buildLessonForCompile();
+
+            // Derive htmlCompiled from the current input values *before* the
+            // database update so the saved record is consistent in a single
+            // request and the user doesn't see a stale compiled value.
+            const htmlCompiled = compileLessonHtml(lessonForCompile, html || '');
 
             const formData = new FormData();
             formData.append('title', title);
@@ -222,14 +226,9 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
             formData.append('seo', seo);
             formData.append('html', html);
             formData.append('teacherCode', teacherCode);
-
-            const finalConfig = {
-                ...customConfig,
-                testMode
-            };
-            formData.append('customConfig', JSON.stringify(finalConfig));
-
-            formData.append('content', JSON.stringify(parsedContent));
+            formData.append('customConfig', JSON.stringify(lessonForCompile.customConfig));
+            formData.append('content', JSON.stringify(lessonForCompile.content));
+            formData.append('htmlCompiled', htmlCompiled);
 
             if (imageFile) {
                 formData.append('image', imageFile);
