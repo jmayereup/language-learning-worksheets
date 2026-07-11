@@ -1,12 +1,16 @@
 import { ParsedLesson, StandardLessonContent, FocusedReaderContent, VocabWord } from '../types';
+import { normalizeContent } from './contentFormat';
 
 export const extractVocabularyFromLessons = async (lessons: any[]): Promise<VocabWord[]> => {
   const allWords: VocabWord[] = [];
 
   for (const lesson of lessons) {
-    // We expect the lesson content to already be parsed if we are dealing with standard loaded lessons,
-    // but we can add safety checks.
-    const content = typeof lesson.content === 'string' ? JSON.parse(lesson.content) : lesson.content;
+    const content = normalizeContent(lesson.content);
+
+    // Custom-element / legacy-markdown content has no structured vocab to extract.
+    if (typeof content !== 'object' || content === null) {
+      continue;
+    }
 
     if (lesson.lessonType === 'focused-reading') {
       const frContent = content as FocusedReaderContent;
@@ -16,7 +20,7 @@ export const extractVocabularyFromLessons = async (lessons: any[]): Promise<Voca
             Object.entries(part.vocabulary_explanations).forEach(([word, def]) => {
               allWords.push({
                 word,
-                definition: def,
+                definition: def as string,
                 sourceLessonId: lesson.id
               });
             });
@@ -44,7 +48,7 @@ export const extractVocabularyFromLessons = async (lessons: any[]): Promise<Voca
 
   // Deduplicate words (case-insensitive) keeping the first encountered definition
   const uniqueWords = new Map<string, VocabWord>();
-  allWords.forEach(wordObj => {
+  uniqueWords.forEach(wordObj => {
     const key = wordObj.word.trim().toLowerCase();
     if (!uniqueWords.has(key)) {
       uniqueWords.set(key, wordObj);

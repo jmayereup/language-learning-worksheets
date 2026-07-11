@@ -3,6 +3,7 @@ import { ParsedLesson, StandardLessonContent, InformationGapContent, FocusedRead
 import { selectElementText } from '../../utils/textUtils';
 import { Loader } from 'lucide-react';
 import { getComponentConfig } from '../../utils/componentMapper';
+import { buildPreviewElementHtml } from '../../utils/htmlCompiler';
 import confetti from 'canvas-confetti';
 import { useTTS } from '../../hooks/useTTS';
 import { useLessonProgress } from '../../hooks/useLessonProgress';
@@ -228,30 +229,8 @@ export const LessonView: React.FC<Props> = ({ lesson, teacherCode }) => {
           {(() => {
             const config = getComponentConfig(effectiveLessonType);
             if (!config) return null;
-            
-            const attrs: Record<string, string> = {};
-            if (effectiveLessonType === 'lbl-reader') {
-              attrs['lang-original'] = lesson.language;
-              attrs['lang-translation'] = translationLanguage;
-              attrs['story-title'] = lesson.title || '';
-            } else if (effectiveLessonType === 'listening' && lesson.audioFileUrl) {
-              attrs['audio-listening'] = lesson.audioFileUrl;
-            }
-            
-            if (lesson.customConfig?.testMode) {
-              attrs['test-mode'] = '';
-            }
-            
-            const contentHtml = typeof lesson.content === 'string'
-              ? `<script type="text/markdown">${lesson.content}</script>`
-              : JSON.stringify(lesson.content);
-
-            const htmlString = `
-              <${config.tag} ${Object.entries(attrs).map(([k, v]) => `${k}="${v.replace(/"/g, '&quot;')}"`).join(' ')}>
-                ${contentHtml}
-              </${config.tag}>
-            `;
-            return <div dangerouslySetInnerHTML={{ __html: htmlString }} />;
+            const { elementHtml } = buildPreviewElementHtml(lesson);
+            return <div dangerouslySetInnerHTML={{ __html: elementHtml }} />;
           })()}
         </div>
       ) : effectiveLessonType === 'information-gap' ? (

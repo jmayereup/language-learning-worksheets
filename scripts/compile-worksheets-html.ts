@@ -2,6 +2,7 @@ import 'dotenv/config';
 import PocketBase from 'pocketbase';
 import readline from 'readline';
 import { compileLessonHtml } from '../utils/htmlCompiler';
+import { normalizeContent } from '../utils/contentFormat';
 
 const PB_URL = process.env.POCKETBASE_URL || 'https://blog.teacherjake.com';
 const FILES_BASE_URL = process.env.FILES_BASE_URL || 'https://files.teacherjake.com';
@@ -58,7 +59,7 @@ const compileHtmlForRecord = (record: any): string => {
     seo: record.seo,
     teacherCode: record.teacherCode,
     customConfig: parseJSON(record.customConfig),
-    content: parseJSON(record.content),
+    content: normalizeContent(record.content),
     imageUrl,
     audioFileUrl,
     created: record.created,

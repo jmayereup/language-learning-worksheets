@@ -1,6 +1,7 @@
 import PocketBase from 'pocketbase';
 import { LessonRecord, ParsedLesson, LessonContent } from '../types';
 import { compileLessonHtml } from '../utils/htmlCompiler';
+import { normalizeContent } from '../utils/contentFormat';
 
 // Initialize PocketBase
 // Note: We use the URL provided in the original application
@@ -104,26 +105,8 @@ export const requireAdmin = async (): Promise<boolean> => {
   return true;
 };
 
-const parseLessonContent = (content: string | LessonContent): LessonContent => {
-  if (typeof content === 'string') {
-    try {
-      return JSON.parse(content);
-    } catch (e) {
-      console.error("Failed to parse lesson content", e);
-      return {
-        title: "Error Parsing Lesson",
-        readingText: "",
-        activities: {
-          vocabulary: { items: [], definitions: [] },
-          fillInTheBlanks: [],
-          comprehension: { questions: [] },
-          scrambled: [],
-          writtenExpression: { questions: [], examples: "" }
-        }
-      };
-    }
-  }
-  return content;
+const parseLessonContent = (content: string | LessonContent): LessonContent | string => {
+  return normalizeContent(content);
 };
 
 const getYouTubeId = (url: string) => {
@@ -145,11 +128,11 @@ export const fetchLessons = async (language: string, level: string) => {
     });
 
     return records.map(record => {
-      const content = typeof record.content === 'string' ? JSON.parse(record.content) : record.content;
-      const title = record.title || content.title || 'Untitled';
+      const content = normalizeContent(record.content);
+      const title = record.title || (content && typeof content === 'object' ? (content as any).title : null) || 'Untitled';
 
       // Extract a snippet for the description, removing the title if it's at the start
-      let description = content.readingText || '';
+      let description = (content && typeof content === 'object' ? (content as any).readingText : '') || '';
       if (description.startsWith(title)) {
         description = description.substring(title.length).trim();
       }
@@ -187,7 +170,7 @@ export const fetchLessonById = async (id: string): Promise<ParsedLesson> => {
     const content = parseLessonContent(record.content);
 
     // If DB has a title, ensure it overrides the JSON content title
-    if (record.title && 'title' in content) {
+    if (record.title && content && typeof content === 'object' && 'title' in content) {
       (content as any).title = record.title;
     }
 
@@ -216,8 +199,8 @@ export const fetchAllLessons = async (creatorId?: string) => {
     const records = await pb.collection('worksheets').getFullList<LessonRecord>(options);
 
     return records.map(record => {
-      const content = typeof record.content === 'string' ? JSON.parse(record.content) : record.content;
-      const title = record.title || content.title || 'Untitled';
+      const content = normalizeContent(record.content);
+      const title = record.title || (content && typeof content === 'object' ? (content as any).title : null) || 'Untitled';
       
       let imageUrl = record.image ? getFileUrl(record, record.image) : undefined;
       if (!imageUrl && record.videoUrl) {
@@ -319,7 +302,7 @@ export const fetchPaginatedLessons = async (
 const compileHtmlForRecord = (record: any): string => {
   const imageUrl = record.image ? getFileUrl(record, record.image) : undefined;
   const audioFileUrl = record.audioFile ? getFileUrl(record, record.audioFile) : undefined;
-  
+
   const parseJSON = (val: any) => {
     if (typeof val === 'string') {
       try {
@@ -343,7 +326,7 @@ const compileHtmlForRecord = (record: any): string => {
     seo: record.seo,
     teacherCode: record.teacherCode,
     customConfig: parseJSON(record.customConfig),
-    content: parseJSON(record.content),
+    content: normalizeContent(record.content),
     imageUrl,
     audioFileUrl,
     created: record.created,

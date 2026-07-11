@@ -228,18 +228,19 @@ export interface PronunciationContent {
   phrases: string[];
 }
 
-export type LessonContent = 
-  | StandardLessonContent 
-  | InformationGapContent 
-  | InformationGapActivity[] 
-  | FocusedReaderContent 
-  | WordBlasterContent 
+export type LessonContent =
+  | StandardLessonContent
+  | InformationGapContent
+  | InformationGapActivity[]
+  | FocusedReaderContent
+  | WordBlasterContent
   | ChapterBookContent
   | LBLReaderItem[]
   | GrammarHeartsContent
   | ListeningContent
   | SpeedReviewContent
-  | PronunciationContent;
+  | PronunciationContent
+  | string;
 
 // Define extended language list manually
 export const POCKETBASE_SUPPORTED_LANGUAGES = ['English', 'Spanish', 'French', 'Thai', 'German'] as const;

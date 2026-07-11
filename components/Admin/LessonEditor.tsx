@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useLesson, useCreateLesson, useUpdateLesson } from '../../hooks/useLessons';
 import { LANGUAGE_OPTIONS, LEVEL_OPTIONS, TAG_OPTIONS, LESSON_TYPE_OPTIONS, POCKETBASE_SUPPORTED_LANGUAGES } from '../../types';
 import { Button } from '../UI/Button';
-import { Save, X, AlertCircle, FileJson, Info, Globe, Layers, Tag as TagIcon, Video, Check, Image as ImageIcon, Music, Layout, ClipboardPaste, Eye, Code } from 'lucide-react';
+import { Save, X, AlertCircle, FileJson, Info, Globe, Layers, Tag as TagIcon, Video, Check, Image as ImageIcon, Music, Layout, ClipboardPaste, Eye, Code, ShieldCheck } from 'lucide-react';
 import { Modal } from '../UI/Modal';
 import { JSONKeyValueEditor } from './JSONKeyValueEditor';
 import { SearchableSelect } from '../UI/SearchableSelect';
 import { VisualHTMLEditor } from './VisualHTMLEditor';
 import geminiCopyExample from '../../assets/copy-from-gemini-example.png';
 import { compileLessonHtml } from '../../utils/htmlCompiler';
+import { parseContent, detectContentFormat, getFormatLabel, DetectedContent } from '../../utils/contentFormat';
 
 
 
@@ -46,10 +47,10 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
     const [showVisualEditor, setShowVisualEditor] = useState(false);
     const [seo, setSeo] = useState('');
     const [html, setHtml] = useState('');
-    const [isMinified, setIsMinified] = useState(false);
     const [teacherCode, setTeacherCode] = useState('');
     const [customConfig, setConfig] = useState<Record<string, any>>({});
     const [testMode, setTestMode] = useState(false);
+    const [validationMessage, setValidationMessage] = useState<{ ok: boolean; text: string } | null>(null);
 
     useEffect(() => {
         if (audioFile) {
@@ -78,7 +79,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
             setLessonType(lesson.lessonType || 'worksheet');
             const rawContent = typeof lesson.content === 'string'
                 ? lesson.content
-                : JSON.stringify(lesson.content, null, isMinified ? 0 : 2);
+                : JSON.stringify(lesson.content, null, 2);
             setJsonContent(rawContent);
             setSeo(lesson.seo || '');
             setHtml(lesson.html || '');
@@ -100,7 +101,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
                     
                     const newJsonContent = typeof initialData.content === 'string'
                         ? initialData.content
-                        : initialData.content ? JSON.stringify(initialData.content, null, isMinified ? 0 : 2) : '';
+                        : initialData.content ? JSON.stringify(initialData.content, null, 2) : '';
                     
                     setJsonContent(newJsonContent);
                     setLanguage(initialData.language || '');
@@ -134,38 +135,49 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
         }
     }, [lessonId, initialData]);
 
-    // Automatically sync SEO from jsonContent if empty
+    // Automatically sync SEO from jsonContent if empty (JSON content only)
     useEffect(() => {
         if (!seo.trim() && jsonContent.trim()) {
-            try {
-                const parsed = JSON.parse(jsonContent);
-                if (parsed.seo_intro) {
+            if (detectContentFormat(jsonContent) !== 'json') return;
+            const detected = parseContent(jsonContent);
+            if (detected.format === 'json') {
+                const parsed = detected.value as any;
+                if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) && parsed.seo_intro) {
                     setSeo(parsed.seo_intro);
                 }
-            } catch (e) {
-                // Ignore parse errors while typing
             }
         }
     }, [jsonContent, seo]);
+
+    // Live-detect content format and surface a persistent status badge
+    const liveDetection = React.useMemo<DetectedContent>(() => {
+        if (!jsonContent.trim()) return { format: 'invalid', error: 'Empty content' };
+        return parseContent(jsonContent);
+    }, [jsonContent]);
+
+    const isContentValid = liveDetection.format !== 'invalid';
+    const isJsonContent = liveDetection.format === 'json';
 
     // Build a lesson object from the current form state. Used by both preview
     // and save so the htmlCompiled field is always derived from the same
     // current input values, and the save path can attach it to the same
     // request that writes the rest of the record.
     const buildLessonForCompile = (idOverride?: string) => {
+        const detected = parseContent(jsonContent);
+        if (detected.format === 'invalid') {
+            throw new Error(detected.error || 'Invalid content. Must be JSON or a custom HTML element.');
+        }
+
         let parsedContent: any;
-        try {
-            parsedContent = JSON.parse(jsonContent);
-            // Sync title from form to content if they differ
-            if (title && parsedContent.title !== title) {
+        if (detected.format === 'json') {
+            parsedContent = detected.value;
+            // Sync title from form to content if they differ (objects only)
+            if (title && parsedContent && typeof parsedContent === 'object' && !Array.isArray(parsedContent) && parsedContent.title !== title) {
                 parsedContent.title = title;
             }
-        } catch (e) {
-            if (lessonType === 'quiz-element') {
-                parsedContent = jsonContent;
-            } else {
-                throw new Error('Invalid JSON content. Please check for syntax errors.');
-            }
+        } else {
+            // HTML: pass the raw element string through; the compiler handles it.
+            parsedContent = jsonContent.trim();
         }
 
         return {
@@ -251,20 +263,21 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
 
     const handleDownloadJSON = () => {
         try {
-            // Validate JSON first
-            let parsedContent;
-            try {
-                parsedContent = JSON.parse(jsonContent);
-                if (title && parsedContent.title !== title) {
+            const detected = parseContent(jsonContent);
+            if (detected.format === 'invalid') {
+                setError(detected.error || 'Invalid content. Must be JSON or a custom HTML element.');
+                return;
+            }
+
+            let parsedContent: any;
+            if (detected.format === 'json') {
+                parsedContent = detected.value;
+                if (title && parsedContent && typeof parsedContent === 'object' && !Array.isArray(parsedContent) && parsedContent.title !== title) {
                     parsedContent.title = title;
                 }
-            } catch (err) {
-                if (lessonType === 'quiz-element') {
-                    parsedContent = jsonContent;
-                } else {
-                    setError('Invalid JSON content. Please check for syntax errors before downloading.');
-                    return;
-                }
+            } else {
+                // HTML: download a JSON envelope with the raw element string as content
+                parsedContent = jsonContent.trim();
             }
 
             const lessonData = {
@@ -298,19 +311,20 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
 
     const generateEmbedCode = () => {
         try {
-            let parsedContent;
-            try {
-                parsedContent = JSON.parse(jsonContent);
-                if (title && parsedContent.title !== title) {
+            const detected = parseContent(jsonContent);
+            if (detected.format === 'invalid') {
+                setError(detected.error || 'Invalid content. Must be JSON or a custom HTML element.');
+                return null;
+            }
+
+            let parsedContent: any;
+            if (detected.format === 'json') {
+                parsedContent = detected.value;
+                if (title && parsedContent && typeof parsedContent === 'object' && !Array.isArray(parsedContent) && parsedContent.title !== title) {
                     parsedContent.title = title;
                 }
-            } catch (err) {
-                if (lessonType === 'quiz-element') {
-                    parsedContent = jsonContent;
-                } else {
-                    setError('Invalid JSON content. Please check for syntax errors before generating embed code.');
-                    return null;
-                }
+            } else {
+                parsedContent = jsonContent.trim();
             }
 
             const tempLesson = {
@@ -381,7 +395,7 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
     };
 
     const handleVisualEditorApply = (updatedData: any) => {
-        setJsonContent(JSON.stringify(updatedData, null, isMinified ? 0 : 2));
+        setJsonContent(JSON.stringify(updatedData, null, 2));
         setShowVisualEditor(false);
     };
 
@@ -390,21 +404,37 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
             const text = await navigator.clipboard.readText();
             if (text) {
                 setJsonContent(text);
-                // Attempt to sync title if valid JSON
-                try {
-                    const parsed = JSON.parse(text);
-                    if (parsed.title) {
-                        setTitle(parsed.title);
+                // Attempt to sync title/SEO if valid JSON
+                const detected = parseContent(text);
+                if (detected.format === 'json') {
+                    const parsed = detected.value as any;
+                    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+                        if (parsed.title) {
+                            setTitle(parsed.title);
+                        }
+                        if (parsed.seo_intro && !seo) {
+                            setSeo(parsed.seo_intro);
+                        }
                     }
-                    if (parsed.seo_intro && !seo) {
-                        setSeo(parsed.seo_intro);
-                    }
-                } catch (e) {
-                    // Not valid JSON yet, that's fine
+                }
+                // For HTML content, also surface its tag name in the validation feedback
+                if (detected.format === 'html') {
+                    setValidationMessage({ ok: true, text: `Detected custom element <${detected.value.tagName}>` });
                 }
             }
         } catch (err) {
             setError('Failed to read from clipboard. Please ensure you have granted permission.');
+        }
+    };
+
+    const runFormatCheck = () => {
+        const detected = parseContent(jsonContent);
+        if (detected.format === 'json') {
+            setValidationMessage({ ok: true, text: 'Valid JSON content.' });
+        } else if (detected.format === 'html') {
+            setValidationMessage({ ok: true, text: `Valid custom element: <${detected.value.tagName}>.` });
+        } else {
+            setValidationMessage({ ok: false, text: detected.error });
         }
     };
 
@@ -430,17 +460,6 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
             }
         } catch (err) {
             setError('Failed to paste image. Please ensure you have granted permission.');
-        }
-    };
-
-    const toggleMinify = () => {
-        try {
-            const parsed = JSON.parse(jsonContent);
-            const nextMinified = !isMinified;
-            setJsonContent(JSON.stringify(parsed, null, nextMinified ? 0 : 2));
-            setIsMinified(nextMinified);
-        } catch (e) {
-            setError('Cannot toggle format: Invalid JSON content.');
         }
     };
 
@@ -834,23 +853,49 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
                 </div>
 
                 <div className="mb-10">
-                    <div className="flex flex-wrap items-center justify-between mb-3 ml-1">
-                        <label className="text-sm font-black text-gray-700 uppercase tracking-wider flex items-center gap-2">
-                            <FileJson className="w-4 h-4" /> Worksheet JSON Content
-                        </label>
+                    <div className="flex flex-wrap items-center justify-between mb-3 ml-1 gap-2">
+                        <div className="flex items-center gap-3">
+                            <label className="text-sm font-black text-gray-700 uppercase tracking-wider flex items-center gap-2">
+                                <FileJson className="w-4 h-4" /> Worksheet JSON Content
+                            </label>
+                            {(() => {
+                                const format = liveDetection.format;
+                                const tone =
+                                    format === 'json'
+                                        ? 'bg-green-100 text-green-800 border-green-200'
+                                        : format === 'html'
+                                            ? 'bg-blue-100 text-blue-800 border-blue-200'
+                                            : 'bg-red-100 text-red-800 border-red-200';
+                                let detail = '';
+                                let tooltip = getFormatLabel(format);
+                                if (format === 'html' && liveDetection.value) {
+                                    detail = ` <${liveDetection.value.tagName}>`;
+                                    tooltip = `${getFormatLabel(format)}${detail}`;
+                                } else if (format === 'invalid') {
+                                    tooltip = liveDetection.error;
+                                }
+                                return (
+                                    <span
+                                        className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${tone}`}
+                                        title={tooltip}
+                                    >
+                                        {getFormatLabel(format)}{detail}
+                                    </span>
+                                );
+                            })()}
+                        </div>
                         <div className="flex flex-wrap items-center gap-2">
-                            <div className="flex items-center gap-2 mr-4 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200">
-                                <label className="text-[10px] font-black text-gray-500 cursor-pointer flex items-center gap-2">
-                                    <input
-                                        type="checkbox"
-                                        checked={isMinified}
-                                        onChange={toggleMinify}
-                                        className="w-3.5 h-3.5 rounded text-green-600 focus:ring-green-500"
-                                    />
-                                    Check JSON
-                                </label>
-                            </div>
-                            {lessonType !== 'quiz-element' && (
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={runFormatCheck}
+                                disabled={!jsonContent.trim()}
+                                className="text-[10px] font-bold flex items-center gap-1.5"
+                            >
+                                <ShieldCheck className="w-4 h-4" /> Check Format
+                            </Button>
+                            {isJsonContent && lessonType !== 'quiz-element' && (
                                 <Button
                                     type="button"
                                     variant="outline"
@@ -893,11 +938,39 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
                     </div>
                     <textarea
                         value={jsonContent}
-                        onChange={(e) => setJsonContent(e.target.value)}
+                        onChange={(e) => {
+                            setJsonContent(e.target.value);
+                            if (validationMessage) setValidationMessage(null);
+                        }}
                         required
-                        className="w-full h-[500px] p-6 bg-gray-900 text-green-400 font-mono text-sm leading-relaxed rounded-2xl focus:ring-2 focus:ring-green-500 outline-none border-none shadow-inner"
+                        aria-invalid={!isContentValid}
+                        className={`w-full h-[500px] p-6 bg-gray-900 text-green-400 font-mono text-sm leading-relaxed rounded-2xl focus:ring-2 outline-none border-2 shadow-inner ${
+                            isContentValid
+                                ? 'border-transparent focus:ring-green-500'
+                                : 'border-red-500/70 focus:ring-red-500'
+                        }`}
                         spellCheck={false}
                     />
+                    {validationMessage && (
+                        <div
+                            className={`my-2 p-4 border rounded-xl flex items-start gap-3 ${
+                                validationMessage.ok
+                                    ? 'bg-green-50 border-green-200 text-green-700'
+                                    : 'bg-red-50 border-red-200 text-red-700'
+                            }`}
+                        >
+                            {validationMessage.ok
+                                ? <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5" />
+                                : <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />}
+                            <p className="text-sm font-bold">{validationMessage.text}</p>
+                        </div>
+                    )}
+                    {!isContentValid && !validationMessage && (
+                        <div className="my-2 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3 text-red-700">
+                            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                            <p className="text-sm font-bold">{liveDetection.format === 'invalid' ? liveDetection.error : 'Invalid content.'}</p>
+                        </div>
+                    )}
                     {error && (
                         <div className="my-2 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3 text-red-700">
                             <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
@@ -911,27 +984,30 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
                         title="Worksheet Content Editor"
                     >
                         {(() => {
-                            try {
-                                const data = JSON.parse(jsonContent);
-                                return (
-                                    <JSONKeyValueEditor
-                                        initialData={data}
-                                        onApply={handleVisualEditorApply}
-                                        onCancel={() => setShowVisualEditor(false)}
-                                    />
-                                );
-                            } catch (e) {
+                            const detected = parseContent(jsonContent);
+                            if (detected.format !== 'json') {
                                 return (
                                     <div className="p-12 text-center">
                                         <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-                                        <h3 className="text-lg font-bold text-gray-900 mb-2">Invalid JSON Content</h3>
-                                        <p className="text-gray-500 max-w-sm mx-auto">Please fix the syntax errors in the JSON textarea before using the visual editor.</p>
+                                        <h3 className="text-lg font-bold text-gray-900 mb-2">Visual Editor is JSON-only</h3>
+                                        <p className="text-gray-500 max-w-sm mx-auto">
+                                            The visual editor works on JSON content. Switch your content to a JSON object
+                                            (starts with <code className="bg-gray-100 px-1 rounded">&#123;</code> or <code className="bg-gray-100 px-1 rounded">[</code>)
+                                            to use it.
+                                        </p>
                                         <Button variant="outline" onClick={() => setShowVisualEditor(false)} className="mt-8">
                                             Go Back
                                         </Button>
                                     </div>
                                 );
                             }
+                            return (
+                                <JSONKeyValueEditor
+                                    initialData={detected.value}
+                                    onApply={handleVisualEditorApply}
+                                    onCancel={() => setShowVisualEditor(false)}
+                                />
+                            );
                         })()}
                     </Modal>
                 </div>
@@ -940,19 +1016,19 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
                     <Button variant="secondary" onClick={onCancel} type="button" className="px-6 order-last sm:order-none">
                         Cancel
                     </Button>
-                    <Button variant="outline" type="button" onClick={handlePreview} disabled={!lessonType} className="px-6 border-green-200 text-green-700 hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <Button variant="outline" type="button" onClick={handlePreview} disabled={!lessonType || !isContentValid} title={!isContentValid ? 'Fix the content format first' : undefined} className="px-6 border-green-200 text-green-700 hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed">
                         <Eye className="w-4 h-4 mr-2" /> Preview
                     </Button>
-                    <Button variant="outline" type="button" onClick={handleCopyEmbed} className="border-indigo-200  text-indigo-700 hover:bg-indigo-50">
+                    <Button variant="outline" type="button" onClick={handleCopyEmbed} disabled={!isContentValid} title={!isContentValid ? 'Fix the content format first' : undefined} className="border-indigo-200  text-indigo-700 hover:bg-indigo-50 disabled:opacity-50 disabled:cursor-not-allowed">
                         <Code className="w-4 h-4 mr-2" /> Copy Embed
                     </Button>
-                    <Button variant="success" type="button" onClick={handleDownloadHTML} className="shadow-lg shadow-green-100 px-6">
+                    <Button variant="success" type="button" onClick={handleDownloadHTML} disabled={!isContentValid} title={!isContentValid ? 'Fix the content format first' : undefined} className="shadow-lg shadow-green-100 px-6 disabled:opacity-50 disabled:cursor-not-allowed">
                         <Globe className="w-4 h-4 mr-2" /> Save as HTML
                     </Button>
 
                     {!isPublicCreator && (
                         <div className="ml-auto flex flex-col items-end w-full sm:w-auto mt-4 sm:mt-0">
-                            <Button variant="success" size="lg" type="submit" isLoading={createMutation.isPending || updateMutation.isPending} disabled={!isPocketbaseSupportedLanguage} className="px-10 shadow-lg shadow-green-100 w-full disabled:opacity-50 disabled:cursor-not-allowed">
+                            <Button variant="success" size="lg" type="submit" isLoading={createMutation.isPending || updateMutation.isPending} disabled={!isPocketbaseSupportedLanguage || !isContentValid} title={!isContentValid ? 'Fix the content format first' : undefined} className="px-10 shadow-lg shadow-green-100 w-full disabled:opacity-50 disabled:cursor-not-allowed">
                                 <Save className="w-4 h-4 mr-2" /> {lessonId ? 'Update Online Worksheet' : 'Create Online Worksheet'}
                             </Button>
                             {!isPocketbaseSupportedLanguage && language && (

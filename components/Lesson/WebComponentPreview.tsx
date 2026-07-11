@@ -3,7 +3,7 @@ import { X, Copy, Check, Eye, Code, Globe, FileCode } from 'lucide-react';
 import { Button } from '../UI/Button';
 import { ParsedLesson } from '../../types';
 import { getComponentConfig } from '../../utils/componentMapper';
-import { compileLessonHtml } from '../../utils/htmlCompiler';
+import { compileLessonHtml, buildPreviewElementHtml } from '../../utils/htmlCompiler';
 
 interface WebComponentPreviewProps {
   lesson: ParsedLesson;
@@ -13,14 +13,6 @@ interface WebComponentPreviewProps {
 export const WebComponentPreview: React.FC<WebComponentPreviewProps> = ({ lesson, onClose }) => {
   const [activeTab, setActiveTab] = useState<'preview' | 'compiled-preview' | 'code'>('preview');
   const [copied, setCopied] = useState(false);
-
-  const escapeHtml = (str: string) => {
-    return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/"/g, '&quot;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
-  };
 
   // Minimal lesson data for the embed script
   const embedData = JSON.stringify({
@@ -148,28 +140,7 @@ export const WebComponentPreview: React.FC<WebComponentPreviewProps> = ({ lesson
       );
     }
 
-    const attrs: string[] = [];
-    if (lesson.lessonType === 'lbl-reader') {
-      attrs.push(`lang-original="${escapeHtml(lesson.language)}"`);
-      attrs.push('lang-translation="Thai"');
-      attrs.push(`story-title="${escapeHtml(lesson.title || '')}"`);
-    } else if (lesson.lessonType === 'listening' && lesson.audioFileUrl) {
-      attrs.push(`audio-listening="${escapeHtml(lesson.audioFileUrl)}"`);
-    }
-
-    if (lesson.customConfig?.testMode) {
-      attrs.push('test-mode');
-    }
-
-    const contentHtml = typeof lesson.content === 'string'
-      ? `<script type="text/markdown">\n${lesson.content}\n</script>`
-      : JSON.stringify(lesson.content, null, 2);
-
-    const elementHtml = `
-      <${componentConfig.tag} ${attrs.join(' ')}>
-        ${contentHtml}
-      </${componentConfig.tag}>
-    `;
+    const { elementHtml } = buildPreviewElementHtml(lesson);
 
     const htmlContent = lesson.html || '';
     const placeholderRegex = /<(?:lesson-component|web-component)\b[^>]*>(?:<\/(?:lesson-component|web-component)>)?|<(?:lesson-component|web-component)\b[^>]*\/>/i;
