@@ -85,6 +85,38 @@ export const WebComponentPreview: React.FC<WebComponentPreviewProps> = ({ lesson
               font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
               background-color: #f9fafb;
             }
+            .tj-worksheet-compiled {
+              max-width: 56rem;
+              margin-left: auto;
+              margin-right: auto;
+              padding: 1rem;
+              background: white;
+              border-radius: 1.5rem;
+              box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+            }
+            @media (min-width: 640px) {
+              .tj-worksheet-compiled {
+                padding: 1.5rem;
+              }
+            }
+            .tj-worksheet-header {
+              margin-bottom: 1.5rem;
+              text-align: center;
+            }
+            .tj-worksheet-header h1 {
+              font-size: 1.875rem;
+              font-weight: 900;
+              color: #064e3b;
+              letter-spacing: -0.025em;
+              margin-bottom: 0.5rem;
+            }
+            .tj-worksheet-header p {
+              font-size: 0.875rem;
+              color: #6b7280;
+              font-weight: 500;
+              font-style: italic;
+              margin-top: 0.25rem;
+            }
           </style>
         </head>
         <body>
@@ -227,7 +259,7 @@ export const WebComponentPreview: React.FC<WebComponentPreviewProps> = ({ lesson
             </div>
           )}
           {activeTab === 'compiled-preview' && (
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden min-h-[400px]">
+            <div className="bg-white rounded-2xl shadow-sm overflow-hidden min-h-[400px]">
               {renderCompiledPreview()}
             </div>
           )}
