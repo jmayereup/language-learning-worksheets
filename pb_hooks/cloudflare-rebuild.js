@@ -4,12 +4,7 @@
 // because each handler is serialized and executed in isolation.
 
 module.exports = function triggerCloudflareRebuild(logger, collection, recordId) {
-    const deployHookUrl = $os.getenv("CLOUDFLARE_DEPLOY_HOOK_URL") || "https://api.cloudflare.com/client/v4/pages/webhooks/deploy_hooks/9bcde703-70bb-4046-8794-fed92562fe0c";
-
-    if (!deployHookUrl) {
-        logger.info("CLOUDFLARE_DEPLOY_HOOK_URL not set, skipping rebuild");
-        return;
-    }
+    const deployHookUrl = "https://api.cloudflare.com/client/v4/pages/webhooks/deploy_hooks/9bcde703-70bb-4046-8794-fed92562fe0c";
 
     try {
         $http.send({
