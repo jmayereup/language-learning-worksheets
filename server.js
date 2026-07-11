@@ -78,8 +78,51 @@ async function fetchLessonMeta(lessonId) {
 
 const router = express.Router();
 
+router.use(express.json());
+
 // Serve static assets directly (JS, CSS, images, etc.)
 router.use(express.static(join(__dirname, 'dist'), { index: false }));
+
+// Authenticated proxy to the Cloudflare Pages deploy hook.
+// Requires a valid PocketBase _superusers auth token in the Authorization header.
+router.post('/api/rebuild', async (req, res) => {
+  const authToken = req.headers.authorization;
+  if (!authToken) {
+    return res.status(401).json({ ok: false, error: 'Missing Authorization header' });
+  }
+
+  const webhookUrl = process.env.CLOUDFLARE_DEPLOY_HOOK_URL;
+  if (!webhookUrl) {
+    console.error('CLOUDFLARE_DEPLOY_HOOK_URL is not set');
+    return res.status(500).json({ ok: false, error: 'CLOUDFLARE_DEPLOY_HOOK_URL is not configured' });
+  }
+
+  try {
+    const refreshRes = await fetch(`${PB_URL}/api/collections/_superusers/auth-refresh`, {
+      method: 'POST',
+      headers: { Authorization: authToken },
+    });
+    if (!refreshRes.ok) {
+      return res.status(401).json({ ok: false, error: 'Invalid or expired auth token' });
+    }
+  } catch (err) {
+    console.error('Auth validation failed:', err.message);
+    return res.status(502).json({ ok: false, error: 'Failed to validate auth with PocketBase' });
+  }
+
+  try {
+    const cfRes = await fetch(webhookUrl, { method: 'POST' });
+    if (!cfRes.ok) {
+      console.error(`Cloudflare rebuild failed: ${cfRes.status} ${cfRes.statusText}`);
+      return res.status(502).json({ ok: false, error: `Cloudflare responded ${cfRes.status}` });
+    }
+    console.log('Cloudflare rebuild triggered successfully');
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error('Cloudflare rebuild request failed:', err.message);
+    return res.status(502).json({ ok: false, error: err.message });
+  }
+});
 
 // All HTML requests go through OG injection
 router.get('/{*path}', async (req, res) => {

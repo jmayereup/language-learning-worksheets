@@ -24,6 +24,8 @@ const createPB = () => {
 const pb = createPB();
 pb.autoCancellation(false);
 
+export { pb };
+
 export const getFileUrl = (record: LessonRecord | { collectionId: string, id: string }, filename: string, _queryParams?: Record<string, any>) => {
   if (!filename) return '';
   const collection = (record as any).collectionId || (record as any).collectionName;
