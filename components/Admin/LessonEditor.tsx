@@ -8,6 +8,7 @@ import { JSONKeyValueEditor } from './JSONKeyValueEditor';
 import { SearchableSelect } from '../UI/SearchableSelect';
 import { VisualHTMLEditor } from './VisualHTMLEditor';
 import geminiCopyExample from '../../assets/copy-from-gemini-example.png';
+import { compileLessonHtml } from '../../utils/htmlCompiler';
 
 
 
@@ -313,32 +314,27 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({ lessonId, initialDat
                 }
             }
 
-            const embedData = JSON.stringify({
+            const tempLesson = {
+                id: lessonId || '',
                 title,
                 level,
                 language,
                 tags: selectedTags,
+                imageUrl: imagePreview || undefined,
+                audioFileUrl: lessonData?.audioFileUrl || undefined,
                 videoUrl,
                 isVideoLesson,
                 lessonType,
+                creatorId: lessonData?.creatorId || undefined,
                 seo,
                 html,
                 teacherCode,
                 customConfig: { ...customConfig, testMode },
                 content: parsedContent,
                 isStandalone: isPublicCreator
-            }, null, 2);
+            };
 
-            return `<!-- TJ Worksheet Embed -->
-<link rel="stylesheet" href="https://worksheets.teacherjake.com/wc/language-learning-worksheets.css">
-
-<tj-pocketbase-worksheet>
-  <script type="application/json">
-${embedData}
-  </script>
-</tj-pocketbase-worksheet>
-
-<script src="https://worksheets.teacherjake.com/wc/tj-pocketbase-worksheet.umd.js"></script>`;
+            return compileLessonHtml(tempLesson, html || '');
         } catch (e) {
             setError('Failed to generate embed code.');
             return null;

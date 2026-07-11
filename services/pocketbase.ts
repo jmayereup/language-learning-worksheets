@@ -1,5 +1,6 @@
 import PocketBase from 'pocketbase';
 import { LessonRecord, ParsedLesson, LessonContent } from '../types';
+import { compileLessonHtml } from '../utils/htmlCompiler';
 
 // Initialize PocketBase
 // Note: We use the URL provided in the original application
@@ -275,26 +276,83 @@ export const fetchPaginatedLessons = async (
   }
 };
 
+// Helper to compile HTML for a saved record
+const compileHtmlForRecord = (record: any): string => {
+  const imageUrl = record.image ? getFileUrl(record, record.image) : undefined;
+  const audioFileUrl = record.audioFile ? getFileUrl(record, record.audioFile) : undefined;
+  
+  const parseJSON = (val: any) => {
+    if (typeof val === 'string') {
+      try {
+        return JSON.parse(val);
+      } catch (e) {
+        return val;
+      }
+    }
+    return val;
+  };
+
+  const lessonForCompile = {
+    id: record.id,
+    title: record.title,
+    level: record.level,
+    language: record.language,
+    tags: record.tags || [],
+    isVideoLesson: record.isVideoLesson,
+    videoUrl: record.videoUrl,
+    lessonType: record.lessonType,
+    seo: record.seo,
+    teacherCode: record.teacherCode,
+    customConfig: parseJSON(record.customConfig),
+    content: parseJSON(record.content),
+    imageUrl,
+    audioFileUrl,
+    created: record.created,
+    updated: record.updated
+  };
+
+  return compileLessonHtml(lessonForCompile, record.html || '');
+};
+
 // CRUD methods
 export const createLesson = async (data: any) => {
   const user = getCurrentUser();
+  let record: any;
   
   if (data instanceof FormData) {
     if (user?.id) {
       data.append('creatorId', user.id);
     }
-    return await pb.collection('worksheets').create(data);
+    record = await pb.collection('worksheets').create(data);
+  } else {
+    const payload = {
+      ...data,
+      creatorId: user?.id
+    };
+    record = await pb.collection('worksheets').create(payload);
   }
 
-  const payload = {
-    ...data,
-    creatorId: user?.id
-  };
-  return await pb.collection('worksheets').create(payload);
+  try {
+    const compiled = compileHtmlForRecord(record);
+    record = await pb.collection('worksheets').update(record.id, { htmlCompiled: compiled });
+  } catch (err) {
+    console.error('Failed to compile and save HTML block on create:', err);
+  }
+
+  return record;
 };
 
 export const updateLesson = async (id: string, data: any) => {
-  return await pb.collection('worksheets').update(id, data);
+  let record = await pb.collection('worksheets').update(id, data);
+
+  try {
+    const compiled = compileHtmlForRecord(record);
+    record = await pb.collection('worksheets').update(record.id, { htmlCompiled: compiled });
+  } catch (err) {
+    console.error('Failed to compile and save HTML block on update:', err);
+  }
+
+  return record;
 };
 
 export const deleteLesson = async (id: string) => {

@@ -254,6 +254,7 @@ export type WorksheetsRecord<Tcontent = unknown, TcustomConfig = any> = {
 	created: IsoAutoDateString
 	creatorId?: string
 	html?: HTMLString
+	htmlCompiled?: HTMLString
 	id: string
 	image?: FileNameString
 	isVideoLesson?: boolean

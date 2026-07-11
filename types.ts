@@ -290,6 +290,7 @@ export interface LessonRecord {
   seo?: string;
   description?: string;
   html?: string;
+  htmlCompiled?: string;
   teacherCode?: string;
   customConfig?: any;
 }

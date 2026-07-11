@@ -51,6 +51,7 @@ export const LessonView: React.FC<Props> = ({ lesson, teacherCode }) => {
   const isInfoGap = isInformationGapLesson(lesson.content);
   const isChapter = isChapterBook(lesson.content);
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const htmlContent = lesson.html || '';
 
   // Determine effective lesson type - trust explicit database field first, fall back to structure detection
   const effectiveLessonType = lesson.lessonType || (
@@ -210,7 +211,7 @@ export const LessonView: React.FC<Props> = ({ lesson, teacherCode }) => {
      isFocused ? (lesson.content as FocusedReaderContent).seo_intro : 
      isInfoGap ? (lesson.content as InformationGapContent).seo_intro : undefined);
 
-  const htmlContent = lesson.html || '';
+
   const placeholderRegex = /<(?:lesson-component|web-component)\b[^>]*>(?:<\/(?:lesson-component|web-component)>)?|<(?:lesson-component|web-component)\b[^>]*\/>/i;
   const hasPlaceholder = placeholderRegex.test(htmlContent);
 

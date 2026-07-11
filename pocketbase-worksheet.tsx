@@ -69,17 +69,15 @@ export class TJPocketBaseWorksheet extends HTMLElement {
           width: 100% !important;
         }
 
-        /* If browser supports :has(), use the surgical isolation logic */
-        @supports (selector(:has(*))) {
-          :root:has(.tj-printable-worksheet) body *:not(:has(.tj-printable-worksheet)):not(.tj-printable-worksheet):not(.tj-printable-worksheet *) {
-            display: none !important;
-          }
-          :root:has(.tj-printable-worksheet) body :has(.tj-printable-worksheet) {
-            background: transparent !important;
-            border: none !important;
-            margin: 0 !important;
-            padding: 0 !important;
-          }
+        /* Isolation logic */
+        :root:has(.tj-printable-worksheet) body *:not(:has(.tj-printable-worksheet)):not(.tj-printable-worksheet):not(.tj-printable-worksheet *) {
+          display: none !important;
+        }
+        :root:has(.tj-printable-worksheet) body :has(.tj-printable-worksheet) {
+          background: transparent !important;
+          border: none !important;
+          margin: 0 !important;
+          padding: 0 !important;
         }
       }
     `;
@@ -154,7 +152,7 @@ export class TJPocketBaseWorksheet extends HTMLElement {
         this.shadowRoot.innerHTML = '';
         
         const styleElement = document.createElement('style');
-        styleElement.textContent = styles;
+        styleElement.textContent = `${styles}\n:host { display: block; width: 100%; }`;
         this.shadowRoot.appendChild(styleElement);
         
         // Create a mount point for React
