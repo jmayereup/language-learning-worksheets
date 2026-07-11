@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { getCurrentUser, fetchLessonById } from '../../services/pocketbase';
 import { usePaginatedLessons, useDeleteLesson } from '../../hooks/useLessons';
 import { Button } from '../UI/Button';
@@ -19,6 +19,7 @@ export const LessonList: React.FC<LessonListProps> = ({ onEdit, onPreview, onAdd
     const [selectedType, setSelectedType] = useState('All');
     const [page, setPage] = useState(1);
     const perPage = 20;
+    const searchInputRef = useRef<HTMLInputElement>(null);
 
     const [selectedLessonIds, setSelectedLessonIds] = useState<Set<string>>(new Set());
     const [isBuilding, setIsBuilding] = useState(false);
@@ -31,10 +32,11 @@ export const LessonList: React.FC<LessonListProps> = ({ onEdit, onPreview, onAdd
         const timer = setTimeout(() => {
             setDebouncedSearch(searchQuery);
             setPage(1); // Reset page on new search
-        }, 300);
+        }, 800);
         return () => clearTimeout(timer);
     }, [searchQuery]);
 
+    // Focus search input after data fetch completes
     // Reset to page 1 when filters change
     useEffect(() => {
         setPage(1);
@@ -50,6 +52,13 @@ export const LessonList: React.FC<LessonListProps> = ({ onEdit, onPreview, onAdd
     );
     const lessons = paginationData?.items || [];
     const deleteMutation = useDeleteLesson();
+
+    // Focus search input after data fetch completes
+    useEffect(() => {
+        if (!loading && searchInputRef.current && document.activeElement !== searchInputRef.current) {
+            searchInputRef.current.focus();
+        }
+    }, [loading]);
 
     const handlePreview = async (lessonStub: any) => {
         try {
@@ -159,11 +168,13 @@ export const LessonList: React.FC<LessonListProps> = ({ onEdit, onPreview, onAdd
                         <Search className="h-4 w-4 text-gray-400 group-focus-within:text-green-500 transition-colors" />
                     </div>
                     <input
+                        ref={searchInputRef}
                         type="text"
                         placeholder="Search worksheets by title..."
                         className="block w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all shadow-sm"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
+                        autoComplete="off"
                     />
                 </div>
                 
@@ -450,6 +461,11 @@ export const LessonList: React.FC<LessonListProps> = ({ onEdit, onPreview, onAdd
                     <p className="text-gray-500 font-medium">
                         {searchQuery ? `No worksheets matching "${searchQuery}"` : 'No worksheets found in the registry.'}
                     </p>
+                    {searchQuery && paginationData && paginationData.totalItems > 0 && (
+                        <p className="text-sm text-gray-400 mt-2">
+                            Found {paginationData.totalItems} total result{paginationData.totalItems !== 1 ? 's' : ''} across all pages
+                        </p>
+                    )}
                 </div>
             )}
 
@@ -459,7 +475,8 @@ export const LessonList: React.FC<LessonListProps> = ({ onEdit, onPreview, onAdd
                         <div>
                             <p className="text-sm text-gray-700">
                                 Showing <span className="font-medium">{(page - 1) * perPage + 1}</span> to <span className="font-medium">{Math.min(page * perPage, paginationData.totalItems)}</span> of{' '}
-                                <span className="font-medium">{paginationData.totalItems}</span> worksheets
+                                <span className="font-medium">{paginationData.totalItems}</span> {searchQuery ? 'matching worksheets' : 'worksheets'}
+                                {searchQuery && <span className="text-green-600 ml-1">for "{searchQuery}"</span>}
                             </p>
                         </div>
                         <div>
@@ -500,6 +517,7 @@ export const LessonList: React.FC<LessonListProps> = ({ onEdit, onPreview, onAdd
                         </Button>
                         <span className="text-sm text-gray-700 self-center">
                             Page {page} of {paginationData.totalPages}
+                            {searchQuery && <span className="text-green-600 ml-1">({paginationData.totalItems} results)</span>}
                         </span>
                         <Button
                             variant="outline"

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { LoginForm } from './LoginForm';
 import { LessonList } from './LessonList';
-import { LessonEditor } from './LessonEditor';
+import { LessonEditor } from './LessonEditorRefactored';
 import { isAdmin } from '../../services/pocketbase';
 import { Button } from '../UI/Button';
 import { LayoutDashboard, ArrowLeft, Plus } from 'lucide-react';

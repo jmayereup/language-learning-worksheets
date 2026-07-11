@@ -6,7 +6,7 @@ import { Button } from './components/UI/Button';
 import { BookOpen, Search, FlaskConical, Video, Feather, FileText, X, LogIn, LogOut, AlertTriangle, User, ChevronDown } from 'lucide-react';
 import { BrowserSupportWarning } from './components/UI/BrowserSupportWarning';
 import { AdminDashboard } from './components/Admin/AdminDashboard';
-import { LessonEditor } from './components/Admin/LessonEditor';
+import { LessonEditor } from './components/Admin/LessonEditorRefactored';
 import { WebComponentPreview } from './components/Lesson/WebComponentPreview';
 import { SearchableSelect } from './components/UI/SearchableSelect';
 import { LoginForm } from './components/Admin/LoginForm';

@@ -242,22 +242,21 @@ export const fetchPaginatedLessons = async (
   try {
     const options: any = {
       sort: '-created',
-      fields: 'id,collectionId,collectionName,title,level,language,lessonType,created,image,videoUrl,creatorId'
+      fields: 'id,collectionId,collectionName,title,level,language,lessonType,created,image,videoUrl,creatorId,seo:excerpt(150,true)'
     };
 
     const filters: string[] = [];
     if (creatorId) {
-      filters.push(`creatorId = "${creatorId}"`);
+      filters.push(pb.filter('creatorId = {:creatorId}', { creatorId }));
     }
     if (searchQuery) {
-      // Basic text search on title
-      filters.push(`title ~ "${searchQuery}"`); 
+      filters.push(pb.filter('title ~ {:search} || seo ~ {:search}', { search: searchQuery }));
     }
     if (language && language !== 'All') {
-      filters.push(`language = "${language}"`);
+      filters.push(pb.filter('language = {:language}', { language }));
     }
     if (lessonType && lessonType !== 'All') {
-      filters.push(`lessonType = "${lessonType}"`);
+      filters.push(pb.filter('lessonType = {:lessonType}', { lessonType }));
     }
 
     if (filters.length > 0) {

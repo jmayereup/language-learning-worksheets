@@ -5,9 +5,18 @@ export const DEFAULT_TEACHER_CODE = '6767';
 export const TEXTAREA_HEIGHT = 'h-[500px]';
 
 export const GEMINI_URLS: Record<string, string> = {
-  'information-gap': 'https://gemini.google.com/gem/1bdsM9tYk1Qb4lcCsnPVOTK1FR_37HYnX?usp=sharing',
-  'focused-reading': 'https://gemini.google.com/gem/1ZcCIp-jD0vhJk_nZziTbmGv0eVz-vfHV?usp=sharing',
-  'default': 'https://gemini.google.com/gem/1a183ceHi_da5ac9scUQ3AXs0A5-TcOtn?usp=sharing'
+  'worksheets': 'https://gemini.google.com/gem/03def3a81ea5',
+  'pronunciation': 'https://gemini.google.com/gem/d45e00c6dcb5',
+  'grammar-hearts': 'https://gemini.google.com/gem/d8664c27f003',
+  'focused-reader': 'https://gemini.google.com/gem/35b48fa98b7b',
+  'speed-review': 'https://gemini.google.com/gem/5a7412981b90',
+  'quiz-element': 'https://gemini.google.com/gem/4bbfe190f849',
+  'word-blaster': 'https://gemini.google.com/gem/e5a67e2602df',
+  'information-gap': 'https://gemini.google.com/gem/c4ce1f63dfd9',
+  'listening': 'https://gemini.google.com/gem/a282ff7b4b26',
+  'lbl-reader': 'https://gemini.google.com/gem/9dfd58f9fc59',
+  'chapter-book': 'https://gemini.google.com/gem/209dda1b768d',
+  'default': 'https://gemini.google.com/gem/03def3a81ea5'
 };
 
 export const FILE_UPLOAD_CONSTRAINTS = {

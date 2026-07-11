@@ -69,6 +69,17 @@ export const LessonEditor: React.FC<LessonEditorProps> = ({
     }
   }, [autoSEO, formState.metadata.seo, actions]);
 
+  React.useEffect(() => {
+    if (lesson?.content) {
+      const contentString = typeof lesson.content === 'string' 
+        ? lesson.content 
+        : JSON.stringify(lesson.content, null, 2);
+      setJsonContent(contentString);
+    } else if (!lessonId && !jsonContent) {
+      setJsonContent('');
+    }
+  }, [lesson, lessonId]);
+
   const handleContentChange = (newContent: string) => {
     setJsonContent(newContent);
     if (formState.ui.validationMessage) {

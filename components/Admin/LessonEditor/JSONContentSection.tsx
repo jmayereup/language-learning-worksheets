@@ -5,7 +5,7 @@ import { Modal } from '../../UI/Modal';
 import { JSONKeyValueEditor } from '../JSONKeyValueEditor';
 import { DetectedContent } from '../../../utils/contentFormat';
 import { getFormatLabel, getFormatBadgeStyle, getFormatTooltip, getFormatDetail, createValidationMessage } from '../../../utils/contentValidation';
-import { TEXTAREA_HEIGHT } from '../../../config/lessonEditor';
+import { TEXTAREA_HEIGHT, getGeminiUrl } from '../../../config/lessonEditor';
 
 interface JSONContentSectionProps {
   jsonContent: string;
@@ -91,6 +91,21 @@ export const JSONContentSection: React.FC<JSONContentSectionProps> = ({
           >
             <ClipboardPaste className="w-4 h-4" /> Paste
           </Button>
+          
+          {lessonType ? (
+            <a
+              href={getGeminiUrl(lessonType)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[10px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 bg-blue-50 px-2 py-1 rounded-md border border-blue-100 transition-colors"
+            >
+              <Info className="w-4 h-4" /> Get JSON from Gemini
+            </a>
+          ) : (
+            <span className="text-[10px] font-bold text-gray-400 flex items-center gap-1 bg-gray-50 px-2 py-1 rounded-md border border-gray-200 cursor-not-allowed opacity-70" title="Select a Lesson Type first">
+              <Info className="w-4 h-4" /> Get JSON from Gemini
+            </span>
+          )}
         </div>
       </div>
 
