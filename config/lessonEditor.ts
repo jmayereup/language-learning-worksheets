@@ -5,10 +5,10 @@ export const DEFAULT_TEACHER_CODE = '6767';
 export const TEXTAREA_HEIGHT = 'h-[500px]';
 
 export const GEMINI_URLS: Record<string, string> = {
-  'worksheets': 'https://gemini.google.com/gem/03def3a81ea5',
+  'worksheet': 'https://gemini.google.com/gem/03def3a81ea5',
   'pronunciation': 'https://gemini.google.com/gem/d45e00c6dcb5',
   'grammar-hearts': 'https://gemini.google.com/gem/d8664c27f003',
-  'focused-reader': 'https://gemini.google.com/gem/35b48fa98b7b',
+  'focused-reading': 'https://gemini.google.com/gem/35b48fa98b7b',
   'speed-review': 'https://gemini.google.com/gem/5a7412981b90',
   'quiz-element': 'https://gemini.google.com/gem/4bbfe190f849',
   'word-blaster': 'https://gemini.google.com/gem/e5a67e2602df',
